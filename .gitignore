@@ -111,7 +111,6 @@ package-lock.json
 # Android memory profiler files
 *.hprof
 
-Frontend/WatchNext-Frontend/.expo/*
-
-Frontend/WatchNext-Frontend/android/*
-Frontend/WatchNext-Frontend/ios/*
+WatchNext-Frontend/.expo/*
+WatchNext-Frontend/android/*
+WatchNext-Frontend/ios/*
