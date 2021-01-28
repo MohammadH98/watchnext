@@ -1,0 +1,12 @@
+{
+  "name": "WatchNext-Frontend",
+  "displayName": "WatchNext-Frontend",
+  "expo": {
+    "name": "WatchNext-Frontend",
+    "slug": "WatchNext-Frontend",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
