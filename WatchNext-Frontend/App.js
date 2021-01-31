@@ -1,62 +1,47 @@
-import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native';
-import './App.css'
-import TinderCard from 'react-tinder-card'
+import { StatusBar } from "expo-status-bar";
+import React from "react";
+import { StyleSheet, Text, View, SafeAreaView, Image, TouchableHighlight, Button, Alert } from "react-native";
+import { useDeviceOrientation, useDimensions } from "@react-native-community/hooks"
 
-const db = [
-  {
-    name: 'Richard Hendricks',
-    url: './img/richard.jpg'
-  },
-  {
-    name: 'Erlich Bachman',
-    url: './img/erlich.jpg'
-  },
-  {
-    name: 'Monica Hall',
-    url: './img/monica.jpg'
-  },
-  {
-    name: 'Jared Dunn',
-    url: './img/jared.jpg'
-  },
-  {
-    name: 'Dinesh Chugtai',
-    url: './img/dinesh.jpg'
-  }
-]
+export default function App() {
 
-function Simple () {
-  const characters = db
-  const [lastDirection, setLastDirection] = useState()
+  const landscape = useDeviceOrientation()['landscape'];
+  const logYes = () => console.log('yes')
+  const handlePress = () => Alert.alert(
+    "pressed",
+    "pressed",
+    [
+      { text: 'yes', onPress: logYes },
+      { text: 'no', onPress: () => console.log('no') }
+    ]
+  );
 
-  const swiped = (direction, nameToDelete) => {
-    console.log('removing: ' + nameToDelete)
-    setLastDirection(direction)
-  }
-
-  const outOfFrame = (name) => {
-    console.log(name + ' left the screen!')
-  }
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      flexDirection: 'column',
+      justifyContent: "center", //primary, how they are
+      alignItems: "center", //secondary, how they appear within the flex box
+      backgroundColor: "#fff",
+      paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 20
+    },
+    bgBlue: {
+      backgroundColor: 'dodgerblue',
+      width: '100%',
+      height: landscape ? '100%' : '30%'
+    },
+    center: {
+      textAlign: 'center'
+    }
+  });
 
   return (
-    <div>
-      <link href='https://fonts.googleapis.com/css?family=Damion&display=swap' rel='stylesheet' />
-      <link href='https://fonts.googleapis.com/css?family=Alatsi&display=swap' rel='stylesheet' />
-      <h1>React Tinder Card</h1>
-      <div className='cardContainer'>
-        {characters.map((character) =>
-          <TinderCard className='swipe' key={character.name} onSwipe={(dir) => swiped(dir, character.name)} onCardLeftScreen={() => outOfFrame(character.name)}>
-            <div style={{ backgroundImage: 'url(' + character.url + ')' }} className='card'>
-              <h3>{character.name}</h3>
-            </div>
-          </TinderCard>
-        )}
-      </div>
-      {lastDirection ? <h2 className='infoText'>You swiped {lastDirection}</h2> : <h2 className='infoText' />}
-    </div>
-  )
+    <SafeAreaView style={styles.container}>
+      <View style={styles.container, styles.bgBlue}>
+        <Text style={styles.center}>Hello</Text>
+      </View>
+    </SafeAreaView>
+  );
 }
 
-export default Simple
+
