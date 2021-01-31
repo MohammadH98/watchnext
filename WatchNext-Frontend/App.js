@@ -18,23 +18,6 @@ class App extends React.Component {
   }
 
   render() {
-
-    const styles = StyleSheet.create({
-      mainContainer: {
-        flex: 1,
-        alignItems: 'center',
-      },
-      headingText: {
-        textAlign: 'center',
-        fontSize: 40
-      },
-      mainImage: {
-        width: 400,
-        height: 600,
-        marginBottom: 25
-      },
-    })
-
     return (
       <View style={[styles.mainContainer, { paddingTop: 20 }]}>
         {this.state.loggedIn
@@ -57,5 +40,20 @@ class App extends React.Component {
   }
 }
 
+const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headingText: {
+    textAlign: 'center',
+    fontSize: 40
+  },
+  mainImage: {
+    width: 400,
+    height: 600,
+    marginBottom: 25
+  },
+})
 
 export default App
