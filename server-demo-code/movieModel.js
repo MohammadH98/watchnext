@@ -1,7 +1,7 @@
 //contains the schema for the movies database collection
 var mongoose = require('mongoose');
 
-//get rid of depreceated warning for unique true
+//this gets rid of depreceated warning for unique true
 mongoose.set('useCreateIndex', true)
 
 //setup schema
@@ -15,11 +15,11 @@ var movieSchema = mongoose.Schema({
     type: String,
     required: true
   },
-  media: {
+  year: {
     type: String,
     required: false
   },
-  year: {
+  maturity_rating: {
     type: String,
     required: false
   },
@@ -27,11 +27,7 @@ var movieSchema = mongoose.Schema({
     type: String,
     required: false
   },
-  duration: {
-    type: String,
-    required: false
-  },
-  imdb: {
+  media: {
     type: String,
     required: false
   },
@@ -49,7 +45,7 @@ var movieSchema = mongoose.Schema({
   }
 });
 
-//Export user model
+//Export user model (note that the default collection name is the name specified in mongoose.model with an s on the end, so here it is movies)
 var Movie = module.exports = mongoose.model('movie', movieSchema);
 
 module.exports.get = function(callback, limit){

@@ -13,14 +13,14 @@ exports.getAll = function(req, res){
       data: users
     })
   }).catch(err=>{
-    res.json({
+    res.status(500).json({
       status: "error",
       message: err
     })
   });
 };
 
-// view individual user (allows you to view their liked or disliked list there)
+// handles viewing individual user (allows you to view their liked or disliked list there)
 exports.getOne = function (req, res){
   User.findOne({user_id: req.params.id}).then(user=>{
     if (user){
@@ -30,21 +30,21 @@ exports.getOne = function (req, res){
       });
     }
     else
-      res.json({
+      res.status(404).json({
         message: 'Unable to find any user with that id'
       })
   }).catch(err =>{
-    res.send(err);
+    res.status(500).json({message: err});
   });
 };
 
 
-// creating new users
+// handles creating new users
 exports.new = function(req, res){
 
   //validate that request contains all neccesary parts
   if (!req.body.user_id){
-    return res.status(400).send({
+    return res.status(400).json({
       message: "Please include user_id"
     })
   }
@@ -57,25 +57,25 @@ exports.new = function(req, res){
   //save the movie and check for errors
   user.save()
     .then( user => {
-      res.json({
+      res.status(201).json({
         message: 'new user created',
         data: user
       });
     }).catch(err =>{
-      res.status(500).send({
+      res.status(500).json({
         message: err.message || "some error occured while creating new user"
       })
     })
 };
 
-// update user's like or disliked list
+// handles update user's like or disliked list
 exports.update = function(req, res){
   User.findOne({user_id: req.body.user_id}).then(user=>{
-    if (!user)
-      return res.send({message: 'Unable to find any user with that ID'})
 
-    console.log(user)
-    if (req.body.liked){
+    if (!user)
+      return res.status(404).json({message: 'Unable to find any user with that ID'})
+
+    else if (req.body.liked){
       var new_likes_arr = user.likes.slice()
       new_likes_arr.push(req.body.movie_id)
       user.likes = new_likes_arr;
@@ -86,7 +86,6 @@ exports.update = function(req, res){
       user.dislikes = new_dislikes_arr;
     }
 
-    console.log(user)
     //save user and check for errors
     user.save().then(user=>{
       res.json({
@@ -94,27 +93,27 @@ exports.update = function(req, res){
         data: user
       });
     }).catch(err=>{
-      res.json(err);
+      res.status(500).json(err);
     })
   }).catch(err=>{
-    res.json(err)
+    res.status(500).json(err)
   })
 }
 
-// delete user
+// handles deleteing user
 exports.delete = function (req, res){
-  User.deleteOne({
-    user_id: req.params.id
-  }, function(err, user){
-    if (err)
-      return res.send(err);
-    console.log(user)
-    if (!user.deletedCount)
-      return res.send({message: "no user with that id found"})
 
-    res.json({
-      status: 'success',
-      message: 'user deleted'
+  User.deleteOne({user_id: req.params.id})
+    .then(user=>{
+      if (!user.deletedCount)
+        return res.status(404).json({message: "no user with that id found"})
+
+      res.json({
+        status: 'success',
+        message: 'user deleted'
+      })
     })
-  })
+    .catch(err=>{
+      return res.status(500).json(err);
+    });
 }
