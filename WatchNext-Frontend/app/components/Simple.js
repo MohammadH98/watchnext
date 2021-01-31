@@ -1,65 +1,89 @@
-import React, { useState } from 'react'
-// import TinderCard from '../react-tinder-card/index'
-import TinderCard from 'react-tinder-card'
-
+import React from 'react'
+import CardStack, { Card } from 'react-native-card-stack-swiper';
+import { View, Button, StyleSheet, Alert, Text, Image } from 'react-native';
 
 class Simple extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            lastDirection: "",
             likedMovies: [],
-            dislikedMovies: []
+            dislikedMovies: [],
+            currentMovieIndex: 0
         }
     }
 
+    formatMovieData(movies) {
+        return Object.entries(movies)[0][1]
+    }
+
+    showMovieDetails(movie) {
+        console.log(movie)
+        Alert.alert(
+            movie.title,
+            movie.description
+            + '\nDuration: ' + movie.duration
+            + (movie.meta.director != '' && movie.meta.director != undefined
+                ? '\nDirector: ' + movie.meta.director
+                : '')
+        );
+    }
+
     render() {
-        console.log(this.state)
-        var characters = this.props.data
+        var movies = this.formatMovieData(this.props.data)
 
         var swiped = (direction, nameToDelete) => {
             console.log('removing: ' + nameToDelete)
             var category = direction === 'right' ? 'likedMovies' : 'dislikedMovies'
+            //send data to server
+            var currentIndex = this.state.currentMovieIndex + 1;
             this.setState({
-                lastDirection: direction,
-                [category]: [...this.state.[category], nameToDelete]
+                [category]: [...this.state.[category], nameToDelete],
+                currentMovieIndex: currentIndex
             })
         }
 
-        var outOfFrame = (name) => {
-            console.log(name + ' left the screen!')
-        }
-
         return (
-            <div>
-                <link
-                    href='https://fonts.googleapis.com/css?family=Damion&display=swap'
-                    rel='stylesheet' />
-                <link
-                    href='https://fonts.googleapis.com/css?family=Alatsi&display=swap'
-                    rel='stylesheet' />
-                <h1>React Tinder Card</h1>
-                <div className='cardContainer'>
-                    {characters.map((character) => <TinderCard
-                        className='swipe'
-                        key={character.name}
-                        onSwipe={(dir) => swiped(dir, character.name)}
-                        onCardLeftScreen={() => outOfFrame(character.name)}>
-                        <div
-                            style={{
-                                backgroundImage: 'url(' + character.url + ')'
-                            }}
-                            className='card'>
-                            <h3>{character.name}</h3>
-                        </div>
-                    </TinderCard>)}
-                </div>
-                {this.state.lastDirection
-                    ? <h2 className='infoText'>You swiped {this.state.lastDirection}</h2>
-                    : <h2 className='infoText' />}
-            </div >
+            <View style={styles.mainContainer}>
+                <CardStack
+                    style={styles.card}
+                    ref={swiper => { this.swiper = swiper }}
+                    disableBottomSwipe
+                >
+                    {movies.map((movie) => <Card
+                        key={movie.id}
+                        style={styles.card}
+                        onSwipedLeft={() => swiped('left', movie.id)}
+                        onSwipedRight={() => swiped('right', movie.id)}
+                        onSwipedTop={() => swiped('up', movie.id)}
+                    >
+                        <Image
+                            source={{ uri: movie.image, width: 400, height: 600 }}
+                        />
+                    </Card>)}
+                </CardStack>
+                <Button
+                    title='Show Movie Details'
+                    onPress={() => this.showMovieDetails(movies[this.state.currentMovieIndex])}
+                />
+            </View >
         )
     }
 }
+
+const styles = StyleSheet.create({
+    mainContainer: {
+        display: 'flex',
+        alignSelf: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        overflow: 'hidden',
+        width: 400
+    },
+    card: {
+        width: 400,
+        height: 600,
+        borderRadius: 20,
+    }
+})
 
 export default Simple

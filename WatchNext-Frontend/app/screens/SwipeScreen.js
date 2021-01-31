@@ -1,39 +1,30 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import Simple from '../components/Simple'
-
-const db = [
-    {
-        name: 'Richard Hendricks',
-        url: './img/richard.jpg'
-    },
-    {
-        name: 'Erlich Bachman',
-        url: './img/erlich.jpg'
-    },
-    {
-        name: 'Monica Hall',
-        url: './img/monica.jpg'
-    },
-    {
-        name: 'Jared Dunn',
-        url: './img/jared.jpg'
-    },
-    {
-        name: 'Dinesh Chugtai',
-        url: './img/dinesh.jpg'
-    }
-]
+import { getMovieData } from '../components/MovieData'
 
 function SwipeScreen(props) {
+    var movies = getMovieData();
     return (
-        <View>
-            <Simple data={db} />
+        <View style={styles.mainContainer}>
+            <Text style={styles.headingText}>React Tinder Card</Text>
+            <View>
+                <Simple data={movies} />
+            </View>
         </View>
     );
 }
-
 const styles = StyleSheet.create({
-
+    mainContainer: {
+        display: 'flex',
+        alignSelf: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        paddingTop: 20
+    },
+    headingText: {
+        fontSize: 40
+    }
 })
+
 export default SwipeScreen;
