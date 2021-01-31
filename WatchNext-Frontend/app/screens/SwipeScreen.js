@@ -23,6 +23,7 @@ const styles = StyleSheet.create({
         paddingTop: 20
     },
     headingText: {
+        textAlign: 'center',
         fontSize: 40
     }
 })

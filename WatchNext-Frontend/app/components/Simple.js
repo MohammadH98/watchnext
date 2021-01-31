@@ -17,7 +17,6 @@ class Simple extends React.Component {
     }
 
     showMovieDetails(movie) {
-        console.log(movie)
         Alert.alert(
             movie.title,
             movie.description
@@ -32,7 +31,6 @@ class Simple extends React.Component {
         var movies = this.formatMovieData(this.props.data)
 
         var swiped = (direction, nameToDelete) => {
-            console.log('removing: ' + nameToDelete)
             var category = direction === 'right' ? 'likedMovies' : 'dislikedMovies'
             //send data to server
             var currentIndex = this.state.currentMovieIndex + 1;
@@ -83,6 +81,7 @@ const styles = StyleSheet.create({
         width: 400,
         height: 600,
         borderRadius: 20,
+        marginBottom: 20
     }
 })
 
