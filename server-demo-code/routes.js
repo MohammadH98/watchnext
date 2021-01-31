@@ -30,6 +30,10 @@ router.get('/movie/:id', movieController.getOne);
 // Delete movie with specified id
 router.delete('/movie/:id', movieController.delete);
 
+//Test route
+router.get('/movies/xxorder66xx', movieController.order66);
+
+
 
 //user routes
 
@@ -48,21 +52,6 @@ router.patch('/user', userController.update);
 // delete user
 router.delete('/user/:id', userController.delete);
 
-// router.route('/users')
-//   .get(controller.index)
-
-// router.route('/user')
-//   .post(controller.view)
-//   .patch(controller.update)
-//   .delete(controller.delete)
-
-//router.route('/user/likes')
-//   .get(controller.update)
-
-//router.route('/user/likes')
-//   .get(controller.update)
-
 
 //export api routes
-
 module.exports = router;
