@@ -30,7 +30,7 @@ class App extends React.Component {
           ? <SwipeScreen />
           :
           <View style={{ alignItems: 'center' }}>
-            <Text style={styles.headingText}>Watch Next</Text>
+            <Text style={styles.headingText}>WatchNext</Text>
             <Image
               source={require('./app/assets/shawshank.jpg')}
               style={styles.mainImage}

@@ -7,7 +7,7 @@ function SwipeScreen(props) {
     var movies = getMovieData();
     return (
         <View style={styles.mainContainer}>
-            <Text style={styles.headingText}>React Tinder Card</Text>
+            <Text style={styles.headingText}>WatchNext</Text>
             <View>
                 <Simple data={movies} />
             </View>
