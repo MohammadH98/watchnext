@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View, Image, Button, Pressable, TouchableOpacity } from "react-native";
-import SwipeScreen from './app/screens/SwipeScreen'
+import SwipeScreen from './app/screens/SwipeScreen';
+import { LinearGradient } from 'expo-linear-gradient';
 
 class App extends React.Component {
   constructor(props) {
@@ -20,6 +21,11 @@ class App extends React.Component {
   render() {
     return (
       <View style={[styles.mainContainer, { paddingTop: 20 }]}>
+        <LinearGradient
+          // Background Linear Gradient
+          colors={['purple', 'orange']}
+          style={styles.background}
+        />
         {this.state.loggedIn
           ? <SwipeScreen />
           :
@@ -44,6 +50,13 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     alignItems: 'center',
+  },
+  background: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 1000,
   },
   headingText: {
     textAlign: 'center',
