@@ -17,6 +17,7 @@ class Simple extends React.Component {
     }
 
     showMovieDetails(movie) {
+        if (movie == undefined || movie == null) { return }
         Alert.alert(
             movie.title,
             movie.description
