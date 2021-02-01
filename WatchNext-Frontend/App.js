@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, View, Image, Button, Pressable, TouchableOpacity } from "react-native";
 import SwipeScreen from './app/screens/SwipeScreen';
+import RoomScreen from './app/screens/RoomScreen'
 import { LinearGradient } from 'expo-linear-gradient';
 import io from "socket.io-client";
 const socket = io('https://3d814ca5b70a.ngrok.io', {
@@ -13,7 +14,9 @@ class App extends React.Component {
     this.state = {
       loggedIn: false,
       inRoom: false,
-      inMatchingSession: false
+      inMatchingSession: false,
+      username: '',
+      isInvite: false
     }
     // connect to recieve media socket and store it in movies prop
     socket.on('connect', function () {
@@ -26,6 +29,15 @@ class App extends React.Component {
         this.setState({
           inRoom: true
         })
+      }.bind(this));
+
+      socket.on('recvInv', function (data) {
+        this.setState({ isInvite: true })
+        console.log(data.user);
+      }.bind(this))
+
+      socket.on('testrec', function (data) {
+        console.log("Test receive: " + data)
       }.bind(this));
 
     }.bind(this));
@@ -44,16 +56,30 @@ class App extends React.Component {
   };
 
 
-  login() {
-    //login logic
+  login(name) {
+    socket.emit('login', { username: name });
     this.setState({
-      loggedIn: true
+      loggedIn: true,
+      username: name
     });
   }
 
   goMatching() {
     this.setState({
       inMatchingSession: true
+    })
+  }
+
+  sendInvite() {
+    var otherUser = this.state.username == '1' ? 2 : 1
+    socket.emit('sendInv', { user: otherUser })
+  }
+
+  acceptInvite() {
+    var otherUser = this.state.username == '1' ? 2 : 1
+    socket.emit('acceptInv', { user: otherUser })
+    this.setState({
+      isInvite: false
     })
   }
 
@@ -69,7 +95,21 @@ class App extends React.Component {
         {this.state.loggedIn
           ? <View>
             {this.state.inMatchingSession && <SwipeScreen movies={this.state.movies} />}
-            {this.state.inRoom && <RoomScreen />}
+            {this.state.inRoom &&
+              <View>
+                <RoomScreen />
+                <Button
+                  title={'Send Invite'}
+                  onPress={() => this.sendInvite()}
+                />
+              </View>
+            }
+            {this.state.isInvite &&
+              <Button
+                title={'Accept Invite'}
+                onPress={() => this.acceptInvite()}
+              />
+            }
             {!this.state.inRoom && !this.state.inMatchingSession &&
               <View>
                 <Button
@@ -89,8 +129,12 @@ class App extends React.Component {
               style={styles.mainImage}
             />
             <Button
-              onPress={() => this.login()}
-              title='Login'
+              onPress={() => this.login('1')}
+              title='Login as 1'
+            />
+            <Button
+              onPress={() => this.login('2')}
+              title='Login as 2'
             />
           </View>
         }
