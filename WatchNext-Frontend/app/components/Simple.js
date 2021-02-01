@@ -40,7 +40,9 @@ class Simple extends React.Component {
                 currentMovieIndex: currentIndex
             })
         }
-
+        console.log(this.state.currentMovieIndex);
+        console.log(this.state.likedMovies);
+        console.log(this.state.dislikedMovies);
         return (
             <View style={styles.mainContainer}>
                 <CardStack
