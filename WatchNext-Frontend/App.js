@@ -2,8 +2,8 @@ import React from "react";
 import { StyleSheet, Text, View, Image, Button, Pressable, TouchableOpacity } from "react-native";
 import SwipeScreen from './app/screens/SwipeScreen';
 import { LinearGradient } from 'expo-linear-gradient';
-import io from "socket.io-client;"
-const socket =io();
+import io from "socket.io-client";
+const socket = io();
 
 class App extends React.Component {
   constructor(props) {
@@ -15,6 +15,7 @@ class App extends React.Component {
     socket.on('connect', function(){
 
       socket.on('recvMedia',function(data){
+          console.log(data)
           this.state.movies = data;
       }.bind(this));
 

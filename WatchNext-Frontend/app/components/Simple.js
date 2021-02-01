@@ -30,6 +30,8 @@ class Simple extends React.Component {
 
     render() {
         var movies = this.formatMovieData(this.props.data)
+        console.log("Movie Data")
+        console.log(movies)
 
         var swiped = (direction, nameToDelete) => {
             var category = direction === 'right' ? 'likedMovies' : 'dislikedMovies'

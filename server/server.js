@@ -11,7 +11,7 @@ const axios = require('axios');
 // Initialize the server and set it to serve from the static path
 const app = express();
 
-const clientPath = path.join(__dirname, "..", "WatchNext-Frontend", "build");
+const clientPath = path.join(__dirname, "..", "WatchNext-Frontend", "web-build");
 console.log(`Serving static client from ${clientPath}`);
 app.use(express.static(clientPath));
 
@@ -75,11 +75,11 @@ io.on('connection', function(socket){
     console.log("Connected: " + socket.id + " as socket ID" + i);
 
     // When log in field is completed
-    socket.on('getMedia', function(data){
+    socket.on('getMedia', function(){
         // Get movie object from database
         axios.get('https://xwatchnextx.herokuapp.com/api/movies').then(response =>{
           console.log(response.data)
-          socket.emit('recvMovies', response.data); // TODO: Replace object with data
+          socket.emit('recvMedia', {movieResults: response.data.data}); // TODO: Replace object with data
         }).catch(err=>{
           console.log(err)
         });
@@ -94,6 +94,6 @@ io.on('connection', function(socket){
 
 });
 
-server.listen(8080, () => {
-    console.log('Server start on 8080');
+server.listen(2000, () => {
+    console.log('Server start on 2000');
 });
