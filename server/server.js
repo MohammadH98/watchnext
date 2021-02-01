@@ -1,23 +1,37 @@
-const http = require('http');
+/*const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
 const path = require("path");
 const axios = require('axios');
+*/
 
 /*
     Base server creation
 */
 
+/*
 // Initialize the server and set it to serve from the static path
 const app = express();
 
-const clientPath = path.join(__dirname, "..", "WatchNext-Frontend", "web-build");
-console.log(`Serving static client from ${clientPath}`);
-app.use(express.static(clientPath));
+//const clientPath = path.join(__dirname, "..", "WatchNext-Frontend", "web-build");
+//console.log(`Serving static client from ${clientPath}`);
+//app.use(express.static(clientPath));
 
 // Create the server and socket client
 const server = http.createServer(app);
 const io = socketio(server);
+*/
+const axios = require('axios');
+const express = require('express');
+const app = express();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server, {
+    cors: {
+      origin: '*',
+    }
+  });
+const path = require('path');
+
 
 /*
     Socket utility functions
@@ -78,7 +92,7 @@ io.on('connection', function(socket){
     socket.on('getMedia', function(){
         // Get movie object from database
         axios.get('https://xwatchnextx.herokuapp.com/api/movies').then(response =>{
-          console.log(response.data)
+          console.log("Movie request")
           socket.emit('recvMedia', {movieResults: response.data.data}); // TODO: Replace object with data
         }).catch(err=>{
           console.log(err)

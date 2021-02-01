@@ -3,7 +3,8 @@ import { StyleSheet, Text, View, Image, Button, Pressable, TouchableOpacity } fr
 import SwipeScreen from './app/screens/SwipeScreen';
 import { LinearGradient } from 'expo-linear-gradient';
 import io from "socket.io-client";
-const socket = io();
+const socket = io('http://localhost:2000',{
+    transports: ['websocket']});
 
 class App extends React.Component {
   constructor(props) {
