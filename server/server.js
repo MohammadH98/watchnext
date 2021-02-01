@@ -99,6 +99,43 @@ io.on('connection', function(socket){
         });
     });
 
+    // When new room is requested
+    socket.on('makeRoom', function(data){
+        // Associate the room ID with the base user
+        var id = SOCKET_LIST[socketFind(socket)];
+        id.roomID = makeRoom(socket);
+        // Notify client to show room view with given room data
+        socket.emit('recvRoom', {room: ROOM_LIST[id.roomid]});
+    });
+    
+    // When an invite is sent
+    socket.on('sendInv', function(data){
+        // Get user and invitee ID
+        var id = SOCKET_LIST[socketFind(socket)]
+        var invid = SOCKET_LIST[userFind(data.user)]
+        // Make sure invitee could be found
+        if (invid == null){
+            id.emit('failInv', {user: data.user});
+            return;
+        }
+        // Send invitee an invite request with the given user's ID
+        invid.emit('recvInv', {user: id.user})
+    });
+
+    // When an invite is accepted
+    socket.on('acceptInv', function(data){
+        // Get user socket
+        var id = SOCKET_LIST[socketFind(socket)];
+        // Get inviter socket and associated room ID
+        var roomid = SOCKET_LIST[userFind(data.user)].roomID;
+        // Add user socket to room and set the id
+        socket.join(roomid);
+        id.roomID = roomid;
+        // Notify client to show room view with given room data
+        io.to(id.roomID).emit('testrec', id.user);
+        socket.emit('recvRoom', {room: ROOM_LIST[roomid]});
+    });    
+
     // When a user disconnects
     socket.on('disconnect', function(){
         console.log("Disconnected: " + socket.id);
