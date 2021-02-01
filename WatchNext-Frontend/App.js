@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View, Image, Button, Pressable, TouchableOpacity } from "react-native";
-import SelectModeScreen from './app/screens/SelectModeScreen';
+import SwipeScreen from './app/screens/SwipeScreen';
 import { LinearGradient } from 'expo-linear-gradient';
 import io from "socket.io-client";
 const socket = io('https://3d814ca5b70a.ngrok.io', {
@@ -12,7 +12,8 @@ class App extends React.Component {
     super(props)
     this.state = {
       loggedIn: false,
-      inRoom: false
+      inRoom: false,
+      inMatchingSession: false
     }
     // connect to recieve media socket and store it in movies prop
     socket.on('connect', function () {
@@ -31,12 +32,17 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    this.request_movies();
+    this.requestMovies();
   }
 
-  request_movies() {
+  requestMovies() {
     socket.emit('getMedia', '');
   }
+
+  requestRoom() {
+    socket.emit('getRoom', "");
+  };
+
 
   login() {
     //login logic
@@ -44,6 +50,13 @@ class App extends React.Component {
       loggedIn: true
     });
   }
+
+  goMatching() {
+    this.setState({
+      inMatchingSession: true
+    })
+  }
+
 
   render() {
     return (
@@ -54,9 +67,22 @@ class App extends React.Component {
           style={styles.background}
         />
         {this.state.loggedIn
-          ? <SelectModeScreen movies={this.state.movies} inRoom={this.state.inRoom} />
-          :
-          <View style={{ alignItems: 'center' }}>
+          ? <View>
+            {this.state.inMatchingSession && <SwipeScreen movies={this.state.movies} />}
+            {this.state.inRoom && <RoomScreen />}
+            {!this.state.inRoom && !this.state.inMatchingSession &&
+              <View>
+                <Button
+                  title='Go To Matching Session'
+                  onPress={() => this.goMatching()}
+                ></Button>
+                <Button
+                  title='Go To Room'
+                  onPress={() => this.requestRoom()}
+                ></Button>
+              </View >}
+          </View>
+          : <View style={{ alignItems: 'center' }}>
             <Text style={styles.headingText}>WatchNext</Text>
             <Image
               source={require('./app/assets/shawshank.jpg')}
