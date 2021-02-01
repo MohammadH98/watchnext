@@ -2,6 +2,7 @@ const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
 const path = require("path");
+const axios = require('axios');
 
 /*
     Base server creation
@@ -74,9 +75,14 @@ io.on('connection', function(socket){
     console.log("Connected: " + socket.id + " as socket ID" + i);
 
     // When log in field is completed
-    socket.on('getMovies', function(data){
+    socket.on('getMedia', function(data){
         // Get movie object from database
-        socket.emit('recvMovies', {movie: "Bad Boys 2: The Baddest Boys"}); // TODO: Replace object with data
+        axios.get('https://xwatchnextx.herokuapp.com/api/movies').then(response =>{
+          console.log(response.data)
+          socket.emit('recvMovies', response.data); // TODO: Replace object with data
+        }).catch(err=>{
+          console.log(err)
+        });
     });
 
     // When a user disconnects
