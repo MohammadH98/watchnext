@@ -2,6 +2,9 @@ import React from 'react'
 import CardStack, { Card } from 'react-native-card-stack-swiper';
 import { View, Button, StyleSheet, Alert, Text, Image, TouchableOpacity } from 'react-native';
 
+const ImageHeight = 550
+const ImageWidth = 367
+
 class Simple extends React.Component {
     constructor(props) {
         super(props)
@@ -13,10 +16,12 @@ class Simple extends React.Component {
     }
 
     formatMovieData(movies) {
+        if (movies === null || movies === undefined) { return }
         return Object.entries(movies)[0][1]
     }
 
     showMovieDetails(movie) {
+        console.log('here')
         if (movie == undefined || movie == null) { return }
         Alert.alert(
             movie.title,
@@ -51,23 +56,20 @@ class Simple extends React.Component {
                     style={styles.card}
                     ref={swiper => { this.swiper = swiper }}
                     disableBottomSwipe
+                    disableTopSwipe
                 >
                     {movies.map((movie) => <Card
                         key={movie.id}
                         style={styles.card}
                         onSwipedLeft={() => swiped('left', movie.id)}
                         onSwipedRight={() => swiped('right', movie.id)}
-                        onSwipedTop={() => swiped('up', movie.id)}
+                        onSwipedTop={() => this.showMovieDetails(movie)}
                     >
                         <Image
-                            source={{ uri: movie.image, width: 400, height: 600 }}
+                            source={{ uri: movie.image, width: ImageWidth, height: ImageHeight }}
                         />
                     </Card>)}
                 </CardStack>
-                <Button
-                    title='Show Movie Details'
-                    onPress={() => this.showMovieDetails(movies[this.state.currentMovieIndex])}
-                />
 
                 <View style={styles.footer}>
                     <View style={styles.buttonContainer}>
@@ -87,8 +89,12 @@ class Simple extends React.Component {
                             <Image source={require('../assets/like.png')} resizeMode={'contain'} style={{ height: 62, width: 62 }} />
                         </TouchableOpacity>
                     </View>
-
+                    <Button
+                        title='Show Movie Details'
+                        onPress={() => this.showMovieDetails(movies[this.state.currentMovieIndex])}
+                    />
                 </View>
+
             </View >
         )
     }
@@ -97,28 +103,29 @@ class Simple extends React.Component {
 const styles = StyleSheet.create({
     mainContainer: {
         display: 'flex',
+        flex: 1,
         alignSelf: 'center',
         justifyContent: 'center',
         textAlign: 'center',
         overflow: 'hidden',
-        width: 400
+        width: ImageWidth
     },
     card: {
-        width: 400,
-        height: 600,
+        width: ImageWidth,
+        height: ImageHeight,
         borderRadius: 20,
-        marginBottom: 20
     },
     footer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingTop: 30
     },
     buttonContainer: {
         width: 220,
         flexDirection: 'row',
         justifyContent: 'space-between',
+        marginTop: -55,
+        marginBottom: 10
     },
     button: {
         shadowColor: 'rgba(0,0,0,0.3)',
@@ -130,7 +137,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 0,
     },
     orange: {
         width: 55,
@@ -138,7 +144,6 @@ const styles = StyleSheet.create({
         borderWidth: 6,
         borderColor: 'rgb(246,190,66)',
         borderRadius: 55,
-        marginTop: -15
     },
     green: {
         width: 75,
