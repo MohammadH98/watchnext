@@ -2,6 +2,8 @@ import React from "react";
 import { StyleSheet, Text, View, Image, Button, Pressable, TouchableOpacity } from "react-native";
 import SwipeScreen from './app/screens/SwipeScreen';
 import { LinearGradient } from 'expo-linear-gradient';
+import io from "socket.io-client;"
+const socket =io();
 
 class App extends React.Component {
   constructor(props) {
@@ -9,6 +11,22 @@ class App extends React.Component {
     this.state = {
       loggedIn: false
     }
+    // connect to recieve media socket and store it in movies prop
+    socket.on('connect', function(){
+
+      socket.on('recvMedia',function(data){
+          this.state.movies = data;
+      }.bind(this));
+
+    }.bind(this));
+  }
+
+  componentDidMount(){
+    this.request_movies();
+  }
+
+  request_movies() {
+    socket.emit('getMedia', '');
   }
 
   login() {
@@ -27,7 +45,7 @@ class App extends React.Component {
           style={styles.background}
         />
         {this.state.loggedIn
-          ? <SwipeScreen />
+          ? <SwipeScreen movies={this.state.movies} />
           :
           <View style={{ alignItems: 'center' }}>
             <Text style={styles.headingText}>WatchNext</Text>

@@ -4,12 +4,11 @@ import Simple from '../components/Simple'
 import { getMovieData } from '../components/MovieData'
 
 function SwipeScreen(props) {
-    var movies = getMovieData();
     return (
         <View style={styles.mainContainer}>
             <Text style={styles.headingText}>WatchNext</Text>
             <View>
-                <Simple data={movies} />
+                <Simple data={props.movies} />
             </View>
         </View>
     );
