@@ -3,8 +3,9 @@ import { StyleSheet, Text, View, Image, Button, Pressable, TouchableOpacity } fr
 import SwipeScreen from './app/screens/SwipeScreen';
 import { LinearGradient } from 'expo-linear-gradient';
 import io from "socket.io-client";
-const socket = io('http://localhost:2000',{
-    transports: ['websocket']});
+const socket = io('http://localhost:2000', {
+  transports: ['websocket']
+});
 
 class App extends React.Component {
   constructor(props) {
@@ -13,17 +14,17 @@ class App extends React.Component {
       loggedIn: false
     }
     // connect to recieve media socket and store it in movies prop
-    socket.on('connect', function(){
+    socket.on('connect', function () {
 
-      socket.on('recvMedia',function(data){
-          console.log(data)
-          this.state.movies = data;
+      socket.on('recvMedia', function (data) {
+        console.log(data)
+        this.state.movies = data;
       }.bind(this));
 
     }.bind(this));
   }
 
-  componentDidMount(){
+  componentDidMount() {
     this.request_movies();
   }
 

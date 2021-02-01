@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Simple from '../components/Simple'
-import { getMovieData } from '../components/MovieData'
 
 function SwipeScreen(props) {
     return (
