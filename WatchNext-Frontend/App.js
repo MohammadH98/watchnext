@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View, Image, Button, Pressable, TouchableOpacity } from "react-native";
-import SwipeScreen from './app/screens/SwipeScreen';
+import SelectModeScreen from './app/screens/SelectModeScreen';
 import { LinearGradient } from 'expo-linear-gradient';
 import io from "socket.io-client";
 const socket = io('https://3d814ca5b70a.ngrok.io', {
@@ -11,14 +11,20 @@ class App extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      loggedIn: false
+      loggedIn: false,
+      inRoom: false
     }
     // connect to recieve media socket and store it in movies prop
     socket.on('connect', function () {
 
       socket.on('recvMedia', function (data) {
-        console.log(data)
         this.state.movies = data;
+      }.bind(this));
+
+      socket.on('recvRoom', function (data) {
+        this.setState({
+          inRoom: true
+        })
       }.bind(this));
 
     }.bind(this));
@@ -48,7 +54,7 @@ class App extends React.Component {
           style={styles.background}
         />
         {this.state.loggedIn
-          ? <SwipeScreen movies={this.state.movies} />
+          ? <SelectModeScreen movies={this.state.movies} inRoom={this.state.inRoom} />
           :
           <View style={{ alignItems: 'center' }}>
             <Text style={styles.headingText}>WatchNext</Text>
