@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Image, Button, Pressable, TouchableOpacity } fr
 import SwipeScreen from './app/screens/SwipeScreen';
 import { LinearGradient } from 'expo-linear-gradient';
 import io from "socket.io-client";
-const socket = io('http://localhost:2000', {
+const socket = io('https://0e8dcb077cc6.ngrok.io', {
   transports: ['websocket']
 });
 
