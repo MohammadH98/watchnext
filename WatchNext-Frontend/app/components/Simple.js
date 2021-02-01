@@ -1,9 +1,11 @@
 import React from 'react'
 import CardStack, { Card } from 'react-native-card-stack-swiper';
-import { View, Button, StyleSheet, Alert, Text, Image, TouchableOpacity } from 'react-native';
+import Modal from 'react-native-modal'
+import { View, Button, StyleSheet, Alert, Text, Image, TouchableOpacity, Linking, Platform, Dimensions } from 'react-native';
 
 const ImageHeight = 550
 const ImageWidth = 367
+const NetflixURL = 'https://www.netflix.com/watch/'
 
 class Simple extends React.Component {
     constructor(props) {
@@ -11,7 +13,8 @@ class Simple extends React.Component {
         this.state = {
             likedMovies: [],
             dislikedMovies: [],
-            currentMovieIndex: 0
+            currentMovieIndex: 0,
+            modalVisible: false
         }
     }
 
@@ -23,22 +26,19 @@ class Simple extends React.Component {
     showMovieDetails(movie) {
         console.log('here')
         if (movie == undefined || movie == null) { return }
-        Alert.alert(
-            movie.title,
-            movie.description
-            + '\nDuration: ' + movie.duration
-            + (movie.meta.director != '' && movie.meta.director != undefined
-                ? '\nDirector: ' + movie.meta.director
-                : '')
-        );
+        var inverse = !this.state.modalVisible
+        this.setState({
+            modalVisible: inverse
+        })
     }
 
     render() {
         var movies = this.formatMovieData(this.props.data)
-        console.log("Movie Data")
-        console.log(movies)
+        console.log(this.state)
 
         var swiped = (direction, nameToDelete) => {
+            console.log(direction)
+            console.log(nameToDelete)
             var category = direction === 'right' ? 'likedMovies' : 'dislikedMovies'
             //send data to server
             var currentIndex = this.state.currentMovieIndex + 1;
@@ -47,9 +47,6 @@ class Simple extends React.Component {
                 currentMovieIndex: currentIndex
             })
         }
-        console.log(this.state.currentMovieIndex);
-        console.log(this.state.likedMovies);
-        console.log(this.state.dislikedMovies);
         return (
             <View style={styles.mainContainer}>
                 <CardStack
@@ -58,19 +55,33 @@ class Simple extends React.Component {
                     disableBottomSwipe
                     disableTopSwipe
                 >
-                    {movies.map((movie) => <Card
-                        key={movie.id}
-                        style={styles.card}
-                        onSwipedLeft={() => swiped('left', movie.id)}
-                        onSwipedRight={() => swiped('right', movie.id)}
-                        onSwipedTop={() => this.showMovieDetails(movie)}
-                    >
-                        <Image
-                            source={{ uri: movie.image, width: ImageWidth, height: ImageHeight }}
-                        />
-                    </Card>)}
+                    {movies.map((movie) =>
+                        <Card
+                            key={movie.id + this.state.modalVisible}
+                            style={styles.card}
+                            onSwipedLeft={() => swiped('left', movie.id)}
+                            onSwipedRight={() => swiped('right', movie.id)}
+                            onSwipedTop={() => swiped('up', movie.id)}
+                        >
+                            {this.state.modalVisible
+                                ? <View style={styles.cardModal}>
+                                    <Text style={styles.headingText}>{movie.title}</Text>
+                                    <Text style={styles.descriptionText}>{movie.description}</Text>
+                                    <Text style={styles.descriptionText}> {'Duration: ' + movie.duration}</Text>
+                                    {movie.meta.director != '' && movie.meta.director != undefined
+                                        ? <Text style={styles.descriptionText}>{'Director: ' + movie.meta.director}</Text>
+                                        : <Text></Text>}
+                                    {console.log(NetflixURL + movie.id)}
+                                    <Button
+                                        title='Watch On Netflix'
+                                        onPress={() => Linking.openURL(NetflixURL + movie.id)}
+                                    />
+                                </View>
+                                : <View><Image source={{ uri: movie.image, width: ImageWidth, height: ImageHeight }} /></View>
+                            }
+                        </Card>
+                    )}
                 </CardStack>
-
                 <View style={styles.footer}>
                     <View style={styles.buttonContainer}>
                         <TouchableOpacity style={[styles.button, styles.red]} onPress={() => {
@@ -89,10 +100,16 @@ class Simple extends React.Component {
                             <Image source={require('../assets/like.png')} resizeMode={'contain'} style={{ height: 62, width: 62 }} />
                         </TouchableOpacity>
                     </View>
-                    <Button
-                        title='Show Movie Details'
-                        onPress={() => this.showMovieDetails(movies[this.state.currentMovieIndex])}
-                    />
+                    {this.state.modalVisible
+                        ? <Button
+                            title='Hide Movie Details'
+                            onPress={() => this.showMovieDetails(movies[this.state.currentMovieIndex])}
+                        />
+                        : <Button
+                            title='Show Movie Details'
+                            onPress={() => this.showMovieDetails(movies[this.state.currentMovieIndex])}
+                        />
+                    }
                 </View>
 
             </View >
@@ -115,6 +132,21 @@ const styles = StyleSheet.create({
         height: ImageHeight,
         borderRadius: 20,
     },
+    cardModal: {
+        width: ImageWidth,
+        height: ImageHeight,
+        backgroundColor: "#ccc",
+        borderRadius: 5,
+        alignItems: "center",
+        textAlign: 'center',
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+    },
     footer: {
         flex: 1,
         justifyContent: 'center',
@@ -124,7 +156,7 @@ const styles = StyleSheet.create({
         width: 220,
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginTop: -55,
+        marginTop: -45,
         marginBottom: 10
     },
     button: {
@@ -160,7 +192,14 @@ const styles = StyleSheet.create({
         borderRadius: 75,
         borderWidth: 6,
         borderColor: '#fd267d',
-    }
+    },
+    headingText: {
+        fontSize: 40,
+    },
+    descriptionText: {
+        fontSize: 20,
+        padding: 5
+    },
 })
 
 export default Simple

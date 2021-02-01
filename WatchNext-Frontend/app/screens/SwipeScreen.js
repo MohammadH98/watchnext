@@ -5,7 +5,6 @@ import Simple from '../components/Simple'
 function SwipeScreen(props) {
     return (
         <View style={styles.mainContainer}>
-            <Text style={styles.headingText}>WatchNext</Text>
             <View>
                 <Simple data={props.movies} />
             </View>
