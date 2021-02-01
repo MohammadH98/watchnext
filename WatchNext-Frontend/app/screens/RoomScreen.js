@@ -1,10 +1,11 @@
 import React from 'react';
+import { Text, View } from 'react-native';
 
 function RoomScreen(props) {
     return (
-        <div>
-
-        </div>
+        <View>
+            <Text>You are in a room</Text>
+        </View>
     );
 }
 
