@@ -11,26 +11,38 @@ class App extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      loggedIn: false
+      loggedIn: false,
+      inRoom: false,
+      inMatchingSession: false
     }
     // connect to recieve media socket and store it in movies prop
     socket.on('connect', function () {
 
       socket.on('recvMedia', function (data) {
-        console.log(data)
         this.state.movies = data;
+      }.bind(this));
+
+      socket.on('recvRoom', function (data) {
+        this.setState({
+          inRoom: true
+        })
       }.bind(this));
 
     }.bind(this));
   }
 
   componentDidMount() {
-    this.request_movies();
+    this.requestMovies();
   }
 
-  request_movies() {
+  requestMovies() {
     socket.emit('getMedia', '');
   }
+
+  requestRoom() {
+    socket.emit('getRoom', "");
+  };
+
 
   login() {
     //login logic
@@ -38,6 +50,13 @@ class App extends React.Component {
       loggedIn: true
     });
   }
+
+  goMatching() {
+    this.setState({
+      inMatchingSession: true
+    })
+  }
+
 
   render() {
     return (
@@ -48,9 +67,22 @@ class App extends React.Component {
           style={styles.background}
         />
         {this.state.loggedIn
-          ? <SwipeScreen movies={this.state.movies} />
-          :
-          <View style={{ alignItems: 'center' }}>
+          ? <View>
+            {this.state.inMatchingSession && <SwipeScreen movies={this.state.movies} />}
+            {this.state.inRoom && <RoomScreen />}
+            {!this.state.inRoom && !this.state.inMatchingSession &&
+              <View>
+                <Button
+                  title='Go To Matching Session'
+                  onPress={() => this.goMatching()}
+                ></Button>
+                <Button
+                  title='Go To Room'
+                  onPress={() => this.requestRoom()}
+                ></Button>
+              </View >}
+          </View>
+          : <View style={{ alignItems: 'center' }}>
             <Text style={styles.headingText}>WatchNext</Text>
             <Image
               source={require('./app/assets/shawshank.jpg')}
