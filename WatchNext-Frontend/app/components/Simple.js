@@ -61,8 +61,7 @@ class Simple extends React.Component {
         return Object.entries(movies)[0][1]
     }
 
-    showMovieDetails(movie) {
-        if (movie === undefined || movie === null) { return }
+    handleMovieDetails() {
         var inverse = !this.state.modalVisible
         this.setState({
             modalVisible: inverse
@@ -100,8 +99,7 @@ class Simple extends React.Component {
     }
 
     cardStackUndo() {
-        var currentID = this.state.currentMovieID
-        var previousID = this.getPreviousMovieID(currentID)
+        var previousID = this.getPreviousMovieID(this.state.currentMovieID)
         var likedMovies = this.removeElementFromArray(this.state.likedMovies, previousID)
         var dislikedMovies = this.removeElementFromArray(this.state.dislikedMovies, previousID)
         this.setState({
@@ -136,12 +134,7 @@ class Simple extends React.Component {
         var movies = this.state.movies
         return (
             <View style={styles.mainContainer}>
-                <CardStack
-                    style={styles.card}
-                    ref={swiper => { this.swiper = swiper }}
-                    disableBottomSwipe
-                    disableTopSwipe
-                >
+                <CardStack style={styles.card} ref={swiper => { this.swiper = swiper }} disableBottomSwipe disableTopSwipe >
                     {movies.map((movie) =>
                         <Card
                             key={movie.id + this.state.modalVisible}
@@ -155,32 +148,25 @@ class Simple extends React.Component {
                 </CardStack>
                 <View style={styles.footer}>
                     <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={[styles.button, styles.red]} onPress={() => {
-                            this.swiper.swipeLeft();
-                        }}>
-                            <Image source={require('../assets/dislike.png')} resizeMode={'contain'} style={{ height: LikeButtonSize, width: LikeButtonSize }} />
+                        <TouchableOpacity style={[styles.button, styles.red]} onPress={() => { this.swiper.swipeLeft(); }}>
+                            <Image source={require('../assets/dislike.png')} resizeMode={'contain'}
+                                style={{ height: LikeButtonSize, width: LikeButtonSize }}
+                            />
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.button, styles.orange]} onPress={() => {
-                            this.cardStackUndo();
-                            this.swiper.goBackFromLeft();
-                        }}>
-                            <Image source={require('../assets/back.png')} resizeMode={'contain'} style={{ height: LikeButtonSize / 2, width: LikeButtonSize / 2, borderRadius: 5 }} />
+                        <TouchableOpacity style={[styles.button, styles.orange]} onPress={() => { this.cardStackUndo(); this.swiper.goBackFromLeft(); }}>
+                            <Image source={require('../assets/back.png')} resizeMode={'contain'}
+                                style={{ height: LikeButtonSize / 2, width: LikeButtonSize / 2, borderRadius: 5 }}
+                            />
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.button, styles.green]} onPress={() => {
-                            this.swiper.swipeRight();
-                        }}>
-                            <Image source={require('../assets/like.png')} resizeMode={'contain'} style={{ height: LikeButtonSize, width: LikeButtonSize }} />
+                        <TouchableOpacity style={[styles.button, styles.green]} onPress={() => { this.swiper.swipeRight(); }}>
+                            <Image source={require('../assets/like.png')} resizeMode={'contain'}
+                                style={{ height: LikeButtonSize, width: LikeButtonSize }}
+                            />
                         </TouchableOpacity>
                     </View>
                     {this.state.modalVisible
-                        ? <Button
-                            title='Hide Movie Details'
-                            onPress={() => this.showMovieDetails(this.getMovieFromID(this.state.currentMovieID))}
-                        />
-                        : <Button
-                            title='Show Movie Details'
-                            onPress={() => this.showMovieDetails(this.getMovieFromID(this.state.currentMovieID))}
-                        />
+                        ? <Button title='Hide Movie Details' onPress={() => this.handleMovieDetails()} />
+                        : <Button title='Show Movie Details' onPress={() => this.handleMovieDetails()} />
                     }
                 </View>
             </View >
