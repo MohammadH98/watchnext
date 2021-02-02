@@ -4,9 +4,13 @@ import SwipeScreen from './app/screens/SwipeScreen';
 import RoomScreen from './app/screens/RoomScreen'
 import { LinearGradient } from 'expo-linear-gradient';
 import io from "socket.io-client";
-const socket = io('https://3d814ca5b70a.ngrok.io', {
+
+const socket = io('https://418fbd472ae8.ngrok.io', {
   transports: ['websocket']
 });
+
+const GradientColour1 = 'purple'
+const GradientColour2 = 'orange'
 
 class App extends React.Component {
   constructor(props) {
@@ -89,7 +93,7 @@ class App extends React.Component {
       <View style={[styles.mainContainer, { paddingTop: 20 }]}>
         <LinearGradient
           // Background Linear Gradient
-          colors={['purple', 'orange']}
+          colors={[GradientColour1, GradientColour2]}
           style={styles.background}
         />
         {this.state.loggedIn
