@@ -97,6 +97,12 @@ class App extends React.Component {
             style={styles.background}
           />
           <View>
+            {this.state.isInvite && //if you have been invited
+              <Button
+                title={'Accept Invite'}
+                onPress={() => this.acceptInvite()}
+              />
+            }
             {this.state.inMatchingSession && //if you are in a matching session
               <SwipeScreen movies={this.state.movies} />
             }
@@ -108,12 +114,6 @@ class App extends React.Component {
                   onPress={() => this.sendInvite()}
                 />
               </View>
-            }
-            {this.state.isInvite && //if you have been invited
-              <Button
-                title={'Accept Invite'}
-                onPress={() => this.acceptInvite()}
-              />
             }
             {!this.state.inRoom && !this.state.inMatchingSession && //if you aren't doing anything
               <View>
