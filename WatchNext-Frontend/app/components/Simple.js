@@ -148,8 +148,6 @@ class Simple extends React.Component {
                             style={styles.card}
                             onSwipedLeft={() => this.cardStackSwiped('left')}
                             onSwipedRight={() => this.cardStackSwiped('right')}
-                            onSwipedTop={() => this.cardStackSwiped('up')}
-                            onSwiped={() => this.cardStackSwiped('back')}
                         >
                             <CardInterior modalVisible={this.state.modalVisible} movie={movie} />
                         </Card>

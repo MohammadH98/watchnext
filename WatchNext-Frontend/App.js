@@ -89,17 +89,18 @@ class App extends React.Component {
 
 
   render() {
-    return (
-      <View style={[styles.mainContainer, { paddingTop: 20 }]}>
-        <LinearGradient
-          // Background Linear Gradient
-          colors={[GradientColour1, GradientColour2]}
-          style={styles.background}
-        />
-        {this.state.loggedIn
-          ? <View>
-            {this.state.inMatchingSession && <SwipeScreen movies={this.state.movies} />}
-            {this.state.inRoom &&
+    if (this.state.loggedIn) {
+      return (
+        <View style={[styles.mainContainer, { paddingTop: 20 }]}>
+          <LinearGradient
+            colors={[GradientColour1, GradientColour2]}
+            style={styles.background}
+          />
+          <View>
+            {this.state.inMatchingSession && //if you are in a matching session
+              <SwipeScreen movies={this.state.movies} />
+            }
+            {this.state.inRoom && //if you are in a room
               <View>
                 <RoomScreen />
                 <Button
@@ -108,13 +109,13 @@ class App extends React.Component {
                 />
               </View>
             }
-            {this.state.isInvite &&
+            {this.state.isInvite && //if you have been invited
               <Button
                 title={'Accept Invite'}
                 onPress={() => this.acceptInvite()}
               />
             }
-            {!this.state.inRoom && !this.state.inMatchingSession &&
+            {!this.state.inRoom && !this.state.inMatchingSession && //if you aren't doing anything
               <View>
                 <Button
                   title='Go To Matching Session'
@@ -124,24 +125,34 @@ class App extends React.Component {
                   title='Go To Room'
                   onPress={() => this.requestRoom()}
                 ></Button>
-              </View >}
+              </View >
+            }
           </View>
-          : <View style={{ alignItems: 'center' }}>
-            <Text style={styles.headingText}>WatchNext</Text>
-            <Image
-              source={require('./app/assets/shawshank.jpg')}
-              style={styles.mainImage}
-            />
-            <Button
-              onPress={() => this.login('1')}
-              title='Login as 1'
-            />
-            <Button
-              onPress={() => this.login('2')}
-              title='Login as 2'
-            />
-          </View>
-        }
+        </View>
+      )
+    }
+    return (
+      <View style={[styles.mainContainer, { paddingTop: 20 }]}>
+        <LinearGradient
+          // Background Linear Gradient
+          colors={[GradientColour1, GradientColour2]}
+          style={styles.background}
+        />
+        <View style={{ alignItems: 'center' }}>
+          <Text style={styles.headingText}>WatchNext</Text>
+          <Image
+            source={require('./app/assets/shawshank.jpg')}
+            style={styles.mainImage}
+          />
+          <Button
+            onPress={() => this.login('1')}
+            title='Login as 1'
+          />
+          <Button
+            onPress={() => this.login('2')}
+            title='Login as 2'
+          />
+        </View>
       </View>
     );
   }
