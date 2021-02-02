@@ -62,7 +62,7 @@ class Simple extends React.Component {
     }
 
     showMovieDetails(movie) {
-        if (movie == undefined || movie == null) { return }
+        if (movie === undefined || movie === null) { return }
         var inverse = !this.state.modalVisible
         this.setState({
             modalVisible: inverse
