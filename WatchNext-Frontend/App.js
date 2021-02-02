@@ -87,6 +87,12 @@ class App extends React.Component {
     })
   }
 
+  rejectInvite() {
+    this.setState({
+      isInvite: false
+    })
+  }
+
 
   render() {
     if (this.state.loggedIn) {
@@ -98,10 +104,16 @@ class App extends React.Component {
           />
           <View>
             {this.state.isInvite && //if you have been invited
-              <Button
-                title={'Accept Invite'}
-                onPress={() => this.acceptInvite()}
-              />
+              <View>
+                <Button
+                  title={'Accept Invite'}
+                  onPress={() => this.acceptInvite()}
+                />
+                <Button
+                  title={'Dismiss Invite'}
+                  onPress={() => this.rejectInvite()}
+                />
+              </View>
             }
             {this.state.inMatchingSession && //if you are in a matching session
               <SwipeScreen movies={this.state.movies} />
