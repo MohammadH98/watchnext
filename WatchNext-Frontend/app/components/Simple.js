@@ -69,6 +69,7 @@ class Simple extends React.Component {
     }
 
     removeElementFromArray(arr, elementValue) {
+        if (arr === null || arr === undefined || elementValue === null || elementValue === undefined) { return arr }
         if (arr.indexOf(elementValue) === -1) { return arr }
         for (var i = 0; i < arr.length; i++) {
             if (arr[i] === elementValue) {
