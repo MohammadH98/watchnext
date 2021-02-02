@@ -57,7 +57,7 @@ class Simple extends React.Component {
     }
 
     formatMovieData(movies) {
-        if (movies === null || movies === undefined) { return }
+        if (movies === null || movies === undefined) { return } //probably means that they aren't connected
         return Object.entries(movies)[0][1]
     }
 
