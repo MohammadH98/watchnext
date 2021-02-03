@@ -12,7 +12,11 @@ const socket = io('https://fb8f52c09a07.ngrok.io', {
 const GradientColour1 = 'purple'
 const GradientColour2 = 'orange'
 
-
+/**
+ * A component that renders the invitation handler if the OS is web
+ * @param {Function} acceptInvite The function responsible for accepting the invitiation
+ * @param {Function} rejectInvite The function responsible for rejecting the invitiation
+ */
 class WebInviteView extends React.Component {
   constructor(props) {
     super(props)
@@ -54,7 +58,6 @@ class App extends React.Component {
     this.createInviteAlert = this.createInviteAlert.bind(this)
     this.requestMovies = this.requestMovies.bind(this)
 
-    // connect to recieve media socket and store it in movies prop
     /*
     Idea to fix the slow loading bug:
     request the new movies on the second to last movie card 
@@ -97,6 +100,11 @@ class App extends React.Component {
     }.bind(this));
   }
 
+  /**
+   * returns the number of movies provided by the server
+   * @param {Array} movies The movie data from the server
+   * @return {Integer} The number of movies provided by the server
+   */
   getMovieArrayLength(movies) {
     if (movies.length === 0) { return 0 }
     return movies.movieResults.length
@@ -106,15 +114,24 @@ class App extends React.Component {
     this.requestMovies();
   }
 
+  /**
+   * Notifies the server to provide movie data
+   */
   requestMovies() {
     console.log('requesting movies')
     socket.emit('getMedia', '');
   }
 
+  /**
+   * Notifies the server to provide a matching room
+   */
   requestRoom() {
     socket.emit('getRoom', "");
   };
 
+  /**
+   * performs the log in operation for the user
+   */
   login(name) {
     socket.emit('login', { username: name });
     this.setState({
@@ -123,12 +140,18 @@ class App extends React.Component {
     });
   }
 
+  /**
+   * sets the application to matching session mode
+   */
   goMatching() {
     this.setState({
       inMatchingSession: true
     })
   }
 
+  /**
+   * sends an invitation to the other user
+   */
   sendInvite() {
     var otherUser = this.state.username == '1' ? 2 : 1
     socket.emit('sendInv', { user: otherUser })
@@ -148,6 +171,9 @@ class App extends React.Component {
     })
   }
 
+  /**
+   * Renders the alert used to accept the invitation on mobile platforms
+   */
   createInviteAlert() {
     Alert.alert(
       'Invitation Received',

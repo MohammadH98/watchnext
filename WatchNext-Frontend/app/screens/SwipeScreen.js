@@ -2,6 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import MovieCardStack from '../components/MovieCardStack'
 
+/**
+ * The screen that displays the stack of movie cards
+* @param {Object} data The movie data, as the server represents it
+ * @param {Function} requestMovies The function responsible for requesting additional movie data
+ */
 function SwipeScreen(props) {
     return (
         <View style={styles.mainContainer}>
