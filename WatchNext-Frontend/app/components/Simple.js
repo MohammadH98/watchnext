@@ -45,6 +45,7 @@ class CardInterior extends React.Component {
 }
 
 class Simple extends React.Component {
+
     constructor(props) {
         super(props)
         this.state = {
@@ -53,6 +54,22 @@ class Simple extends React.Component {
             dislikedMovies: [],
             currentMovieID: this.formatMovieData(this.props.data)[0].id,
             modalVisible: false
+        }
+    }
+
+    static getDerivedStateFromProps(props, current_state) {
+        var newMovies = formatMovieData(props.data)
+        if (current_state.movies !== newMovies) {
+            return {
+                movies: newMovies,
+                currentMovieID: newMovies[0].id
+            }
+        }
+        return null
+
+        function formatMovieData(movies) {
+            if (movies === null || movies === undefined) { return } //probably means that they aren't connected
+            return Object.entries(movies)[0][1]
         }
     }
 
@@ -97,12 +114,17 @@ class Simple extends React.Component {
                 dislikedMovies: moviesFiltered,
             })
         }
+        if (nextID === null) {
+            this.props.requestMovies();
+        }
     }
 
-    cardStackUndo() {
+    cardStackUndo(swiper) {
         var previousID = this.getPreviousMovieID(this.state.currentMovieID)
         var likedMovies = this.removeElementFromArray(this.state.likedMovies, previousID)
         var dislikedMovies = this.removeElementFromArray(this.state.dislikedMovies, previousID)
+        if (previousID === null) { return }
+        swiper.goBackFromLeft();
         this.setState({
             currentMovieID: previousID,
             likedMovies: likedMovies,
@@ -114,35 +136,35 @@ class Simple extends React.Component {
         for (var i = 0; i < this.state.movies.length; i++) {
             if (this.state.movies[i].id === ID) { return this.state.movies[i] }
         }
-        return ''
+        return null
     }
 
     getNextMovieID(ID) {
         for (var i = 0; i < this.state.movies.length - 1; i++) {
             if (this.state.movies[i].id === ID) { return this.state.movies[i + 1].id }
         }
-        return ''
+        return null
     }
 
     getPreviousMovieID(ID) {
         for (var i = 1; i < this.state.movies.length; i++) {
             if (this.state.movies[i].id === ID) { return this.state.movies[i - 1].id }
         }
-        return ''
+        return null
     }
 
     render() {
-        var movies = this.state.movies
+        console.log(this.state) //this updates properly now
         return (
             <View style={styles.mainContainer}>
-                <CardStack style={styles.card} ref={swiper => { this.swiper = swiper }} disableBottomSwipe disableTopSwipe >
-                    {movies.map((movie) =>
+                <CardStack style={styles.card} ref={swiper => { this.swiper = swiper }} disableBottomSwipe disableTopSwipe loop>
+                    {/*This component will not update properly unless loop is enabled?*/}
+                    {this.state.movies.map((movie) =>
                         <Card
                             key={movie.id + this.state.modalVisible}
                             style={styles.card}
                             onSwipedLeft={() => this.cardStackSwiped('left')}
                             onSwipedRight={() => this.cardStackSwiped('right')}
-                            onSwipedAll={() => console.log('out of cards')}
                         >
                             <CardInterior modalVisible={this.state.modalVisible} movie={movie} />
                         </Card>
@@ -155,7 +177,10 @@ class Simple extends React.Component {
                                 style={{ height: LikeButtonSize, width: LikeButtonSize }}
                             />
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.button, styles.orange]} onPress={() => { this.cardStackUndo(); this.swiper.goBackFromLeft(); }}>
+                        <TouchableOpacity style={[styles.button, styles.orange]} onPress={() => {
+                            this.cardStackUndo(this.swiper);
+                            //this.swiper.goBackFromLeft();
+                        }}>
                             <Image source={require('../assets/back.png')} resizeMode={'contain'}
                                 style={{ height: LikeButtonSize / 2, width: LikeButtonSize / 2, borderRadius: 5 }}
                             />

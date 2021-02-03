@@ -45,7 +45,8 @@ class App extends React.Component {
       inRoom: false,
       inMatchingSession: false,
       username: '',
-      isInvite: false
+      isInvite: false,
+      movies: []
     }
 
     this.acceptInvite = this.acceptInvite.bind(this)
@@ -55,9 +56,18 @@ class App extends React.Component {
 
     // connect to recieve media socket and store it in movies prop
     socket.on('connect', function () {
-
       socket.on('recvMedia', function (data) {
-        this.state.movies = data;
+        console.log('receiving movies')
+
+        if (this.getMovieArrayLength(this.state.movies) > 0) {
+          for (var i = 0; i < this.getMovieArrayLength(data); i++) {
+            data.movieResults[i].id = data.movieResults[i].id + this.getMovieArrayLength(this.state.movies)
+          }
+        }
+
+        this.setState({
+          movies: data
+        })
       }.bind(this));
 
       socket.on('recvRoom', function (data) {
@@ -79,11 +89,17 @@ class App extends React.Component {
     }.bind(this));
   }
 
+  getMovieArrayLength(movies) {
+    if (movies.length === 0) { return 0 }
+    return movies.movieResults.length
+  }
+
   componentDidMount() {
     this.requestMovies();
   }
 
   requestMovies() {
+    console.log('requesting movies')
     socket.emit('getMedia', '');
   }
 
