@@ -8,11 +8,55 @@ const ImageWidth = 367
 const NetflixURL = 'https://www.netflix.com/watch/'
 const LikeButtonSize = 62
 
+/**
+ * Formats the movie data provided from the server into an array to make it simpler to render
+ * @param {Object} movies The movie data as provided by the server
+ * @returns The movies prop data as an array
+ */
+function formatMovieData(movies) {
+    if (movies === null || movies === undefined) { return null } //probably means that they aren't connected
+    return Object.entries(movies)[0][1]
+}
+
+/**
+ * Returns the ID of the first movie in the movie prop data
+ * @param {Object} movies The movie data as provided by the server
+ * @returns The ID of the first movie from the movie prop data
+ */
+function initialMovieID(movies) {
+    var ID = formatMovieData(movies)
+    if (ID === null) { return null }
+    return ID[0].id
+}
+
+/**
+ * Removes all elements matching elementValue from an array, and returns the array
+ * @param {Array} arr An array
+ * @param {Object} elementValue The value of the element(s) to be removed from the array
+ * @returns The original array, after removing all matching element(s)
+ */
+function removeElementFromArray(arr, elementValue) {
+    if (arr === null || arr === undefined || elementValue === null || elementValue === undefined) { return arr }
+    if (arr.indexOf(elementValue) === -1) { return arr }
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i] === elementValue) {
+            arr.splice(i, 1);
+            i--;
+        }
+    }
+    return arr
+}
+
+/**
+ * This class renders the interior of the cards based, either the front or back of the card depending on the state machine
+ * @param {Boolean} showCardBacks If true, shows the back of the card, if true shows the front
+ * @param {Object} movie The movie object that will have it's data rendered on the card
+ */
 class CardInterior extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            modalVisible: this.props.modalVisible,
+            showCardBacks: this.props.showCardBacks,
             movie: this.props.movie
         }
     }
@@ -20,7 +64,7 @@ class CardInterior extends React.Component {
     render() {
         var movie = this.state.movie
         {
-            if (this.state.modalVisible) {
+            if (this.state.showCardBacks) {
                 return (
                     <View style={styles.cardModal}>
                         <Text style={styles.headingText}>{movie.title}</Text>
@@ -44,44 +88,32 @@ class CardInterior extends React.Component {
     }
 }
 
-function formatMovieData(movies) {
-    if (movies === null || movies === undefined) { return null } //probably means that they aren't connected
-    return Object.entries(movies)[0][1]
-}
-
-function initialMovieID(movies) {
-    var ID = formatMovieData(movies)
-    if (ID === null) { return null }
-    return ID[0].id
-}
-
-function removeElementFromArray(arr, elementValue) {
-    if (arr === null || arr === undefined || elementValue === null || elementValue === undefined) { return arr }
-    if (arr.indexOf(elementValue) === -1) { return arr }
-    for (var i = 0; i < arr.length; i++) {
-        if (arr[i] === elementValue) {
-            arr.splice(i, 1);
-            i--;
-        }
-    }
-    return arr
-}
-
+/**
+ * This class renders the stack of movie cards
+ * @param {Object} data The movie data, as the server represents it
+ * @param {Function} requestMovies The function responsible for requesting additional movie data
+ */
 class MovieCardStack extends React.Component {
 
     constructor(props) {
         super(props)
+        var newMovies = formatMovieData(props.data)
+        var newID = initialMovieID(props.data)
         this.state = {
-            movies: formatMovieData(this.props.data),
+            movies: newMovies,
             likedMovies: [],
             dislikedMovies: [],
-            currentMovieID: initialMovieID(this.props.data),
-            modalVisible: false,
+            currentMovieID: newID,
+            showCardBacks: false,
             showUndo: false,
             showStack: true
         }
     }
 
+    /**
+     * This code runs when the movies prop changes, most likely when the movies field is updated
+     * @returns if the props movie data changes, it will update the state machine with the new movie data
+     */
     static getDerivedStateFromProps(props, current_state) {
         var newMovies = formatMovieData(props.data)
         var newID = initialMovieID(props.data)
@@ -96,13 +128,19 @@ class MovieCardStack extends React.Component {
         return null
     }
 
+    /**
+     * This alternates the value of the showCardBacks, when called, it will flip the cards over
+     */
     handleMovieDetails() {
-        var inverse = !this.state.modalVisible
+        var inverse = !this.state.showCardBacks
         this.setState({
-            modalVisible: inverse
+            showCardBacks: inverse
         })
     }
-
+    /**
+     * This will remove any matching IDs from the likedMovies or dislikedMovies arrays in the state machine
+     * @param {String} ID The value that is to removed from the state machine arrays
+     */
     removeDuplicates(ID) {
         var likedMovies = this.state.likedMovies
         var dislikedMovies = this.state.dislikedMovies
@@ -119,6 +157,10 @@ class MovieCardStack extends React.Component {
         })
     }
 
+    /**
+     * This adds the current movie to the list of liked or disliked movies depending on direction
+     * @param {String} direction The direction the current card was swiped
+     */
     cardStackSwiped(direction) {
         var movieIsLiked = direction === 'right' ? true : false
         var currentID = this.state.currentMovieID
@@ -148,6 +190,10 @@ class MovieCardStack extends React.Component {
         }
     }
 
+    /**
+     * This will undo the last swipe, removing it from any lists in the state machine and showing the last card
+     * @param {Object} swiper Reference to the swiper object tied to the card stack
+     */
     cardStackUndo(swiper) {
         var previousID = this.getPreviousMovieID(this.state.currentMovieID)
         var likedMovies = removeElementFromArray(this.state.likedMovies, previousID)
@@ -166,6 +212,11 @@ class MovieCardStack extends React.Component {
         })
     }
 
+    /**
+     * Returns the movie object that has an ID that matches the param
+     * @param {String} ID The id of the movie you are searching for
+     * @return {Object} The movie object with an ID matching the param
+     */
     getMovieFromID(ID) {
         for (var i = 0; i < this.state.movies.length; i++) {
             if (this.state.movies[i].id === ID) { return this.state.movies[i] }
@@ -173,6 +224,11 @@ class MovieCardStack extends React.Component {
         return null
     }
 
+    /**
+     * Returns the ID of the movie that appears after the movie with the given ID
+     * @param {String} ID The id that is previous to the desired ID
+     * @return {String} The id of the movie that appears after the movie with the given ID
+     */
     getNextMovieID(ID) {
         for (var i = 0; i < this.state.movies.length - 1; i++) {
             if (this.state.movies[i].id === ID) { return this.state.movies[i + 1].id }
@@ -180,6 +236,11 @@ class MovieCardStack extends React.Component {
         return null
     }
 
+    /**
+     * Returns the ID of the movie that appears before the movie with the given ID
+     * @param {String} ID The id that appears after the desired movie
+     * @return {String} The id of the movie that appears after the movie with the given ID
+     */
     getPreviousMovieID(ID) {
         for (var i = 1; i < this.state.movies.length; i++) {
             if (this.state.movies[i].id === ID) { return this.state.movies[i - 1].id }
@@ -196,12 +257,12 @@ class MovieCardStack extends React.Component {
                         {/*This component will not update properly unless loop is enabled?*/}
                         {this.state.movies.map((movie) =>
                             <Card
-                                key={movie.id + this.state.modalVisible}
+                                key={movie.id + this.state.showCardBacks}
                                 style={styles.card}
                                 onSwipedLeft={() => this.cardStackSwiped('left')}
                                 onSwipedRight={() => this.cardStackSwiped('right')}
                             >
-                                <CardInterior modalVisible={this.state.modalVisible} movie={movie} />
+                                <CardInterior showCardBacks={this.state.showCardBacks} movie={movie} />
                             </Card>
                         )}
                     </CardStack>
@@ -225,7 +286,7 @@ class MovieCardStack extends React.Component {
                                 />
                             </TouchableOpacity>
                         </View>
-                        {this.state.modalVisible
+                        {this.state.showCardBacks
                             ? <Button title='Hide Movie Details' onPress={() => this.handleMovieDetails()} />
                             : <Button title='Show Movie Details' onPress={() => this.handleMovieDetails()} />
                         }
