@@ -44,38 +44,38 @@ class CardInterior extends React.Component {
     }
 }
 
+function formatMovieData(movies) {
+    if (movies === null || movies === undefined) { return } //probably means that they aren't connected
+    return Object.entries(movies)[0][1]
+}
+
+function initialMovieID(movies) {
+    return formatMovieData(movies)[0].id
+}
+
 class Simple extends React.Component {
 
     constructor(props) {
         super(props)
         this.state = {
-            movies: this.formatMovieData(this.props.data),
+            movies: formatMovieData(this.props.data),
             likedMovies: [],
             dislikedMovies: [],
-            currentMovieID: this.formatMovieData(this.props.data)[0].id,
+            currentMovieID: initialMovieID(this.props.data),
             modalVisible: false
         }
     }
 
     static getDerivedStateFromProps(props, current_state) {
         var newMovies = formatMovieData(props.data)
+        var newID = initialMovieID(props.data)
         if (current_state.movies !== newMovies) {
             return {
                 movies: newMovies,
-                currentMovieID: newMovies[0].id
+                currentMovieID: newID
             }
         }
         return null
-
-        function formatMovieData(movies) {
-            if (movies === null || movies === undefined) { return } //probably means that they aren't connected
-            return Object.entries(movies)[0][1]
-        }
-    }
-
-    formatMovieData(movies) {
-        if (movies === null || movies === undefined) { return } //probably means that they aren't connected
-        return Object.entries(movies)[0][1]
     }
 
     handleMovieDetails() {
@@ -97,10 +97,27 @@ class Simple extends React.Component {
         return arr
     }
 
+    removeDuplicates(ID) {
+        var likedMovies = this.state.likedMovies
+        var dislikedMovies = this.state.dislikedMovies
+        if (this.state.likedMovies.indexOf(ID) === -1 && this.state.dislikedMovies.indexOf(ID) === -1) { return }
+        if (this.state.likedMovies.indexOf(ID) != -1) {
+            likedMovies = this.removeElementFromArray(likedMovies, ID)
+        }
+        if (this.state.dislikedMovies.indexOf(ID) != -1) {
+            dislikedMovies = this.removeElementFromArray(dislikedMovies, ID)
+        }
+        this.setState({
+            likedMovies: likedMovies,
+            dislikedMovies: dislikedMovies
+        })
+    }
+
     cardStackSwiped(direction) {
         var movieIsLiked = direction === 'right' ? true : false
         var currentID = this.state.currentMovieID
         var nextID = this.getNextMovieID(currentID)
+        this.removeDuplicates(currentID)
         if (movieIsLiked) {
             var moviesFiltered = [...this.state.likedMovies, currentID]
             this.setState({
@@ -154,7 +171,8 @@ class Simple extends React.Component {
     }
 
     render() {
-        console.log(this.state) //this updates properly now
+        console.log(this.state.likedMovies) //this updates properly now
+        console.log(this.state.dislikedMovies) //this updates properly now
         return (
             <View style={styles.mainContainer}>
                 <CardStack style={styles.card} ref={swiper => { this.swiper = swiper }} disableBottomSwipe disableTopSwipe loop>

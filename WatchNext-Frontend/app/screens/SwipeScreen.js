@@ -6,7 +6,7 @@ function SwipeScreen(props) {
     return (
         <View style={styles.mainContainer}>
             <View>
-                <Simple data={props.movies} requestMovies={props.requestMovies} />
+                <Simple data={props.data} requestMovies={props.requestMovies} />
             </View>
         </View>
     );

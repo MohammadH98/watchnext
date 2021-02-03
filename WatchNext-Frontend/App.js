@@ -59,6 +59,7 @@ class App extends React.Component {
       socket.on('recvMedia', function (data) {
         console.log('receiving movies')
 
+        //this just is made to spoof new movies being added
         if (this.getMovieArrayLength(this.state.movies) > 0) {
           for (var i = 0; i < this.getMovieArrayLength(data); i++) {
             data.movieResults[i].id = data.movieResults[i].id + this.getMovieArrayLength(this.state.movies)
@@ -167,10 +168,10 @@ class App extends React.Component {
           />
           <View>
             {this.state.isInvite && //if you have been invited
-              <WebInviteView acceptInvite={this.acceptInvite} rejectInvite={this.rejectInvite} createInviteAlert={this.createInviteAlert} />
+              <WebInviteView acceptInvite={this.acceptInvite} rejectInvite={this.rejectInvite} />
             }
             {this.state.inMatchingSession && //if you are in a matching session
-              <SwipeScreen movies={this.state.movies} requestMovies={this.requestMovies} />
+              <SwipeScreen data={this.state.movies} requestMovies={this.requestMovies} />
             }
             {this.state.inRoom && //if you are in a room
               <View>
