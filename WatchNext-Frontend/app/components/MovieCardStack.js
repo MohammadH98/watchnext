@@ -167,10 +167,10 @@ class MovieCardStack extends React.Component {
         var nextID = this.getNextMovieID(currentID)
         this.removeDuplicates(currentID)
         if (nextID === null) {
-            this.props.requestMovies();
             this.setState({
                 showStack: false
             })
+            this.props.requestMovies();
         }
         if (currentID === null) { return }
         if (movieIsLiked) {
