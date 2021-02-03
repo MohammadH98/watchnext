@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Simple from '../components/Simple'
+import MovieCardStack from '../components/MovieCardStack'
 
 function SwipeScreen(props) {
     return (
         <View style={styles.mainContainer}>
             <View>
-                <Simple data={props.data} requestMovies={props.requestMovies} />
+                <MovieCardStack data={props.data} requestMovies={props.requestMovies} />
             </View>
         </View>
     );
