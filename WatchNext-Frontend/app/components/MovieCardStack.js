@@ -146,7 +146,7 @@ class MovieCardStack extends React.Component {
         })
     }
     /**
-     * This will remove any matching IDs from the likedMovies or dislikedMovies arrays in the state machine
+     * This will remove the supplied ID from the likedMovies or dislikedMovies arrays in the state machine
      * @param {String} ID The value that is to removed from the state machine arrays
      */
     removeDuplicates(ID) {
