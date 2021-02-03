@@ -148,6 +148,11 @@ class Simple extends React.Component {
         var likedMovies = removeElementFromArray(this.state.likedMovies, previousID)
         var dislikedMovies = removeElementFromArray(this.state.dislikedMovies, previousID)
         if (previousID === null) { return }
+        if (this.getPreviousMovieID(previousID) === null) {
+            this.setState({
+                showUndo: false
+            })
+        }
         swiper.goBackFromLeft();
         this.setState({
             currentMovieID: previousID,
@@ -206,7 +211,8 @@ class Simple extends React.Component {
                                 <Image source={require('../assets/back.png')} resizeMode={'contain'}
                                     style={{ height: LikeButtonSize / 2, width: LikeButtonSize / 2, borderRadius: 5 }}
                                 />
-                            </TouchableOpacity>}
+                            </TouchableOpacity>
+                        }
                         <TouchableOpacity style={[styles.button, styles.green]} onPress={() => { this.swiper.swipeRight(); }}>
                             <Image source={require('../assets/like.png')} resizeMode={'contain'}
                                 style={{ height: LikeButtonSize, width: LikeButtonSize }}
