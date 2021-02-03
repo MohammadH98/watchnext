@@ -302,6 +302,9 @@ class MovieCardStack extends React.Component {
                 </View >
             )
         } else {
+            /*Fix the loading screen:
+            request the new movies on the second to last movie card 
+            append the data from the last movie card as the first entry in the array*/
             return (<Text>Please wait for selections to load</Text>)
         }
     }

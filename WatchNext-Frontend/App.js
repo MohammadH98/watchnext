@@ -66,11 +66,6 @@ class App extends React.Component {
     this.createInviteAlert = this.createInviteAlert.bind(this)
     this.requestMovies = this.requestMovies.bind(this)
 
-    /*
-    Idea to fix the slow loading bug:
-    request the new movies on the second to last movie card 
-    append the data from the last movie card as the first entry in the array
-     */
     socket.on('connect', function () {
       socket.on('recvMedia', function (data) {
         logger('receiving movies')
