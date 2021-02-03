@@ -9,6 +9,14 @@ const NetflixURL = 'https://www.netflix.com/watch/'
 const LikeButtonSize = 62
 
 /**
+ * Better version of console.log, prevents console.log statements from making it to prod
+ * @param {*} message what to log
+ */
+function logger(message) {
+    if (false) { console.log(message) } //change for debugging
+}
+
+/**
  * Formats the movie data provided from the server into an array to make it simpler to render
  * @param {Object} movies The movie data as provided by the server
  * @returns The movies prop data as an array
@@ -249,7 +257,7 @@ class MovieCardStack extends React.Component {
     }
 
     render() {
-        console.log(this.state)
+        logger(this.state)
         if (this.state.showStack) {
             return (
                 <View style={styles.mainContainer}>

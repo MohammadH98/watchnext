@@ -13,6 +13,14 @@ const GradientColour1 = 'purple'
 const GradientColour2 = 'orange'
 
 /**
+ * Better version of console.log, prevents console.log statements from making it to prod
+ * @param {*} message what to log
+ */
+function logger(message) {
+  if (false) { console.log(message) } //change for debugging
+}
+
+/**
  * A component that renders the invitation handler if the OS is web
  * @param {Function} acceptInvite The function responsible for accepting the invitiation
  * @param {Function} rejectInvite The function responsible for rejecting the invitiation
@@ -65,8 +73,8 @@ class App extends React.Component {
      */
     socket.on('connect', function () {
       socket.on('recvMedia', function (data) {
-        console.log('receiving movies')
-        console.log(data)
+        logger('receiving movies')
+        logger(data)
 
         //this just is made to spoof new movies being added
         if (this.getMovieArrayLength(this.state.movies) > 0) {
@@ -90,11 +98,11 @@ class App extends React.Component {
       socket.on('recvInv', function (data) {
         this.setState({ isInvite: true })
         this.createInviteAlert();
-        console.log(data.user);
+        logger(data.user);
       }.bind(this))
 
       socket.on('testrec', function (data) {
-        console.log("Test receive: " + data)
+        logger("Test receive: " + data)
       }.bind(this));
 
     }.bind(this));
@@ -118,7 +126,7 @@ class App extends React.Component {
    * Notifies the server to provide movie data
    */
   requestMovies() {
-    console.log('requesting movies')
+    logger('requesting movies')
     socket.emit('getMedia', '');
   }
 
