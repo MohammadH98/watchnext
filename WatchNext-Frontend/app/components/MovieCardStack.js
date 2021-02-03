@@ -254,7 +254,7 @@ class MovieCardStack extends React.Component {
             return (
                 <View style={styles.mainContainer}>
                     <CardStack style={styles.card} ref={swiper => { this.swiper = swiper }} disableBottomSwipe disableTopSwipe loop>
-                        {/*This component will not update properly unless loop is enabled?*/}
+                        {/*This component will not update properly unless loop is enabled*/}
                         {this.state.movies.map((movie) =>
                             <Card
                                 key={movie.id + this.state.showCardBacks}
