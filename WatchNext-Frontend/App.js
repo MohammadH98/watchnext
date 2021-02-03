@@ -1,16 +1,41 @@
 import React from "react";
-import { StyleSheet, Text, View, Image, Button, Pressable, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View, Image, Button, Platform, TouchableOpacity, Alert } from "react-native";
 import SwipeScreen from './app/screens/SwipeScreen';
 import RoomScreen from './app/screens/RoomScreen'
 import { LinearGradient } from 'expo-linear-gradient';
 import io from "socket.io-client";
 
-const socket = io('https://418fbd472ae8.ngrok.io', {
+const socket = io('https://fb8f52c09a07.ngrok.io', {
   transports: ['websocket']
 });
 
 const GradientColour1 = 'purple'
 const GradientColour2 = 'orange'
+
+
+class WebInviteView extends React.Component {
+  constructor(props) {
+    super(props)
+  }
+
+  render() {
+    if (Platform.OS === 'web') {
+      return (
+        <View>
+          <Button
+            title={'Accept Invite'}
+            onPress={() => this.props.acceptInvite()}
+          />
+          <Button
+            title={'Dismiss Invite'}
+            onPress={() => this.props.rejectInvite()}
+          />
+        </View>
+      )
+    }
+    return null
+  }
+}
 
 class App extends React.Component {
   constructor(props) {
@@ -22,6 +47,12 @@ class App extends React.Component {
       username: '',
       isInvite: false
     }
+
+    this.acceptInvite = this.acceptInvite.bind(this)
+    this.rejectInvite = this.rejectInvite.bind(this)
+    this.createInviteAlert = this.createInviteAlert.bind(this)
+    this.requestMovies = this.requestMovies.bind(this)
+
     // connect to recieve media socket and store it in movies prop
     socket.on('connect', function () {
 
@@ -37,6 +68,7 @@ class App extends React.Component {
 
       socket.on('recvInv', function (data) {
         this.setState({ isInvite: true })
+        this.createInviteAlert();
         console.log(data.user);
       }.bind(this))
 
@@ -58,7 +90,6 @@ class App extends React.Component {
   requestRoom() {
     socket.emit('getRoom', "");
   };
-
 
   login(name) {
     socket.emit('login', { username: name });
@@ -93,6 +124,22 @@ class App extends React.Component {
     })
   }
 
+  createInviteAlert() {
+    Alert.alert(
+      'Invitation Received',
+      'You have been invited to join a matching session',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => this.rejectInvite()
+        },
+        {
+          text: 'Accept',
+          onPress: () => this.acceptInvite()
+        }
+      ]
+    )
+  }
 
   render() {
     if (this.state.loggedIn) {
@@ -104,19 +151,10 @@ class App extends React.Component {
           />
           <View>
             {this.state.isInvite && //if you have been invited
-              <View>
-                <Button
-                  title={'Accept Invite'}
-                  onPress={() => this.acceptInvite()}
-                />
-                <Button
-                  title={'Dismiss Invite'}
-                  onPress={() => this.rejectInvite()}
-                />
-              </View>
+              <WebInviteView acceptInvite={this.acceptInvite} rejectInvite={this.rejectInvite} createInviteAlert={this.createInviteAlert} />
             }
             {this.state.inMatchingSession && //if you are in a matching session
-              <SwipeScreen movies={this.state.movies} />
+              <SwipeScreen movies={this.state.movies} requestMovies={this.requestMovies} />
             }
             {this.state.inRoom && //if you are in a room
               <View>
