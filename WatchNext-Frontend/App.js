@@ -55,14 +55,21 @@ class App extends React.Component {
     this.requestMovies = this.requestMovies.bind(this)
 
     // connect to recieve media socket and store it in movies prop
+    /*
+    Idea to fix the slow loading bug:
+    request the new movies on the second to last movie card 
+    append the data from the last movie card as the first entry in the array
+     */
     socket.on('connect', function () {
       socket.on('recvMedia', function (data) {
         console.log('receiving movies')
+        console.log(data)
 
         //this just is made to spoof new movies being added
         if (this.getMovieArrayLength(this.state.movies) > 0) {
           for (var i = 0; i < this.getMovieArrayLength(data); i++) {
             data.movieResults[i].id = data.movieResults[i].id + this.getMovieArrayLength(this.state.movies)
+            data.movieResults[i].image = 'https://picsum.photos/367/550'
           }
         }
 

@@ -45,12 +45,14 @@ class CardInterior extends React.Component {
 }
 
 function formatMovieData(movies) {
-    if (movies === null || movies === undefined) { return } //probably means that they aren't connected
+    if (movies === null || movies === undefined) { return null } //probably means that they aren't connected
     return Object.entries(movies)[0][1]
 }
 
 function initialMovieID(movies) {
-    return formatMovieData(movies)[0].id
+    var ID = formatMovieData(movies)
+    if (ID === null) { return null }
+    return ID[0].id
 }
 
 class Simple extends React.Component {
@@ -118,6 +120,10 @@ class Simple extends React.Component {
         var currentID = this.state.currentMovieID
         var nextID = this.getNextMovieID(currentID)
         this.removeDuplicates(currentID)
+        if (nextID === null) {
+            this.props.requestMovies();
+        }
+        if (currentID === null) { return }
         if (movieIsLiked) {
             var moviesFiltered = [...this.state.likedMovies, currentID]
             this.setState({
@@ -130,9 +136,6 @@ class Simple extends React.Component {
                 currentMovieID: nextID,
                 dislikedMovies: moviesFiltered,
             })
-        }
-        if (nextID === null) {
-            this.props.requestMovies();
         }
     }
 
@@ -171,8 +174,7 @@ class Simple extends React.Component {
     }
 
     render() {
-        console.log(this.state.likedMovies) //this updates properly now
-        console.log(this.state.dislikedMovies) //this updates properly now
+        console.log(this.state)
         return (
             <View style={styles.mainContainer}>
                 <CardStack style={styles.card} ref={swiper => { this.swiper = swiper }} disableBottomSwipe disableTopSwipe loop>
