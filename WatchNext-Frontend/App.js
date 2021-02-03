@@ -76,7 +76,7 @@ class App extends React.Component {
         logger('receiving movies')
         logger(data)
 
-        //this just is made to spoof new movies being added
+        //this just is made to spoof new movies being added, needs to be removed once the server is returning new movies every time
         if (this.getMovieArrayLength(this.state.movies) > 0) {
           for (var i = 0; i < this.getMovieArrayLength(data); i++) {
             data.movieResults[i].id = data.movieResults[i].id + this.getMovieArrayLength(this.state.movies)
