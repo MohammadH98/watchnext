@@ -169,6 +169,7 @@ class App extends React.Component {
     var otherUser = this.state.username == '1' ? 2 : 1
     socket.emit('acceptInv', { user: otherUser })
     this.setState({
+      inMatchingSession: false,
       isInvite: false
     })
   }
