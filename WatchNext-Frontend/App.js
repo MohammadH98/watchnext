@@ -81,6 +81,7 @@ class App extends React.Component {
           for (var i = 0; i < this.getMovieArrayLength(data); i++) {
             data.movieResults[i].id = data.movieResults[i].id + this.getMovieArrayLength(this.state.movies)
             data.movieResults[i].image = 'https://picsum.photos/367/550'
+            data.movieResults[i].title = data.movieResults[i].title + ' 2'
           }
         }
 
