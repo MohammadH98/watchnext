@@ -55,6 +55,18 @@ function initialMovieID(movies) {
     return ID[0].id
 }
 
+function removeElementFromArray(arr, elementValue) {
+    if (arr === null || arr === undefined || elementValue === null || elementValue === undefined) { return arr }
+    if (arr.indexOf(elementValue) === -1) { return arr }
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i] === elementValue) {
+            arr.splice(i, 1);
+            i--;
+        }
+    }
+    return arr
+}
+
 class Simple extends React.Component {
 
     constructor(props) {
@@ -64,7 +76,8 @@ class Simple extends React.Component {
             likedMovies: [],
             dislikedMovies: [],
             currentMovieID: initialMovieID(this.props.data),
-            modalVisible: false
+            modalVisible: false,
+            showUndo: false,
         }
     }
 
@@ -74,7 +87,8 @@ class Simple extends React.Component {
         if (current_state.movies !== newMovies) {
             return {
                 movies: newMovies,
-                currentMovieID: newID
+                currentMovieID: newID,
+                showUndo: false,
             }
         }
         return null
@@ -87,27 +101,15 @@ class Simple extends React.Component {
         })
     }
 
-    removeElementFromArray(arr, elementValue) {
-        if (arr === null || arr === undefined || elementValue === null || elementValue === undefined) { return arr }
-        if (arr.indexOf(elementValue) === -1) { return arr }
-        for (var i = 0; i < arr.length; i++) {
-            if (arr[i] === elementValue) {
-                arr.splice(i, 1);
-                i--;
-            }
-        }
-        return arr
-    }
-
     removeDuplicates(ID) {
         var likedMovies = this.state.likedMovies
         var dislikedMovies = this.state.dislikedMovies
         if (this.state.likedMovies.indexOf(ID) === -1 && this.state.dislikedMovies.indexOf(ID) === -1) { return }
         if (this.state.likedMovies.indexOf(ID) != -1) {
-            likedMovies = this.removeElementFromArray(likedMovies, ID)
+            likedMovies = removeElementFromArray(likedMovies, ID)
         }
         if (this.state.dislikedMovies.indexOf(ID) != -1) {
-            dislikedMovies = this.removeElementFromArray(dislikedMovies, ID)
+            dislikedMovies = removeElementFromArray(dislikedMovies, ID)
         }
         this.setState({
             likedMovies: likedMovies,
@@ -129,20 +131,22 @@ class Simple extends React.Component {
             this.setState({
                 currentMovieID: nextID,
                 likedMovies: moviesFiltered,
+                showUndo: true,
             })
         } else {
             var moviesFiltered = [...this.state.dislikedMovies, currentID]
             this.setState({
                 currentMovieID: nextID,
                 dislikedMovies: moviesFiltered,
+                showUndo: true,
             })
         }
     }
 
     cardStackUndo(swiper) {
         var previousID = this.getPreviousMovieID(this.state.currentMovieID)
-        var likedMovies = this.removeElementFromArray(this.state.likedMovies, previousID)
-        var dislikedMovies = this.removeElementFromArray(this.state.dislikedMovies, previousID)
+        var likedMovies = removeElementFromArray(this.state.likedMovies, previousID)
+        var dislikedMovies = removeElementFromArray(this.state.dislikedMovies, previousID)
         if (previousID === null) { return }
         swiper.goBackFromLeft();
         this.setState({
@@ -197,14 +201,12 @@ class Simple extends React.Component {
                                 style={{ height: LikeButtonSize, width: LikeButtonSize }}
                             />
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.button, styles.orange]} onPress={() => {
-                            this.cardStackUndo(this.swiper);
-                            //this.swiper.goBackFromLeft();
-                        }}>
-                            <Image source={require('../assets/back.png')} resizeMode={'contain'}
-                                style={{ height: LikeButtonSize / 2, width: LikeButtonSize / 2, borderRadius: 5 }}
-                            />
-                        </TouchableOpacity>
+                        {this.state.showUndo &&
+                            <TouchableOpacity style={[styles.button, styles.orange]} onPress={() => { this.cardStackUndo(this.swiper); }}>
+                                <Image source={require('../assets/back.png')} resizeMode={'contain'}
+                                    style={{ height: LikeButtonSize / 2, width: LikeButtonSize / 2, borderRadius: 5 }}
+                                />
+                            </TouchableOpacity>}
                         <TouchableOpacity style={[styles.button, styles.green]} onPress={() => { this.swiper.swipeRight(); }}>
                             <Image source={require('../assets/like.png')} resizeMode={'contain'}
                                 style={{ height: LikeButtonSize, width: LikeButtonSize }}

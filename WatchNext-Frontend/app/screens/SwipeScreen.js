@@ -18,10 +18,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         textAlign: 'center',
         paddingTop: 20
-    },
-    headingText: {
-        textAlign: 'center',
-        fontSize: 40
     }
 })
 
