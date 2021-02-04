@@ -1,11 +1,11 @@
 import React from "react";
-import { StyleSheet, Text, View, Image, Button, Platform, TouchableOpacity, Alert } from "react-native";
+import { StyleSheet, Text, View, Image, Button, Platform, Alert, SafeAreaView } from "react-native";
 import SwipeScreen from './app/screens/SwipeScreen';
 import RoomScreen from './app/screens/RoomScreen'
 import { LinearGradient } from 'expo-linear-gradient';
 import io from "socket.io-client";
 
-const socket = io('https://fb8f52c09a07.ngrok.io', {
+const socket = io('https://e4eebf85dfbd.ngrok.io', {
   transports: ['websocket']
 });
 
@@ -199,7 +199,7 @@ class App extends React.Component {
   render() {
     if (this.state.loggedIn) {
       return (
-        <View style={[styles.mainContainer, { paddingTop: 20 }]}>
+        <SafeAreaView style={[styles.mainContainer, { paddingTop: 20 }]}>
           <LinearGradient
             colors={[GradientColour1, GradientColour2]}
             style={styles.background}
@@ -233,11 +233,11 @@ class App extends React.Component {
               </View >
             }
           </View>
-        </View>
+        </SafeAreaView>
       )
     }
     return (
-      <View style={[styles.mainContainer, { paddingTop: 20 }]}>
+      <SafeAreaView style={[styles.mainContainer, { paddingTop: 20 }]}>
         <LinearGradient
           // Background Linear Gradient
           colors={[GradientColour1, GradientColour2]}
@@ -258,7 +258,7 @@ class App extends React.Component {
             title='Login as 2'
           />
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 }
