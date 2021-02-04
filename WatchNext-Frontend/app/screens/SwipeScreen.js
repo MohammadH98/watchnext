@@ -1,12 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Simple from '../components/Simple'
+import MovieCardStack from '../components/MovieCardStack'
 
+/**
+ * The screen that displays the stack of movie cards
+* @param {Object} data The movie data, as the server represents it
+ * @param {Function} requestMovies The function responsible for requesting additional movie data
+ */
 function SwipeScreen(props) {
     return (
         <View style={styles.mainContainer}>
             <View>
-                <Simple data={props.movies} />
+                <MovieCardStack data={props.data} requestMovies={props.requestMovies} />
             </View>
         </View>
     );
@@ -18,10 +23,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         textAlign: 'center',
         paddingTop: 20
-    },
-    headingText: {
-        textAlign: 'center',
-        fontSize: 40
     }
 })
 
