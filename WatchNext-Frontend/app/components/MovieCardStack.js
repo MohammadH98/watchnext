@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { isValidElement } from 'react'
 import CardStack, { Card } from 'react-native-card-stack-swiper';
-import { View, Button, StyleSheet, Text, Image, TouchableOpacity, Linking } from 'react-native';
+import Modal from 'react-native-modal'
+import { View, Button, StyleSheet, Alert, Text, Image, TouchableOpacity, Linking, Platform, Dimensions } from 'react-native';
 
 const ImageHeight = 550
 const ImageWidth = 367
@@ -225,8 +226,10 @@ class MovieCardStack extends React.Component {
      * @return {Object} The movie object with an ID matching the param
      */
     getMovieFromID(ID) {
-        var movie = this.state.movies.find(element => element.id === ID)
-        return movie === undefined ? movie : undefined
+        for (var i = 0; i < this.state.movies.length; i++) {
+            if (this.state.movies[i].id === ID) { return this.state.movies[i] }
+        }
+        return null
     }
 
     /**
@@ -238,7 +241,7 @@ class MovieCardStack extends React.Component {
         for (var i = 0; i < this.state.movies.length - 1; i++) {
             if (this.state.movies[i].id === ID) { return this.state.movies[i + 1].id }
         }
-        return undefined
+        return null
     }
 
     /**
@@ -250,7 +253,7 @@ class MovieCardStack extends React.Component {
         for (var i = 1; i < this.state.movies.length; i++) {
             if (this.state.movies[i].id === ID) { return this.state.movies[i - 1].id }
         }
-        return undefined
+        return null
     }
 
     render() {
