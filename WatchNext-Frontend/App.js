@@ -5,7 +5,7 @@ import RoomScreen from './app/screens/RoomScreen'
 import { LinearGradient } from 'expo-linear-gradient';
 import io from "socket.io-client";
 
-const socket = io('https://fb8f52c09a07.ngrok.io', {
+const socket = io('https://fd2a8290632e.ngrok.io', {
   transports: ['websocket']
 });
 

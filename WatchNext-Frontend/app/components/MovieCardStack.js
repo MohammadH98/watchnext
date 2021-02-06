@@ -2,18 +2,20 @@ import React, { isValidElement } from 'react'
 import CardStack, { Card } from 'react-native-card-stack-swiper';
 import Modal from 'react-native-modal'
 import { View, Button, StyleSheet, Alert, Text, Image, TouchableOpacity, Linking, Platform, Dimensions } from 'react-native';
+import { DateTime } from 'luxon';
 
 const ImageHeight = 550
 const ImageWidth = 367
 const NetflixURL = 'https://www.netflix.com/watch/'
 const LikeButtonSize = 62
 
+
 /**
  * Better version of console.log, prevents console.log statements from making it to prod
  * @param {*} message what to log
  */
 function logger(message) {
-    if (false) { console.log(message) } //change for debugging
+    if (true) { console.log(message) } //change for debugging
 }
 
 /**
@@ -44,10 +46,9 @@ function initialMovieID(movies) {
  * @returns The original array, after removing all matching element(s)
  */
 function removeElementFromArray(arr, elementValue) {
-    if (arr === null || arr === undefined || elementValue === null || elementValue === undefined) { return arr }
-    if (arr.indexOf(elementValue) === -1) { return arr }
+    if (arr === null || arr === undefined || elementValue === null || elementValue === undefined) { return arr; }
     for (var i = 0; i < arr.length; i++) {
-        if (arr[i] === elementValue) {
+        if (arr[i][0] === elementValue) {
             arr.splice(i, 1);
             i--;
         }
@@ -114,7 +115,8 @@ class MovieCardStack extends React.Component {
             currentMovieID: newID,
             showCardBacks: false,
             showUndo: false,
-            showStack: true
+            showStack: true,
+            currentTime: DateTime.local().ts
         }
     }
 
@@ -152,13 +154,8 @@ class MovieCardStack extends React.Component {
     removeDuplicates(ID) {
         var likedMovies = this.state.likedMovies
         var dislikedMovies = this.state.dislikedMovies
-        if (this.state.likedMovies.indexOf(ID) === -1 && this.state.dislikedMovies.indexOf(ID) === -1) { return }
-        if (this.state.likedMovies.indexOf(ID) != -1) {
-            likedMovies = removeElementFromArray(likedMovies, ID)
-        }
-        if (this.state.dislikedMovies.indexOf(ID) != -1) {
-            dislikedMovies = removeElementFromArray(dislikedMovies, ID)
-        }
+        likedMovies = removeElementFromArray(likedMovies, ID)
+        dislikedMovies = removeElementFromArray(dislikedMovies, ID)
         this.setState({
             likedMovies: likedMovies,
             dislikedMovies: dislikedMovies
@@ -172,6 +169,7 @@ class MovieCardStack extends React.Component {
     cardStackSwiped(direction) {
         var movieIsLiked = direction === 'right' ? true : false
         var currentID = this.state.currentMovieID
+        var timeDifference = DateTime.local().ts - this.state.currentTime
         var nextID = this.getNextMovieID(currentID)
         this.removeDuplicates(currentID)
         if (nextID === null) {
@@ -182,18 +180,20 @@ class MovieCardStack extends React.Component {
         }
         if (currentID === null) { return }
         if (movieIsLiked) {
-            var moviesFiltered = [...this.state.likedMovies, currentID]
+            var moviesFiltered = [...this.state.likedMovies, [currentID, timeDifference]]
             this.setState({
                 currentMovieID: nextID,
                 likedMovies: moviesFiltered,
+                currentTime: DateTime.local().ts,
                 showUndo: true,
             })
         } else {
-            var moviesFiltered = [...this.state.dislikedMovies, currentID]
+            var moviesFiltered = [...this.state.dislikedMovies, [currentID, timeDifference]]
             this.setState({
                 currentMovieID: nextID,
                 dislikedMovies: moviesFiltered,
                 showUndo: true,
+                currentTime: DateTime.local().ts
             })
         }
     }
@@ -216,7 +216,8 @@ class MovieCardStack extends React.Component {
         this.setState({
             currentMovieID: previousID,
             likedMovies: likedMovies,
-            dislikedMovies: dislikedMovies
+            dislikedMovies: dislikedMovies,
+            currentTime: DateTime.local().ts
         })
     }
 
