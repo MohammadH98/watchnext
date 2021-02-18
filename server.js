@@ -1,9 +1,27 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+var jwt = require('express-jwt');
+var jwks = require('jwks-rsa');
+
+//jwt/security stuff
+var jwtCheck = jwt({
+      secret: jwks.expressJwtSecret({
+          cache: true,
+          rateLimit: true,
+          jwksRequestsPerMinute: 5,
+          jwksUri: 'https://watchnext2020.us.auth0.com/.well-known/jwks.json'
+    }),
+    audience: 'https://xwatchnextx.herokuapp.com/',
+    issuer: 'https://watchnext2020.us.auth0.com/',
+    algorithms: ['RS256']
+});
 
 // create express app
 const app = express();
+
+// adding jwt check to incoming api requests
+// app.use(jwtCheck)
 
 // parses incoming request bodies making them available in req.body
 app.use(bodyParser.urlencoded({extended: true}));
@@ -31,7 +49,13 @@ var db = mongoose.connection;
 let apiRoutes = require('./routes');
 
 //use api routes in app
-app.use('/api', apiRoutes);
+app.use('/api', jwtCheck, apiRoutes);
+
+//error handler, can keep or just leave default by commenting out
+app.use(function (err, req, res, next) {
+  //console.error(err.stack)
+  res.status(500).send('Something broke!')
+})
 
 //send message for default url
 app.get('/', (req, res)=>{
