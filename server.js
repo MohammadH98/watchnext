@@ -52,10 +52,10 @@ let apiRoutes = require('./routes');
 app.use('/api', jwtCheck, apiRoutes);
 
 //error handler, can keep or just leave default by commenting out
-app.use(function (err, req, res, next) {
-  //console.error(err.stack)
-  res.status(500).send('Something broke!')
-})
+// app.use(function (err, req, res, next) {
+//   //console.error(err.stack)
+//   res.status(500).send('Something broke!')
+// })
 
 //send message for default url
 app.get('/', (req, res)=>{
