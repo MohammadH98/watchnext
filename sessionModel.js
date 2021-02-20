@@ -1,22 +1,27 @@
-//contains the schema for the user database collection
+//contains the schema for the matching-session database collection
 var mongoose = require('mongoose');
 
 //get rid of depreceated warning for unique true
 mongoose.set('useCreateIndex', true)
 
 //setup schema
-var userSchema = mongoose.Schema({
-  user_id: {
+var sessionSchema = mongoose.Schema({
+  session_id: {
     type: String,
     required: true,
     unique: true
   },
-  username: {
+  creator_id: {
     type: String,
-    required: true,
+    required: true
   },
-  image: {
-    type: String
+  name: {
+    type: String,
+    required: true
+  },
+  members: {
+    type: [String],
+    required: false
   },
   likes: {
     type: [String],
@@ -26,11 +31,11 @@ var userSchema = mongoose.Schema({
     type: [String],
     required: false
   },
-  friends_list:{
-    type: [String],
+  watchnext:{
+    type: String,
     required: false
   },
-  matching_sessions:{
+  watched:{
     type: [String],
     required: false
   },
@@ -42,8 +47,8 @@ var userSchema = mongoose.Schema({
 });
 
 //Export user model
-var User = module.exports =mongoose.model('user', userSchema);
+var Session = module.exports = mongoose.model('matching-session', sessionSchema);
 
 module.exports.get = function(callback, limit){
-  User.find(callback).limit(limit)
+  Session.find(callback).limit(limit)
 }

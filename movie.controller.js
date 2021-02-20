@@ -6,41 +6,6 @@ Movie = require('./movieModel');
 // This is going to be used to call mathews api from our server in order to add the new releases to the database
 const axios = require('axios');
 
-
-// handles retrieving all movies
-exports.getAll = function(req, res){
-  Movie.find().then(movies=>{
-    return res.json({
-      status: "success",
-      message: "movies retrieved succesfully",
-      data: movies
-    });
-  }).catch(err=>{
-    return res.status(500).json({
-      status: "error",
-      message: err
-    });
-  })
-};
-
-// handles retrieving a random movie
-exports.getRandom = function(req, res){
-  Movie.find().then(movies=>{
-      var random_movie = movies[Math.floor(Math.random() * movies.length)]
-      res.json({
-        status: "success",
-        message: "movie retrieved succesfully",
-        data: random_movie
-      });
-    }).catch(err=>{
-      return res.status(500).json({
-        status: "error",
-        message: err
-      });
-    });
-};
-
-
 //handles creating a new movie
 exports.new = function(req, res){
 
@@ -80,6 +45,66 @@ exports.new = function(req, res){
         message: err.message || "some error occured while creating new movie"
       })
     })
+};
+
+// handles retrieving all movies
+exports.getAll = function(req, res){
+  Movie.find().then(movies=>{
+    return res.json({
+      status: "success",
+      message: "movies retrieved succesfully",
+      data: movies
+    });
+  }).catch(err=>{
+    return res.status(500).json({
+      status: "error",
+      message: err
+    });
+  })
+};
+
+// handles retrieving a random movie
+exports.getRandom = function(req, res){
+  Movie.find().then(movies=>{
+      var random_movie = movies[Math.floor(Math.random() * movies.length)]
+      res.json({
+        status: "success",
+        message: "movie retrieved succesfully",
+        data: random_movie
+      });
+    }).catch(err=>{
+      return res.status(500).json({
+        status: "error",
+        message: err
+      });
+    });
+};
+
+// handles retrieving multiple random movies
+exports.getManyRandom = function(req, res){
+  Movie.find().then(movies=>{
+      var movie_indexes = [];
+      let random_num;
+      while (movie_indexes.length < 8){
+        random_num = Math.floor(Math.random() * movies.length);
+        if (!movie_indexes.includes(random_num))
+          movie_indexes.push(random_num)
+      }
+      var random_movies = []
+      for (let i=0;i<movie_indexes.length;i++){
+        random_movies.push(movies[movie_indexes[i]])
+      }
+      res.json({
+        status: "success",
+        message: "movies retrieved succesfully",
+        data: random_movies
+      });
+    }).catch(err=>{
+      return res.status(500).json({
+        status: "error",
+        message: err
+      });
+    });
 };
 
 //handles viewing specific movie info
