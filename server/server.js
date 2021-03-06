@@ -21,7 +21,11 @@ const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
 */
+
+
 const axios = require('axios');
+var cron = require('node-cron');
+const { json } = require('express');
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
@@ -73,12 +77,39 @@ function makeRoom(socket) {
     return j;
 }
 
+// Get/update DB token
+function getNewDBToken(){
+    // Check if token is null/expired
+    var conndata = {
+        client_id:"R7PuCa8GHIgjUiVuhTJG0NYOVEbygMS3",
+        client_secret:"lgCUbZnyZ-pV72g1e7yFBfpSgSDorJLVAk1JJtv_ZhWJF_7Ez_e28ftAaBnrLsF6",
+        audience:"https://xwatchnextx.herokuapp.com/",
+        grant_type:"client_credentials"
+    };
+    
+    // Get options to start connection
+    var options = { method: 'POST',
+      url: 'https://watchnext2020.us.auth0.com/oauth/token',
+      headers: { 'content-type': 'application/json' },
+      data: JSON.stringify(conndata)};
+    
+    // Fetch token from DB with given credentials
+    axios(options).then(function (response) {
+        console.log("New DB token")
+        DBTOKEN = response.data.access_token
+    }).catch(error => {console.log("DB token creation error:", error.message)});
+}
+
+/*
+    Main socket activity
+*/
+
 // Make a list of sockets and associated users
 var SOCKET_LIST = {};
 var ROOM_LIST = {};
+var DBTOKEN = null;
 
-// Any socket comms go under here
-// Activates whenever a new user connects
+// Activates whenever a new user connects (activates whenever a new socket connects)
 io.on('connection', function (socket) {
     // Initialize the user in the socket list
     var i = 0;
@@ -91,7 +122,11 @@ io.on('connection', function (socket) {
     // When log in field is completed
     socket.on('getMedia', function () {
         // Get movie object from database
-        axios.get('https://xwatchnextx.herokuapp.com/api/movies').then(response => {
+        axios.get('https://xwatchnextx.herokuapp.com/api/movies', {
+            headers: { 
+                authorization: `Bearer ${DBTOKEN}`
+            }
+        }).then(response => {
             console.log("Movie request")
             socket.emit('recvMedia', { movieResults: response.data.data }); // TODO: Replace object with data
         }).catch(err => {
@@ -154,6 +189,16 @@ io.on('connection', function (socket) {
 
 });
 
+// Create DB token and setup cron job
+getNewDBToken();
+cron.schedule('* */12 * * *', () => {
+    getNewDBToken();
+});
+
+
+
+// Start the local server
 server.listen(2000, () => {
     console.log('Server start on 2000');
 });
+
