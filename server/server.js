@@ -132,7 +132,7 @@ var DBTOKEN = null;
 io.on('connection', function (socket) {
     // Initialize the user in the socket list
     SOCKET_LIST[socket.id] = socket;
-    console.log("Connected: " + socket.id + " as socket ID" + i);
+    console.log("Connected: " + socket.id);
 
     // Get all movies in database
     // REQ: N/A
@@ -369,8 +369,70 @@ io.on('connection', function (socket) {
         });
     });    
 
-    // Delete user request
+    // Delete user account
+    // REQ: {pass: "Password of current user" (str)}
+    socket.on('delUser', function(data) {
+        // TODO: Check password
+        if (true){
+            // Delete account
+            axios.get(`https://xwatchnextx.herokuapp.com/api/user/${SOCKET_LIST[socket.id].user_id}`, {
+                headers: { 
+                    authorization: `Bearer ${DBTOKEN}`
+                }
+            }).then(response => {
+                console.log("delUser request")
+                socket.emit('delUserResp', response.data); 
+            }).catch(err => {
+                console.log(err)
+            });
+        }
+        else {
+            // Account deletion failed
+        }
+    });
+
+    // Get all existing matching sessions
     // REQ: N/A
+    socket.on('getAllMatchSessions', function() {
+        axios.get(`https://xwatchnextx.herokuapp.com/api/matching-session`, {
+            headers: { 
+                authorization: `Bearer ${DBTOKEN}`
+            }
+        }).then(response => {
+            console.log("getAllMatchSessions request")
+            socket.emit('allMatchResp', response.data); 
+        }).catch(err => {
+            console.log(err)
+        });
+    });
+
+    // Get a specific matching session by ID
+    // REQ: {id: "ID of matching session" (str)}
+    socket.on('getMatchSession', function(data) {
+        axios.get(`https://xwatchnextx.herokuapp.com/api/matching-session/${data.id}`, {
+            headers: { 
+                authorization: `Bearer ${DBTOKEN}`
+            }
+        }).then(response => {
+            console.log("getMatchSession request")
+            socket.emit('MatchSessionResp', response.data); 
+        }).catch(err => {
+            console.log(err)
+        });
+    });
+
+    // Edit matching session settings (name, img)
+
+    // Add/remove member from session
+
+    // Add/remove likes/dislikes from session
+
+    // Add/remove from watch next/watched/etc.
+
+    // Delete matching session
+
+
+    
 
 
     // When new room is requested
