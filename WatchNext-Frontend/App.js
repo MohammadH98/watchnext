@@ -244,6 +244,7 @@ class App extends React.Component {
           colors={[GradientColour1, GradientColour2]}
           style={styles.background}
         />
+        <LoginScreen/>
         <View style={{ alignItems: 'center' }}>
           <Text style={styles.headingText}>WatchNext</Text>
           <Image
