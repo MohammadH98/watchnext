@@ -4,6 +4,7 @@ import SwipeScreen from './app/screens/SwipeScreen';
 import RoomScreen from './app/screens/RoomScreen'
 import { LinearGradient } from 'expo-linear-gradient';
 import io from "socket.io-client";
+import LoginScreen from './app/screens/LoginScreen'
 
 const socket = io('https://fd2a8290632e.ngrok.io', {
   transports: ['websocket']
