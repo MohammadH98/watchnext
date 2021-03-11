@@ -36,6 +36,7 @@ const io = require('socket.io')(server, {
     }
 });
 const path = require('path');
+const e = require('express');
 require('dotenv').config()
 
 
@@ -72,13 +73,13 @@ function makeRoom(socket, sessionID, roomName) {
             },
             data: {
                 session_id: sessionID,
-                creator_id: SOCKET_LIST[socket.id].user_id,
+                creator_id: SOCKET_LIST[socket.id].uID,
                 name: roomName
             }
         }).then(response => {
             // Add the socket to the given room, titled by the index
             socket.join(sessionID)
-            SOCKET_LIST[socket.id].sessionID = sessionID
+            SOCKET_LIST[socket.id].sID = sessionID
             // Make the room in the room list
             ROOM_LIST[sessionID] = io.sockets.adapter.rooms[sessionID];
             return sessionID; 
@@ -89,7 +90,7 @@ function makeRoom(socket, sessionID, roomName) {
     else {
         // Add the socket to the given room, titled by the index
         socket.join(sessionID)
-        SOCKET_LIST[socket.id].sessionID = sessionID
+        SOCKET_LIST[socket.id].sID = sessionID
         // Make the room in the room list
         ROOM_LIST[sessionID] = io.sockets.adapter.rooms[sessionID];
         return sessionID;   
@@ -121,6 +122,15 @@ function getNewDBToken(){
 
 /*
     Main socket activity
+*/
+
+/*
+// NOTATION LIST
+    uID: User ID
+    sID: Matching Session ID
+    mID: Movie ID
+    user: Username of a socket
+
 */
 
 // Make a list of sockets and associated users
@@ -167,10 +177,10 @@ io.on('connection', function (socket) {
     });    
 
     // Get all data for a specific movie by ID
-    // REQ: {id: "ID of movie" (str)}
+    // REQ: {mID: "ID of movie" (str)}
     socket.on('getSpecificMedia', function (data) {
         // Get movie object from database
-        axios.get(`https://xwatchnextx.herokuapp.com/api/movies/${data.id}`, {
+        axios.get(`https://xwatchnextx.herokuapp.com/api/movies/${data.mID}`, {
             headers: { 
                 authorization: `Bearer ${DBTOKEN}`
             }
@@ -225,10 +235,10 @@ io.on('connection', function (socket) {
     });
 
     // Get specific user data by user ID
-    // REQ: {id: "ID of user" (str)}
+    // REQ: {uID: "ID of user" (str)}
     socket.on('getSpecificUser', function (data) {
         // Get user data
-        axios.get(`https://xwatchnextx.herokuapp.com/api/movies/${data.id}`, {
+        axios.get(`https://xwatchnextx.herokuapp.com/api/movies/${data.uID}`, {
             headers: { 
                 authorization: `Bearer ${DBTOKEN}`
             }
@@ -272,9 +282,9 @@ io.on('connection', function (socket) {
         });
     });
 
-    //Set movie rating based on swipe action
-    //handles both likes individually and if user is in a matching session
-    //REQ: {movieid:, liked: True/False}
+    // Set movie rating based on swipe action
+    // Handles both likes individually and if user is in a matching session
+    //REQ: {mID: "Movie ID" (str), liked: "Was the movie liked?" (bool)}
     socket.on('rateMovie', function (data) {
 
         //If movie is liked
@@ -305,69 +315,80 @@ io.on('connection', function (socket) {
         });
     });
     
-    // Add user to friend's list
-    // REQ: {id: "Requested user ID" (str)}
+    // Add/remove user from friend's list
+    // REQ: {uID: "Requested user ID" (str), add: "Add or remove" (bool)}
     socket.on('addFriend', function (data) {
-        // Add friend
-        axios.get(`https://xwatchnextx.herokuapp.com/api/user/friends`, {
-            headers: { 
-                authorization: `Bearer ${DBTOKEN}`
-            }
-        }).then(response => {
-            console.log("addFriend request")
-            socket.emit('addResp', response.data); 
-        }).catch(err => {
-            console.log(err)
-        });
-    });
-
-    // Remove user from friend's list
-    // REQ: {id: "Requested user ID" (str)}
-    socket.on('rmvFriend', function (data) {
-        // Add friend
-        axios.get(`https://xwatchnextx.herokuapp.com/api/user/friends`, {
-            headers: { 
-                authorization: `Bearer ${DBTOKEN}`
-            }
-        }).then(response => {
-            console.log("rmvFriend request")
-            socket.emit('rmvResp', response.data); 
-        }).catch(err => {
-            console.log(err)
-        });
+        if (data.add){
+            // Add friend
+            axios.get(`https://xwatchnextx.herokuapp.com/api/user/friends`, {
+                headers: { 
+                    authorization: `Bearer ${DBTOKEN}`
+                },
+                data:{
+                    user_id: SOCKET_LIST[socket.id].uID,
+                    friend_id: data.uID
+                }
+            }).then(response => {
+                console.log("addFriend request")
+                socket.emit('addResp', response.data); 
+            }).catch(err => {
+                console.log(err)
+            });
+        } else {
+            axios.delete(`https://xwatchnextx.herokuapp.com/api/user/friends`, {
+                headers: { 
+                    authorization: `Bearer ${DBTOKEN}`
+                },
+                data:{
+                    user_id: SOCKET_LIST[socket.id].uID,
+                    friend_id: data.uID
+                }
+            }).then(response => {
+                console.log("rmvFriend request")
+                socket.emit('rmvResp', response.data); 
+            }).catch(err => {
+                console.log(err)
+            });
+        }
     });
     
-    // Add matching session to user
-    // REQ: ???
+    // Add/remove matching session from user
+    // REQ: {sID: "Matching session ID" (str), add: "Add or remove" (bool)}
     socket.on('addMatchSession', function (data) {
-        // Add friend
-        axios.get(`https://xwatchnextx.herokuapp.com/api/user/matching-session`, {
-            headers: { 
-                authorization: `Bearer ${DBTOKEN}`
-            }
-        }).then(response => {
-            console.log("rmvMatchSession request")
-            socket.emit('addMatchResp', response.data); 
-        }).catch(err => {
-            console.log(err)
-        });
-    });  
-
-    // Remove matching session from user
-    // REQ: ???
-    socket.on('rmvMatchSession', function (data) {
-        // Add friend
-        axios.get(`https://xwatchnextx.herokuapp.com/api/user/matching-session`, {
-            headers: { 
-                authorization: `Bearer ${DBTOKEN}`
-            }
-        }).then(response => {
-            console.log("rmvMatchSession request")
-            socket.emit('rmvMatchResp', response.data); 
-        }).catch(err => {
-            console.log(err)
-        });
-    });    
+        if (data.add){
+            // Add session
+            axios.get(`https://xwatchnextx.herokuapp.com/api/user/matching-session`, {
+                headers: { 
+                    authorization: `Bearer ${DBTOKEN}`
+                },
+                data: {
+                    user_id: SOCKET_LIST[socket.id].uID,
+                    session_id: data.sID
+                }
+            }).then(response => {
+                console.log("rmvMatchSession request")
+                socket.emit('addMatchResp', response.data); 
+            }).catch(err => {
+                console.log(err)
+            });
+        } else {
+            // Remove session
+            axios.delete(`https://xwatchnextx.herokuapp.com/api/user/matching-session`, {
+                headers: { 
+                    authorization: `Bearer ${DBTOKEN}`
+                },
+                data: {
+                    user_id: SOCKET_LIST[socket.id].uID,
+                    session_id: data.sID
+                }
+            }).then(response => {
+                console.log("rmvMatchSession request")
+                socket.emit('addMatchResp', response.data); 
+            }).catch(err => {
+                console.log(err)
+            });
+        }
+    });     
 
     // Delete user account
     // REQ: {pass: "Password of current user" (str)}
@@ -375,7 +396,7 @@ io.on('connection', function (socket) {
         // TODO: Check password
         if (true){
             // Delete account
-            axios.get(`https://xwatchnextx.herokuapp.com/api/user/${SOCKET_LIST[socket.id].user_id}`, {
+            axios.delete(`https://xwatchnextx.herokuapp.com/api/user/${SOCKET_LIST[socket.id].uID}`, {
                 headers: { 
                     authorization: `Bearer ${DBTOKEN}`
                 }
@@ -407,9 +428,9 @@ io.on('connection', function (socket) {
     });
 
     // Get a specific matching session by ID
-    // REQ: {id: "ID of matching session" (str)}
+    // REQ: {sID: "ID of matching session" (str)}
     socket.on('getMatchSession', function(data) {
-        axios.get(`https://xwatchnextx.herokuapp.com/api/matching-session/${data.id}`, {
+        axios.get(`https://xwatchnextx.herokuapp.com/api/matching-session/${data.sID}`, {
             headers: { 
                 authorization: `Bearer ${DBTOKEN}`
             }
@@ -422,14 +443,200 @@ io.on('connection', function (socket) {
     });
 
     // Edit matching session settings (name, img)
+    // REQ: {sID: "ID of matching session" (str), name: "New name of matching session" (str)}
+    // TODO: Implement img
+    socket.on('changeMatchSession', function(data) {
+        axios.get(`https://xwatchnextx.herokuapp.com/api/matching-session/name`, {
+            headers: { 
+                authorization: `Bearer ${DBTOKEN}`
+            },
+            data:{
+                    session_id: data.sID,
+                    name: data.name
+            }
+        }).then(response => {
+            console.log("changeMatchSession request")
+            socket.emit('ChangeMatchSessionResp', response.data); 
+        }).catch(err => {
+            console.log(err)
+        });
+    });
 
+    
     // Add/remove member from session
+    // REQ: {sID: "ID of matching session" (str), uID: "ID of user" (str), add: "Add/remove user" (bool)}
+    socket.on('editMatchSession', function(data) {
+        if (add){
+            axios.get(`https://xwatchnextx.herokuapp.com/api/matching-session/members`, {
+                headers: { 
+                    authorization: `Bearer ${DBTOKEN}`
+                },
+                data:{
+                    session_id: data.sID,
+                    user_id: data.uid
+                }
+            }).then(response => {
+                console.log("changeMatchSession request")
+                socket.emit('ChangeMatchSessionResp', response.data); 
+            }).catch(err => {
+                console.log(err)
+            });
+        } else {
+            axios.delete(`https://xwatchnextx.herokuapp.com/api/matching-session/members`, {
+                headers: { 
+                    authorization: `Bearer ${DBTOKEN}`
+                },
+                data:{
+                    session_id: data.sID,
+                    user_id: data.uid
+                }
+            }).then(response => {
+                console.log("changeMatchSession request")
+                socket.emit('ChangeMatchSessionResp', response.data); 
+            }).catch(err => {
+                console.log(err)
+            });
+        }
+    });
 
     // Add/remove likes/dislikes from session
+    // REQ: {sID: "ID of matching session" (str), mID: "ID of movie" (str), add: "Add/remove movie" (bool), like: "Like/dislike move" (bool)}
+    socket.on('rateMatchSession', function(data) {
+        if(add){
+            if (like){
+                axios.get(`https://xwatchnextx.herokuapp.com/api/matching-session/likes`, {
+                    headers: { 
+                        authorization: `Bearer ${DBTOKEN}`
+                    },
+                    data:{
+                            session_id: data.sID,
+                            movie_id: data.mID
+                    }
+                }).then(response => {
+                    console.log("rateMatchSession request")
+                    socket.emit('rateMatchSessionResp', response.data); 
+                }).catch(err => {
+                    console.log(err)
+                });
+            } else{
+                axios.get(`https://xwatchnextx.herokuapp.com/api/matching-session/dislikes`, {
+                    headers: { 
+                        authorization: `Bearer ${DBTOKEN}`
+                    },
+                    data:{
+                            session_id: data.sID,
+                            movie_id: data.mID
+                    }
+                }).then(response => {
+                    console.log("rateMatchSession request")
+                    socket.emit('rateMatchSessionResp', response.data); 
+                }).catch(err => {
+                    console.log(err)
+                });            
+            }
+        } else {
+            axios.delete(`https://xwatchnextx.herokuapp.com/api/matching-session/dislikes`, {
+                headers: { 
+                    authorization: `Bearer ${DBTOKEN}`
+                },
+                data:{
+                        session_id: data.sID,
+                        movie_id: data.mID
+                }
+            }).then(response => {
+                console.log("rateMatchSession request")
+                socket.emit('rateMatchSessionResp', response.data); 
+            }).catch(err => {
+                console.log(err)
+            });
+        }
+    });
 
     // Add/remove from watch next/watched/etc.
+    // REQ: {sid: "ID of matching session" (str), mid: "ID of movie" (str), watched: "Add/Remove movie watched" (bool), watchnext: "Add/Remove movie watch next" (bool) }
+    // TODO: Ask mo why there isn't a delete for watchnext
+    socket.on('changeWatchNext', function(data) {
+        if (watched){
+            axios.get(`https://xwatchnextx.herokuapp.com/api/matching-session/watched`, {
+                headers: { 
+                    authorization: `Bearer ${DBTOKEN}`
+                },
+                data:{
+                        session_id: data.sID,
+                        movie_id: data.mid
+                }
+            }).then(response => {
+                console.log("changeWatchedNext request")
+                socket.emit('ChangeWatchedNextResp', response.data); 
+            }).catch(err => {
+                console.log(err)
+            });
+            if (watchnext) {
+                axios.patch(`https://xwatchnextx.herokuapp.com/api/matching-session/watchnext`, {
+                    headers: { 
+                        authorization: `Bearer ${DBTOKEN}`
+                    },
+                    data:{
+                            session_id: data.sID,
+                            movie_id: data.mid
+                    }
+                }).then(response => {
+                    console.log("changeWatchNext request")
+                    socket.emit('ChangeWatchNextResp', response.data); 
+                }).catch(err => {
+                    console.log(err)
+                });
+            } else {
+                axios.delete(`https://xwatchnextx.herokuapp.com/api/matching-session/watchnext`, {
+                    headers: { 
+                        authorization: `Bearer ${DBTOKEN}`
+                    },
+                    data:{
+                            session_id: data.sID,
+                            movie_id: data.mid
+                    }
+                }).then(response => {
+                    console.log("changeWatchNext request")
+                    socket.emit('ChangeWatchNextResp', response.data); 
+                }).catch(err => {
+                    console.log(err)
+                });
+            }
+        } else {
+            axios.delete(`https://xwatchnextx.herokuapp.com/api/matching-session/watched`, {
+                headers: { 
+                    authorization: `Bearer ${DBTOKEN}`
+                },
+                data:{
+                        session_id: data.sID,
+                        movie_id: data.mid
+                }
+            }).then(response => {
+                console.log("changeWatchedNext request")
+                socket.emit('ChangeWatchedNextResp', response.data); 
+            }).catch(err => {
+                console.log(err)
+            });
+        }       
+    });
+    
 
     // Delete matching session
+    // REQ: {sID: "ID of matching session" (str) }
+    socket.on('delSession', function(data){
+        axios.delete(`https://xwatchnextx.herokuapp.com/api/matching-session/${data.sID}`, {
+            headers: { 
+                authorization: `Bearer ${DBTOKEN}`
+            },
+        }).then(response => {
+            console.log("delSession request")
+            socket.emit('delSessionResp', response.data); 
+        }).catch(err => {
+            console.log(err)
+        });
+
+        
+    });
 
 
     
@@ -439,9 +646,9 @@ io.on('connection', function (socket) {
     socket.on('getRoom', function (data) {
         // Associate the room ID with the base user
         var id = SOCKET_LIST[socket.id];
-        id.roomID = makeRoom(socket);
+        id.sID = makeRoom(socket);
         // Notify client to show room view with given room data
-        socket.emit('recvRoom', { room: ROOM_LIST[id.roomid] });
+        socket.emit('recvRoom', { room: ROOM_LIST[id.sID] });
     });
 
     // When an invite is sent
@@ -463,12 +670,12 @@ io.on('connection', function (socket) {
         // Get user socket
         var id = SOCKET_LIST[socket.id];
         // Get inviter socket and associated room ID
-        var roomid = SOCKET_LIST[userFind(data.user)].roomID;
+        var roomid = SOCKET_LIST[userFind(data.user)].sID;
         // Add user socket to room and set the id
         socket.join(roomid);
-        id.roomID = roomid;
+        id.sID = roomid;
         // Notify client to show room view with given room data
-        io.to(id.roomID).emit('testrec', id.user);
+        io.to(id.sID).emit('testrec', id.user);
         socket.emit('recvRoom', { room: ROOM_LIST[roomid] });
     });
 
