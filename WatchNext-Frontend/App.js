@@ -4,7 +4,9 @@ import SwipeScreen from './app/screens/SwipeScreen';
 import RoomScreen from './app/screens/RoomScreen'
 import { LinearGradient } from 'expo-linear-gradient';
 import io from "socket.io-client";
-import LoginScreen from './app/screens/LoginScreen'
+import LoginScreen from './app/screens/LoginScreen';
+import LoginButton from './app/components/LoginButton'
+import * as AuthSession from 'expo-auth-session';
 
 const socket = io('https://fd2a8290632e.ngrok.io', {
   transports: ['websocket']
@@ -13,6 +15,10 @@ const socket = io('https://fd2a8290632e.ngrok.io', {
 const GradientColour1 = 'purple'
 const GradientColour2 = 'orange'
 
+const auth0ClientId = "FaRwkWXkMUcmuFyYcj36p8VSN5alhryw";
+const authorizationEndpoint = "https://watchnext2020.us.auth0.com/authorize";
+const useProxy = Platform.select({ web: false, default: true });
+const redirectUri = AuthSession.makeRedirectUri({ useProxy });
 /**
  * Better version of console.log, prevents console.log statements from making it to prod
  * @param {*} message what to log
@@ -177,6 +183,12 @@ class App extends React.Component {
     })
   }
 
+  loginToApp(){
+    this.setState({
+      loggedIn: true
+    })
+  }
+
   /**
    * Renders the alert used to accept the invitation on mobile platforms
    */
@@ -198,6 +210,8 @@ class App extends React.Component {
   }
 
   render() {
+
+    console.log("MO LOOK HERE:" + AuthSession.getRedirectUrl());
     if (this.state.loggedIn) {
       return (
         <View style={[styles.mainContainer, { paddingTop: 20 }]}>
@@ -244,21 +258,14 @@ class App extends React.Component {
           colors={[GradientColour1, GradientColour2]}
           style={styles.background}
         />
-        <LoginScreen/>
+        <LoginScreen />
         <View style={{ alignItems: 'center' }}>
           <Text style={styles.headingText}>WatchNext</Text>
           <Image
             source={require('./app/assets/shawshank.jpg')}
             style={styles.mainImage}
           />
-          <Button
-            onPress={() => this.login('1')}
-            title='Login as 1'
-          />
-          <Button
-            onPress={() => this.login('2')}
-            title='Login as 2'
-          />
+          <LoginButton/>
         </View>
       </View>
     );
