@@ -1,15 +1,22 @@
 import React, { Component } from 'react'
-import { Text, TextInput, View } from 'react-native';
+import { Text, StyleSheet, View } from 'react-native';
+import LoginButton from '../components/LoginButton'
 
 export default class LoginScreen extends Component {
     render() {
         return (
             <View>
                 <Text>WatchNext</Text>
-                <TextInput/>
-                <TextInput/>
-                <hr/>
+                <LoginButton loginToApp={this.props.loginToApp}/>
             </View>
         )
     }
 }
+
+const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });

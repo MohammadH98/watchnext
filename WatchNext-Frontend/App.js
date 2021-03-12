@@ -1,11 +1,10 @@
 import React from "react";
-import { StyleSheet, Text, View, Image, Button, Platform, TouchableOpacity, Alert } from "react-native";
+import { StyleSheet, Text, View, Image, Button, Platform, TouchableOpacity, Alert, SafeAreaView } from "react-native";
 import SwipeScreen from './app/screens/SwipeScreen';
 import RoomScreen from './app/screens/RoomScreen'
 import { LinearGradient } from 'expo-linear-gradient';
 import io from "socket.io-client";
 import LoginScreen from './app/screens/LoginScreen';
-import LoginButton from './app/components/LoginButton'
 import * as AuthSession from 'expo-auth-session';
 
 const socket = io('https://fd2a8290632e.ngrok.io', {
@@ -72,6 +71,7 @@ class App extends React.Component {
     this.rejectInvite = this.rejectInvite.bind(this)
     this.createInviteAlert = this.createInviteAlert.bind(this)
     this.requestMovies = this.requestMovies.bind(this)
+    this.loginToApp = this.loginToApp.bind(this)
 
     socket.on('connect', function () {
       socket.on('recvMedia', function (data) {
@@ -210,11 +210,9 @@ class App extends React.Component {
   }
 
   render() {
-
-    console.log("MO LOOK HERE:" + AuthSession.getRedirectUrl());
     if (this.state.loggedIn) {
       return (
-        <View style={[styles.mainContainer, { paddingTop: 20 }]}>
+        <SafeAreaView style={[styles.mainContainer, { paddingTop: 20 }]}>
           <LinearGradient
             colors={[GradientColour1, GradientColour2]}
             style={styles.background}
@@ -248,26 +246,20 @@ class App extends React.Component {
               </View >
             }
           </View>
-        </View>
+        </SafeAreaView>
       )
     }
     return (
-      <View style={[styles.mainContainer, { paddingTop: 20 }]}>
+      <SafeAreaView style={[styles.mainContainer, { paddingTop: 20 }]}>
         <LinearGradient
           // Background Linear Gradient
           colors={[GradientColour1, GradientColour2]}
           style={styles.background}
         />
-        <LoginScreen />
-        <View style={{ alignItems: 'center' }}>
-          <Text style={styles.headingText}>WatchNext</Text>
-          <Image
-            source={require('./app/assets/shawshank.jpg')}
-            style={styles.mainImage}
-          />
-          <LoginButton/>
+        <View>
+        <LoginScreen loginToApp={this.loginToApp}/>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 }

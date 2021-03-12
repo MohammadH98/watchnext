@@ -16,7 +16,7 @@ const authorizationEndpoint = "https://watchnext2020.us.auth0.com/authorize";
 const useProxy = Platform.select({ web: false, default: true });
 const redirectUri = AuthSession.makeRedirectUri({ useProxy });
 
-export default function LoginButton() {
+export default function LoginButton(props) {
   const [name, setName] = React.useState(null);
 
   const [request, result, promptAsync] = AuthSession.useAuthRequest(
@@ -37,7 +37,7 @@ export default function LoginButton() {
 
   // Retrieve the redirect URL, add this to the callback URL list
   // of your Auth0 application.
-  console.log(`Redirect URL: ${redirectUri}`);
+  //console.log(`Redirect URL: ${redirectUri}`);
 
   React.useEffect(() => {
     if (result) {
@@ -52,19 +52,19 @@ export default function LoginButton() {
         // Retrieve the JWT token and decode it
         const jwtToken = result.params.id_token;
         const decoded = jwtDecode(jwtToken);
-
-        const { name } = decoded;
+        const { name } = decoded//decoded;
         setName(name);
       }
     }
   }, [result]);
 
+  
+
   return (
     <View style={styles.container}>
       {name ? (
         <>
-          <Text style={styles.title}>You are logged in, {name}!</Text>
-          <Button title="Log out" onPress={() => setName(null)} />
+        {props.loginToApp()}
         </>
       ) : (
         <Button
@@ -80,13 +80,7 @@ export default function LoginButton() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    textAlign: 'center',
-    marginTop: 40,
   },
 });
