@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import io from "socket.io-client";
 import LoginScreen from './app/screens/LoginScreen';
 import * as AuthSession from 'expo-auth-session';
+import LogoutButton from './app/components/LogoutButton';
 
 const socket = io('https://fd2a8290632e.ngrok.io', {
   transports: ['websocket']
@@ -72,6 +73,7 @@ class App extends React.Component {
     this.createInviteAlert = this.createInviteAlert.bind(this)
     this.requestMovies = this.requestMovies.bind(this)
     this.loginToApp = this.loginToApp.bind(this)
+    this.logoutOfApp = this.logoutOfApp.bind(this)
 
     socket.on('connect', function () {
       socket.on('recvMedia', function (data) {
@@ -189,6 +191,12 @@ class App extends React.Component {
     })
   }
 
+  logoutOfApp(){
+    this.setState({
+      loggedIn: false
+    })
+  }
+
   /**
    * Renders the alert used to accept the invitation on mobile platforms
    */
@@ -243,6 +251,7 @@ class App extends React.Component {
                   title='Go To Room'
                   onPress={() => this.requestRoom()}
                 ></Button>
+                <LogoutButton logout={this.logoutOfApp}/>
               </View >
             }
           </View>
