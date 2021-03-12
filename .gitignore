@@ -114,3 +114,5 @@ package-lock.json
 WatchNext-Frontend/.expo/*
 WatchNext-Frontend/android/*
 WatchNext-Frontend/ios/*
+
+ngrok.exe
