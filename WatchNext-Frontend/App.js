@@ -1,10 +1,12 @@
 import React from "react";
-import { StyleSheet, Text, View, Image, Button, Platform, TouchableOpacity, Alert } from "react-native";
+import { StyleSheet, Text, View, Image, Button, Platform, TouchableOpacity, Alert, SafeAreaView } from "react-native";
 import SwipeScreen from './app/screens/SwipeScreen';
 import RoomScreen from './app/screens/RoomScreen'
 import { LinearGradient } from 'expo-linear-gradient';
 import io from "socket.io-client";
-import LoginScreen from './app/screens/LoginScreen'
+import LoginScreen from './app/screens/LoginScreen';
+import * as AuthSession from 'expo-auth-session';
+import LogoutButton from './app/components/LogoutButton';
 
 const socket = io('https://fd2a8290632e.ngrok.io', {
   transports: ['websocket']
@@ -13,6 +15,10 @@ const socket = io('https://fd2a8290632e.ngrok.io', {
 const GradientColour1 = 'purple'
 const GradientColour2 = 'orange'
 
+const auth0ClientId = "FaRwkWXkMUcmuFyYcj36p8VSN5alhryw";
+const authorizationEndpoint = "https://watchnext2020.us.auth0.com/authorize";
+const useProxy = Platform.select({ web: false, default: true });
+const redirectUri = AuthSession.makeRedirectUri({ useProxy });
 /**
  * Better version of console.log, prevents console.log statements from making it to prod
  * @param {*} message what to log
@@ -66,6 +72,8 @@ class App extends React.Component {
     this.rejectInvite = this.rejectInvite.bind(this)
     this.createInviteAlert = this.createInviteAlert.bind(this)
     this.requestMovies = this.requestMovies.bind(this)
+    this.loginToApp = this.loginToApp.bind(this)
+    this.logoutOfApp = this.logoutOfApp.bind(this)
 
     socket.on('connect', function () {
       socket.on('recvMedia', function (data) {
@@ -177,6 +185,18 @@ class App extends React.Component {
     })
   }
 
+  loginToApp(){
+    this.setState({
+      loggedIn: true
+    })
+  }
+
+  logoutOfApp(){
+    this.setState({
+      loggedIn: false
+    })
+  }
+
   /**
    * Renders the alert used to accept the invitation on mobile platforms
    */
@@ -200,7 +220,7 @@ class App extends React.Component {
   render() {
     if (this.state.loggedIn) {
       return (
-        <View style={[styles.mainContainer, { paddingTop: 20 }]}>
+        <SafeAreaView style={[styles.mainContainer, { paddingTop: 20 }]}>
           <LinearGradient
             colors={[GradientColour1, GradientColour2]}
             style={styles.background}
@@ -231,36 +251,24 @@ class App extends React.Component {
                   title='Go To Room'
                   onPress={() => this.requestRoom()}
                 ></Button>
+                <LogoutButton logout={this.logoutOfApp}/>
               </View >
             }
           </View>
-        </View>
+        </SafeAreaView>
       )
     }
     return (
-      <View style={[styles.mainContainer, { paddingTop: 20 }]}>
+      <SafeAreaView style={[styles.mainContainer, { paddingTop: 20 }]}>
         <LinearGradient
           // Background Linear Gradient
           colors={[GradientColour1, GradientColour2]}
           style={styles.background}
         />
-        <LoginScreen/>
-        <View style={{ alignItems: 'center' }}>
-          <Text style={styles.headingText}>WatchNext</Text>
-          <Image
-            source={require('./app/assets/shawshank.jpg')}
-            style={styles.mainImage}
-          />
-          <Button
-            onPress={() => this.login('1')}
-            title='Login as 1'
-          />
-          <Button
-            onPress={() => this.login('2')}
-            title='Login as 2'
-          />
+        <View>
+        <LoginScreen loginToApp={this.loginToApp}/>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 }
