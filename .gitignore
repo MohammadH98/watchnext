@@ -116,3 +116,5 @@ WatchNext-Frontend/android/*
 WatchNext-Frontend/ios/*
 
 ngrok.exe
+
+.env

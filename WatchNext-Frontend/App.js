@@ -8,7 +8,7 @@ import LoginScreen from './app/screens/LoginScreen';
 import * as AuthSession from 'expo-auth-session';
 import LogoutButton from './app/components/LogoutButton';
 
-const socket = io('https://fd2a8290632e.ngrok.io', {
+const socket = io('https://c35f0c3082ec.ngrok.io', {
   transports: ['websocket']
 });
 
