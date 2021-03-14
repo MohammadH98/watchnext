@@ -1,27 +1,42 @@
 import React from "react";
-import { StyleSheet, Text, View, Image, Button, Platform, TouchableOpacity, Alert, SafeAreaView } from "react-native";
-import SwipeScreen from './app/screens/SwipeScreen';
-import RoomScreen from './app/screens/RoomScreen'
-import { LinearGradient } from 'expo-linear-gradient';
-import io from "socket.io-client";
-import LoginScreen from './app/screens/LoginScreen';
-import * as AuthSession from 'expo-auth-session';
-import LogoutButton from './app/components/LogoutButton';
-import jwtDecode from 'jwt-decode';
 
-const socket = io('https://5e216588be0c.ngrok.io', {
-  transports: ['websocket']
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  Platform,
+  TouchableOpacity,
+  Alert,
+  SafeAreaView,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import io from "socket.io-client";
+import jwtDecode from "jwt-decode";
+import { Provider as PaperProvider, Button, DefaultTheme } from "react-native-paper";
+
+import SwipeScreen from "./app/screens/SwipeScreen";
+import RoomScreen from "./app/screens/RoomScreen";
+import LoginScreen from "./app/screens/LoginScreen";
+import LogoutButton from "./app/components/LogoutButton";
+import PostLoginScreen from "./app/screens/PostLoginScreen";
+import HomeScreen from "./app/screens/HomeScreen";
+
+const socket = io("https://5e216588be0c.ngrok.io", {
+  transports: ["websocket"],
 });
 
-const GradientColour1 = 'purple'
-const GradientColour2 = 'orange'
+const GradientColour1 = "purple";
+const GradientColour2 = "orange";
 
 /**
  * Better version of console.log, prevents console.log statements from making it to prod
  * @param {*} message what to log
  */
 function logger(message) {
-  if (false) { console.log(message) } //change for debugging
+  if (false) {
+    console.log(message);
+  } //change for debugging
 }
 
 /**
@@ -31,82 +46,101 @@ function logger(message) {
  */
 class WebInviteView extends React.Component {
   constructor(props) {
-    super(props)
+    super(props);
   }
 
   render() {
-    if (Platform.OS === 'web') {
+    if (Platform.OS === "web") {
       return (
         <View>
           <Button
-            title={'Accept Invite'}
+            title={"Accept Invite"}
             onPress={() => this.props.acceptInvite()}
           />
           <Button
-            title={'Dismiss Invite'}
+            title={"Dismiss Invite"}
             onPress={() => this.props.rejectInvite()}
           />
         </View>
-      )
+      );
     }
-    return null
+    return null;
   }
 }
 
 class App extends React.Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
-      loggedIn: false,
+      loggedIn: true, //TODO change back
+      firstLogin: true,
       inRoom: false,
       inMatchingSession: false,
-      username: '',
+      username: "",
       isInvite: false,
-      movies: []
-    }
+      movies: [],
+      testBool: false
+    };
 
-    this.acceptInvite = this.acceptInvite.bind(this)
-    this.rejectInvite = this.rejectInvite.bind(this)
-    this.createInviteAlert = this.createInviteAlert.bind(this)
-    this.requestMovies = this.requestMovies.bind(this)
-    this.loginToApp = this.loginToApp.bind(this)
-    this.logoutOfApp = this.logoutOfApp.bind(this)
+    this.acceptInvite = this.acceptInvite.bind(this);
+    this.rejectInvite = this.rejectInvite.bind(this);
+    this.createInviteAlert = this.createInviteAlert.bind(this);
+    this.requestMovies = this.requestMovies.bind(this);
+    this.loginToApp = this.loginToApp.bind(this);
+    this.logoutOfApp = this.logoutOfApp.bind(this);
 
-    socket.on('connect', function () {
+    socket.on(
+      "connect",
+      function () {
+        socket.on(
+          "loginResp",
+          function (data) {
+            // Check if successful
+            if (data.success) {
+              this.setState({
+                loggedIn: true,
+                firstLogin: true, //data.first
+              });
+            }
+          }.bind(this)
+        );
 
-      socket.on('loginResp', function(data){
-          // Check if successful
-          if(data.success){
+        socket.on(
+          "recvMedia",
+          function (data) {
             this.setState({
-              loggedIn: true
-          })
-          }
-      }.bind(this));
-        
-      socket.on('recvMedia', function (data) {
-        this.setState({
-          movies: data,
-          inMatchingSession: true
-        })
-      }.bind(this));
+              movies: data,
+              inMatchingSession: true,
+            });
+          }.bind(this)
+        );
 
-      socket.on('recvRoom', function (data) {
-        this.setState({
-          inRoom: true
-        })
-      }.bind(this));
+        socket.on(
+          "recvRoom",
+          function (data) {
+            this.setState({
+              inRoom: true,
+            });
+          }.bind(this)
+        );
 
-      socket.on('recvInv', function (data) {
-        this.setState({ isInvite: true })
-        this.createInviteAlert();
-        logger(data.user);
-      }.bind(this))
+        socket.on(
+          "recvInv",
+          function (data) {
+            this.setState({ isInvite: true });
+            this.createInviteAlert();
+            logger(data.user);
+          }.bind(this)
+        );
 
-      socket.on('testrec', function (data) {
-        logger("Test receive: " + data)
-      }.bind(this));
-
-    }.bind(this));
+        socket.on(
+          "testrec",
+          function (data) {
+            logger("Test receive: " + data);
+          }.bind(this)
+        );
+      }.bind(this)
+    );
   }
 
   /**
@@ -115,23 +149,25 @@ class App extends React.Component {
    * @return {Integer} The number of movies provided by the server
    */
   getMovieArrayLength(movies) {
-    if (movies.length === 0) { return 0 }
-    return movies.movieResults.length
+    if (movies.length === 0) {
+      return 0;
+    }
+    return movies.movieResults.length;
   }
 
   /**
    * Notifies the server to provide movie data
    */
   requestMovies() {
-    socket.emit('getRandomMovies', '');
+    socket.emit("getRandomMovies", "");
   }
 
   /**
    * Notifies the server to provide a matching room
    */
   requestRoom() {
-    socket.emit('getRoom', "");
-  };
+    socket.emit("getRoom", "");
+  }
 
   /**
    * sets the application to matching session mode
@@ -144,34 +180,34 @@ class App extends React.Component {
    * sends an invitation to the other user
    */
   sendInvite() {
-    var otherUser = this.state.username == '1' ? 2 : 1
-    socket.emit('sendInv', { user: otherUser })
+    var otherUser = this.state.username == "1" ? 2 : 1;
+    socket.emit("sendInv", { user: otherUser });
   }
 
   acceptInvite() {
-    var otherUser = this.state.username == '1' ? 2 : 1
-    socket.emit('acceptInv', { user: otherUser })
+    var otherUser = this.state.username == "1" ? 2 : 1;
+    socket.emit("acceptInv", { user: otherUser });
     this.setState({
       inMatchingSession: false,
-      isInvite: false
-    })
+      isInvite: false,
+    });
   }
 
   rejectInvite() {
     this.setState({
-      isInvite: false
-    })
+      isInvite: false,
+    });
   }
 
-  loginToApp(token){
-    tokenDecoded = jwtDecode(token)
-    socket.emit('loginUser', { token: token, tokenDecoded: tokenDecoded });
+  loginToApp(token) {
+    tokenDecoded = jwtDecode(token);
+    socket.emit("loginUser", { token: token, tokenDecoded: tokenDecoded });
   }
 
-  logoutOfApp(){
+  logoutOfApp() {
     this.setState({
-      loggedIn: false
-    })
+      loggedIn: false,
+    });
   }
 
   /**
@@ -179,23 +215,23 @@ class App extends React.Component {
    */
   createInviteAlert() {
     Alert.alert(
-      'Invitation Received',
-      'You have been invited to join a matching session',
+      "Invitation Received",
+      "You have been invited to join a matching session",
       [
         {
-          text: 'Cancel',
-          onPress: () => this.rejectInvite()
+          text: "Cancel",
+          onPress: () => this.rejectInvite(),
         },
         {
-          text: 'Accept',
-          onPress: () => this.acceptInvite()
-        }
+          text: "Accept",
+          onPress: () => this.acceptInvite(),
+        },
       ]
-    )
+    );
   }
 
   render() {
-    if (this.state.loggedIn) {
+    if (this.state.loggedIn && !this.state.firstLogin) {
       return (
         <SafeAreaView style={[styles.mainContainer, { paddingTop: 20 }]}>
           <LinearGradient
@@ -203,37 +239,54 @@ class App extends React.Component {
             style={styles.background}
           />
           <View>
-            {this.state.isInvite && //if you have been invited
-              <WebInviteView acceptInvite={this.acceptInvite} rejectInvite={this.rejectInvite} />
-            }
-            {this.state.inMatchingSession && //if you are in a matching session
-              <SwipeScreen data={this.state.movies} requestMovies={this.requestMovies} />
-            }
-            {this.state.inRoom && //if you are in a room
+            {this.state.isInvite && ( //if you have been invited
+              <WebInviteView
+                acceptInvite={this.acceptInvite}
+                rejectInvite={this.rejectInvite}
+              />
+            )}
+            {this.state.inMatchingSession && ( //if you are in a matching session
+              <SwipeScreen
+                data={this.state.movies}
+                requestMovies={this.requestMovies}
+              />
+            )}
+            {this.state.inRoom && ( //if you are in a room
               <View>
                 <RoomScreen />
                 <Button
-                  title={'Send Invite'}
+                  title={"Send Invite"}
                   onPress={() => this.sendInvite()}
                 />
               </View>
-            }
-            {!this.state.inRoom && !this.state.inMatchingSession && //if you aren't doing anything
-              <View>
-                <Button
-                  title='Go To Matching Session'
-                  onPress={() => this.goMatching()}
-                ></Button>
-                <Button
-                  title='Go To Room'
-                  onPress={() => this.requestRoom()}
-                ></Button>
-                <LogoutButton logout={this.logoutOfApp}/>
-              </View >
-            }
+            )}
+            {!this.state.inRoom &&
+              !this.state.inMatchingSession && ( //if you aren't doing anything
+                <View>
+                  <Button
+                    title="Go To Matching Session"
+                    onPress={() => this.goMatching()}
+                  ></Button>
+                  <Button
+                    title="Go To Room"
+                    onPress={() => this.requestRoom()}
+                  ></Button>
+                  <LogoutButton logout={this.logoutOfApp} />
+                </View>
+              )}
           </View>
         </SafeAreaView>
-      )
+      );
+    }
+    if (this.state.loggedIn && this.state.firstLogin) {
+      return (
+        <PaperProvider theme={DefaultTheme}>
+          <SafeAreaView style={{ paddingTop: 20 }}>
+          <PostLoginScreen data={''}/>
+          <HomeScreen/>
+          </SafeAreaView>
+        </PaperProvider>
+      );
     }
     return (
       <SafeAreaView style={[styles.mainContainer, { paddingTop: 20 }]}>
@@ -243,7 +296,7 @@ class App extends React.Component {
           style={styles.background}
         />
         <View>
-        <LoginScreen loginToApp={this.loginToApp}/>
+          <LoginScreen loginToApp={this.loginToApp} />
         </View>
       </SafeAreaView>
     );
@@ -253,24 +306,24 @@ class App extends React.Component {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
   },
   background: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     top: 0,
     height: 1000,
   },
   headingText: {
-    textAlign: 'center',
-    fontSize: 40
+    textAlign: "center",
+    fontSize: 40,
   },
   mainImage: {
     width: 400,
     height: 600,
-    marginBottom: 25
+    marginBottom: 25,
   },
-})
+});
 
-export default App
+export default App;
