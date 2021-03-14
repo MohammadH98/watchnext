@@ -8,6 +8,7 @@
     "eject": "expo eject"
   },
   "dependencies": {
+    "@material-ui/core": "^4.11.3",
     "@react-native-community/hooks": "^2.6.0",
     "expo": "~40.0.0",
     "expo-auth-session": "~3.0.0",
