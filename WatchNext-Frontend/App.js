@@ -7,18 +7,15 @@ import io from "socket.io-client";
 import LoginScreen from './app/screens/LoginScreen';
 import * as AuthSession from 'expo-auth-session';
 import LogoutButton from './app/components/LogoutButton';
+import jwtDecode from 'jwt-decode';
 
-const socket = io('https://f31c8126f4d7.ngrok.io', {
+const socket = io('https://5e216588be0c.ngrok.io', {
   transports: ['websocket']
 });
 
 const GradientColour1 = 'purple'
 const GradientColour2 = 'orange'
 
-const auth0ClientId = "FaRwkWXkMUcmuFyYcj36p8VSN5alhryw";
-const authorizationEndpoint = "https://watchnext2020.us.auth0.com/authorize";
-const useProxy = Platform.select({ web: false, default: true });
-const redirectUri = AuthSession.makeRedirectUri({ useProxy });
 /**
  * Better version of console.log, prevents console.log statements from making it to prod
  * @param {*} message what to log
@@ -30,7 +27,7 @@ function logger(message) {
 /**
  * A component that renders the invitation handler if the OS is web
  * @param {Function} acceptInvite The function responsible for accepting the invitiation
- * @param {Function} rejectInvite The function responsible for rejecting the invitiation
+ * @param {Function} rejectInvite The function responsible for rejecting the invitation
  */
 class WebInviteView extends React.Component {
   constructor(props) {
@@ -76,21 +73,20 @@ class App extends React.Component {
     this.logoutOfApp = this.logoutOfApp.bind(this)
 
     socket.on('connect', function () {
-      socket.on('recvMedia', function (data) {
-        logger('receiving movies')
-        logger(data)
 
-        //this just is made to spoof new movies being added, needs to be removed once the server is returning new movies every time
-        if (this.getMovieArrayLength(this.state.movies) > 0) {
-          for (var i = 0; i < this.getMovieArrayLength(data); i++) {
-            data.movieResults[i].id = data.movieResults[i].id + this.getMovieArrayLength(this.state.movies)
-            data.movieResults[i].image = 'https://picsum.photos/367/550'
-            data.movieResults[i].title = data.movieResults[i].title + ' 2'
+      socket.on('loginResp', function(data){
+          // Check if successful
+          if(data.success){
+            this.setState({
+              loggedIn: true
+          })
           }
-        }
-
+      }.bind(this));
+        
+      socket.on('recvMedia', function (data) {
         this.setState({
-          movies: data
+          movies: data,
+          inMatchingSession: true
         })
       }.bind(this));
 
@@ -123,16 +119,11 @@ class App extends React.Component {
     return movies.movieResults.length
   }
 
-  componentDidMount() {
-    this.requestMovies();
-  }
-
   /**
    * Notifies the server to provide movie data
    */
   requestMovies() {
-    logger('requesting movies')
-    socket.emit('getMedia', '');
+    socket.emit('getRandomMovies', '');
   }
 
   /**
@@ -143,23 +134,10 @@ class App extends React.Component {
   };
 
   /**
-   * performs the log in operation for the user
-   */
-  login(name) {
-    socket.emit('login', { username: name });
-    this.setState({
-      loggedIn: true,
-      username: name
-    });
-  }
-
-  /**
    * sets the application to matching session mode
    */
   goMatching() {
-    this.setState({
-      inMatchingSession: true
-    })
+    this.requestMovies();
   }
 
   /**
@@ -185,10 +163,9 @@ class App extends React.Component {
     })
   }
 
-  loginToApp(){
-    this.setState({
-      loggedIn: true
-    })
+  loginToApp(token){
+    tokenDecoded = jwtDecode(token)
+    socket.emit('loginUser', { token: token, tokenDecoded: tokenDecoded });
   }
 
   logoutOfApp(){
