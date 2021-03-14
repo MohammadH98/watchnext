@@ -222,7 +222,7 @@ class App extends React.Component {
               <View>
                 <Button
                   title='Go To Matching Session'
-                  onPress={() => this.goMatching()}
+                  onPress={() => this.requestMovies()}
                 ></Button>
                 <Button
                   title='Go To Room'
