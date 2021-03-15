@@ -175,13 +175,6 @@ class App extends React.Component {
   }
 
   /**
-   * sets the application to matching session mode
-   */
-  goMatching() {
-    this.requestMovies();
-  }
-
-  /**
    * sends an invitation to the other user
    */
   sendInvite() {
@@ -248,44 +241,43 @@ class App extends React.Component {
   render() {
     console.log(this.state);
     if (this.state.loggedIn && !this.state.firstLogin) {
-      return (
-        <PaperProvider theme={DefaultTheme}>
-          <LinearGradient
-            colors={[GradientColour1, GradientColour2]}
-            style={styles.background}
+      if (this.state.inMatchingSession) {
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <SwipeScreen
+              data={this.state.movies}
+              requestMovies={this.requestMovies}
+            />
+          </PaperProvider>
+        );
+      }
+      if (!this.state.inRoom && !this.state.inMatchingSession) {
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <HomeScreen enterMatching={this.requestMovies} />
+          </PaperProvider>
+        );
+      }
+
+      {
+        this.state.isInvite && ( //if you have been invited
+          <WebInviteView
+            acceptInvite={this.acceptInvite}
+            rejectInvite={this.rejectInvite}
           />
+        );
+      }
+      {
+        this.state.inRoom && ( //if you are in a room
           <View>
-            {this.state.isInvite && ( //if you have been invited
-              <WebInviteView
-                acceptInvite={this.acceptInvite}
-                rejectInvite={this.rejectInvite}
-              />
-            )}
-            {this.state.inMatchingSession && ( //if you are in a matching session
-              <SwipeScreen
-                data={this.state.movies}
-                requestMovies={this.requestMovies}
-              />
-            )}
-            {this.state.inRoom && ( //if you are in a room
-              <View>
-                <RoomScreen />
-                <Button
-                  title={"Send Invite"}
-                  onPress={() => this.sendInvite()}
-                />
-              </View>
-            )}
-            {!this.state.inRoom &&
-              !this.state.inMatchingSession && ( //if you aren't doing anything
-                <View>
-                  <HomeScreen />
-                  {/* <LogoutButton logout={this.logoutOfApp} /> */}
-                </View>
-              )}
+            <RoomScreen />
+            <Button title={"Send Invite"} onPress={() => this.sendInvite()} />
           </View>
-        </PaperProvider>
-      );
+        );
+      }
+      {
+        !this.state.inRoom && !this.state.inMatchingSession && <HomeScreen />;
+      }
     }
     if (this.state.loggedIn && this.state.firstLogin) {
       return (
