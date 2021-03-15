@@ -218,6 +218,7 @@ io.on("connection", function (socket) {
             else {*/
     // Make a new DB entry for user, send response to frontend
     createNewUser(data.tokenDecoded.email).then((response) => {
+        console.log(response)
       if (response) {
         SOCKET_LIST[socket.id].uID = data.tokenDecoded.email;
         console.log(
@@ -226,7 +227,7 @@ io.on("connection", function (socket) {
         socket.emit("loginResp", { success: true, first: true });
       } else {
         //unable to create new user
-        socket.emit("loginResp", { success: false });
+        socket.emit("loginResp", { success: true });
       }
     }).catch(err => {console.log("new user fail")});
     //}
