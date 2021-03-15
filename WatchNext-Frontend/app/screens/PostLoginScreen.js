@@ -6,6 +6,8 @@ import {
   FAB,
   Checkbox,
   Button,
+  Divider,
+  Surface,
 } from "react-native-paper";
 import { View, StyleSheet, ScrollView } from "react-native";
 
@@ -30,19 +32,6 @@ function ProcessData(data) {
     "Musical",
     "Politics",
   ];
-}
-
-class GenreCheckBox extends React.Component {
-  render() {
-    return (
-      <Checkbox.Item
-        style={styles.checkbox}
-        status={this.props.status}
-        label={this.props.genre}
-        onPress={() => this.props.toggleGenre(this.props.genre)}
-      />
-    );
-  }
 }
 
 export default class PostLoginScreen extends React.Component {
@@ -78,32 +67,35 @@ export default class PostLoginScreen extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        <Title>Finish Setting Up Your Account</Title>
-        <View style={styles.textInputForm}>
-          <TextInput
-            label="Full Name"
-            value={this.state.fullName}
-            onChangeText={(text) => this.setFullName(text)}
-          ></TextInput>
-          <TextInput
-            label="Username"
-            value={this.state.fullName}
-            onChangeText={(text) => this.setFullName(text)}
-          ></TextInput>
-        </View>
+        <Surface>
+          <Title>Finish Setting Up Your Account</Title>
+          <View style={styles.textInputForm}>
+            <TextInput
+              label="Full Name"
+              value={this.state.fullName}
+              onChangeText={(text) => this.setFullName(text)}
+            ></TextInput>
+            <TextInput
+              label="Username"
+              value={this.state.fullName}
+              onChangeText={(text) => this.setFullName(text)}
+            ></TextInput>
+          </View>
+        </Surface>
+        <Title>Choose Your Genres:</Title>
         <View style={styles.radioButtonForm}>
-          <Text>Choose Your Genres:</Text>
           <ScrollView style={{ width: "100%" }}>
             {this.state.genres.map((genre) => (
-              <GenreCheckBox
+              <Checkbox.Item
                 key={this.props.genre}
-                genre={genre}
+                style={styles.checkbox}
                 status={
                   this.state.checkedGenres.includes(genre)
                     ? "checked"
                     : "unchecked"
                 }
-                toggleGenre={this.toggleGenre}
+                label={genre}
+                onPress={() => this.toggleGenre(genre)}
               />
             ))}
           </ScrollView>
