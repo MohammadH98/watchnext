@@ -2,6 +2,7 @@ import * as AuthSession from 'expo-auth-session';
 import jwtDecode from 'jwt-decode';
 import * as React from 'react';
 import { Alert, Button, Platform, StyleSheet, Text, View } from 'react-native';
+import { Socket } from 'socket.io-client';
 
 // You need to swap out the Auth0 client id and domain with the one from your Auth0 client.
 // In your Auth0 client, you need to also add a url to your authorized redirect urls.
@@ -18,6 +19,7 @@ const redirectUri = AuthSession.makeRedirectUri({ useProxy });
 
 export default function LoginButton(props) {
   const [name, setName] = React.useState(null);
+  const [resultForLogin, setResultForLogin] = React.useState(null);
 
   const [request, result, promptAsync] = AuthSession.useAuthRequest(
     {
@@ -26,7 +28,7 @@ export default function LoginButton(props) {
       // id_token will return a JWT token
       responseType: 'id_token',
       // retrieve the user's profile
-      scopes: ['openid', 'profile'],
+      scopes: ['openid', 'profile', 'email'],
       extraParams: {
         // ideally, this will be a random value
         nonce: 'nonce',
@@ -49,11 +51,12 @@ export default function LoginButton(props) {
         return;
       }
       if (result.type === 'success') {
-        // Retrieve the JWT token and decode it
+        // Retrieve the JWT token and.0 decode it
         const jwtToken = result.params.id_token;
         const decoded = jwtDecode(jwtToken);
         const { name } = decoded//decoded;
         setName(name);
+        setResultForLogin(jwtToken);
       }
     }
   }, [result]);
@@ -64,7 +67,7 @@ export default function LoginButton(props) {
     <View style={styles.container}>
       {name ? (
         <>
-        {props.loginToApp()}
+        {props.loginToApp(resultForLogin)}
         </>
       ) : (
         <Button
