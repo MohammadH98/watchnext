@@ -13,7 +13,12 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import io from "socket.io-client";
 import jwtDecode from "jwt-decode";
-import { Provider as PaperProvider, Button, DefaultTheme } from "react-native-paper";
+import {
+  Provider as PaperProvider,
+  Button,
+  DefaultTheme,
+  FAB,
+} from "react-native-paper";
 
 import SwipeScreen from "./app/screens/SwipeScreen";
 import RoomScreen from "./app/screens/RoomScreen";
@@ -79,7 +84,6 @@ class App extends React.Component {
       username: "",
       isInvite: false,
       movies: [],
-      testBool: false
     };
 
     this.acceptInvite = this.acceptInvite.bind(this);
@@ -281,10 +285,7 @@ class App extends React.Component {
     if (this.state.loggedIn && this.state.firstLogin) {
       return (
         <PaperProvider theme={DefaultTheme}>
-          <SafeAreaView style={{ paddingTop: 20 }}>
-          <PostLoginScreen data={''}/>
-          <HomeScreen/>
-          </SafeAreaView>
+          <PostLoginScreen data={""} />
         </PaperProvider>
       );
     }
