@@ -263,21 +263,20 @@ class App extends React.Component {
                   onPress={() => this.sendInvite()}
                 />
               </View>
-            )}
-            {!this.state.inRoom &&
-              !this.state.inMatchingSession && ( //if you aren't doing anything
-                <View>
-                  <Button
-                    title="Go To Matching Session"
-                    onPress={() => this.goMatching()}
-                  ></Button>
-                  <Button
-                    title="Go To Room"
-                    onPress={() => this.requestRoom()}
-                  ></Button>
-                  <LogoutButton logout={this.logoutOfApp} />
-                </View>
-              )}
+            }
+            {!this.state.inRoom && !this.state.inMatchingSession && //if you aren't doing anything
+              <View>
+                <Button
+                  title='Go To Matching Session'
+                  onPress={() => this.requestMovies()}
+                ></Button>
+                <Button
+                  title='Go To Room'
+                  onPress={() => this.requestRoom()}
+                ></Button>
+                <LogoutButton logout={this.logoutOfApp}/>
+              </View >
+            }
           </View>
         </SafeAreaView>
       );

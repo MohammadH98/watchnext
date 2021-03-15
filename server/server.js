@@ -121,6 +121,53 @@ function sendRecommender(socket){
     axios.port('URL', reccobj)
 }
 
+function doesUserExist(uID){
+    axios.get(`https://xwatchnextx.herokuapp.com/api/user/${uID}`, {
+        headers: { 
+            authorization: `Bearer ${DBTOKEN}`
+        }
+    }).then(response => {
+        if (response.status == 200){
+            // User exists
+            uobj = SOCKET_LIST[socket.id]
+            uobj.uID = uID
+            console.log(`Socket ${socket.id} logged in as ${uobj.user}`)
+            return true
+        }
+        else{
+            return false
+        }
+    }).catch(err => {
+        console.log(err)
+    });
+}
+
+function createNewUser(uID){
+     // Add user to DB
+     axios.get(`https://xwatchnextx.herokuapp.com/api/user`, {
+        headers: { 
+            authorization: `Bearer ${DBTOKEN}`
+        },
+        data: {
+            user_id: uID,
+            // username: data.user,
+            // age: data.age,
+            //img: data.img
+        }
+    }).then(response => {
+        if (response.status == 200){
+            console.log("createUser request")
+            return true
+        }
+        else{
+            console.log("request failed")
+            return false
+        }
+        // socket.emit('recvAuth', response.data); 
+    }).catch(err => {
+        console.log(err)
+    });
+}
 
 function recvRecommender(sID){
 
@@ -152,14 +199,32 @@ io.on('connection', function (socket) {
 
     // Log in the current socket user
     socket.on('loginUser', function (data) {
-        // Reverify Auth0 token
-        // TODO: Auth0
-        // Get the user socket in the list and append the username data to it
-        uobj = SOCKET_LIST[socket.id]
-        uobj.user = data.tokenDecoded.email// TODO: Manage username
-        console.log(`Socket ${socket.id} logged in as ${uobj.user}`)
-        // Notify client login passed
-        socket.emit('loginResp', { success: true });
+        // Check if user already exists
+        doesUserExist(data.tokenDecoded.email).then(exists => {
+            if (exists){
+                // User exists, assign to user and send to frontend
+                SOCKET_LIST[socket.id].uID = data.tokenDecoded.email
+                console.log(`Socket ${socket.id} logged in with uID ${uobj.uID}`)
+                socket.emit('loginResp', { success: true, first: false });
+            }
+            else {
+                // Make a new DB entry for user, send response to frontend
+                createNewUser(data.tokenDecoded.email).then(response =>{
+                    if (response){
+                        SOCKET_LIST[socket.id].uID = data.tokenDecoded.email
+                        console.log(`Socket ${socket.id} logged in with uID ${uobj.uID} (new login)`)
+                        socket.emit('loginResp', { success: true, first: true });
+                    }
+                    else{
+                        //unable to create new user
+                        socket.emit('loginResp', {success: false});
+                    }
+                })
+            }
+        }).catch(err => {
+            // Issue in logging in user on backend
+            socket.emit('loginResp', {success: false});
+        })
     });
 
     // Get all movies in database
@@ -214,11 +279,9 @@ io.on('connection', function (socket) {
     // REQ: {email: "Email of user" (str), user: "Username" (str), pass: "Password" (str), age: Age (int)}
     // TODO: Add image
     socket.on('createUser', function(data){
-        // Create auth0 user
-        authToken = null;
         
         // Add user to DB
-        axios.get(`https://xwatchnextx.herokuapp.com/api/movies/user`, {
+        axios.get(`https://xwatchnextx.herokuapp.com/api/user`, {
             headers: { 
                 authorization: `Bearer ${DBTOKEN}`
             },
@@ -240,7 +303,7 @@ io.on('connection', function (socket) {
     // REQ: N/A
     socket.on('getAllUsers', function(data){
         // Fetch all possible users
-        axios.get(`https://xwatchnextx.herokuapp.com/api/movies/users`, {
+        axios.get(`https://xwatchnextx.herokuapp.com/api/users`, {
             headers: { 
                 authorization: `Bearer ${DBTOKEN}`
             }
@@ -256,7 +319,7 @@ io.on('connection', function (socket) {
     // REQ: {uID: "ID of user" (str)}
     socket.on('getUser', function (data) {
         // Get user data
-        axios.get(`https://xwatchnextx.herokuapp.com/api/movies/${data.uID}`, {
+        axios.get(`https://xwatchnextx.herokuapp.com/api/user/${data.uID}`, {
             headers: { 
                 authorization: `Bearer ${DBTOKEN}`
             }
