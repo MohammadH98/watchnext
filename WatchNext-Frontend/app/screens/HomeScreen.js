@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { StyleSheet, View, ScrollView, KeyboardAvoidingView } from "react-native";
+import { StyleSheet, View, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Text, Title, Searchbar, Caption, IconButton, Divider, Avatar } from "react-native-paper";
 
@@ -37,7 +37,7 @@ export default class HomeScreen extends Component
 
     render() {
         return (
-            <KeyboardAvoidingView style={styles.container} enabled={false}>
+            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container} enabled={false}>
                 <View style={styles.top}>
                     <LinearGradient
                             colors={['purple', 'fuchsia']}

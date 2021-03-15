@@ -24,15 +24,15 @@ import SwipeScreen from "./app/screens/SwipeScreen";
 import RoomScreen from "./app/screens/RoomScreen";
 import LoginScreen from "./app/screens/LoginScreen";
 import LogoutButton from "./app/components/LogoutButton";
-import PostLoginScreen from "./app/screens/PostLoginScreen";
 import HomeScreen from "./app/screens/HomeScreen";
+import SetupScreen from "./app/screens/SetupScreen";
 
 const socket = io("https://5e216588be0c.ngrok.io", {
   transports: ["websocket"],
 });
 
-const GradientColour1 = "purple";
-const GradientColour2 = "orange";
+const GradientColour1 = "mediumpurple";
+const GradientColour2 = "purple";
 
 /**
  * Better version of console.log, prevents console.log statements from making it to prod
@@ -285,7 +285,7 @@ class App extends React.Component {
     if (this.state.loggedIn && this.state.firstLogin) {
       return (
         <PaperProvider theme={DefaultTheme}>
-          <HomeScreen/>
+          <SetupScreen/>
         </PaperProvider>
       );
     }
