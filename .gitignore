@@ -118,3 +118,4 @@ WatchNext-Frontend/ios/*
 ngrok.exe
 
 .env
+server/ngrok

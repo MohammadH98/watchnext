@@ -27,7 +27,7 @@ import LogoutButton from "./app/components/LogoutButton";
 import HomeScreen from "./app/screens/HomeScreen";
 import SetupScreen from "./app/screens/SetupScreen";
 
-const socket = io("https://5e216588be0c.ngrok.io", {
+const socket = io("https://fab155604213.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -77,7 +77,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      loggedIn: true, //TODO change back
+      loggedIn: false, //TODO change back
       firstLogin: true,
       inRoom: false,
       inMatchingSession: false,
@@ -235,6 +235,7 @@ class App extends React.Component {
   }
 
   render() {
+    console.log(this.state);
     if (this.state.loggedIn && !this.state.firstLogin) {
       return (
         <SafeAreaView style={[styles.mainContainer, { paddingTop: 20 }]}>
@@ -255,7 +256,8 @@ class App extends React.Component {
                 requestMovies={this.requestMovies}
               />
             )}
-            {this.state.inRoom && //if you are in a room
+            Z
+            {this.state.inRoom && ( //if you are in a room
               <View>
                 <RoomScreen />
                 <Button
@@ -263,20 +265,21 @@ class App extends React.Component {
                   onPress={() => this.sendInvite()}
                 />
               </View>
-            }
-            {!this.state.inRoom && !this.state.inMatchingSession && //if you aren't doing anything
-              <View>
-                <Button
-                  title='Go To Matching Session'
-                  onPress={() => this.requestMovies()}
-                ></Button>
-                <Button
-                  title='Go To Room'
-                  onPress={() => this.requestRoom()}
-                ></Button>
-                <LogoutButton logout={this.logoutOfApp}/>
-              </View >
-            }
+            )}
+            {!this.state.inRoom &&
+              !this.state.inMatchingSession && ( //if you aren't doing anything
+                <View>
+                  <Button
+                    title="Go To Matching Session"
+                    onPress={() => this.requestMovies()}
+                  ></Button>
+                  <Button
+                    title="Go To Room"
+                    onPress={() => this.requestRoom()}
+                  ></Button>
+                  <LogoutButton logout={this.logoutOfApp} />
+                </View>
+              )}
           </View>
         </SafeAreaView>
       );
@@ -284,7 +287,7 @@ class App extends React.Component {
     if (this.state.loggedIn && this.state.firstLogin) {
       return (
         <PaperProvider theme={DefaultTheme}>
-          <SetupScreen/>
+          <SetupScreen />
         </PaperProvider>
       );
     }
