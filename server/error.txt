@@ -1,0 +1,316 @@
+AenK6OYTTkx5Fjljyh5FeDT_72A8nG7sUg_JFM9Rqzz6DwSn8-foTUxe7uXfAPoL
+Server start on 2000
+New DB token
+Connected: A9DfMZBG5BMePIctAAAB
+Connected: DHQPcAaLwktkxbvZAAAD
+Error: Request failed with status code 401
+    at createError (/media/eoin/DATA/Git/WatchNext/server/node_modules/axios/lib/core/createError.js:16:15)
+    at settle (/media/eoin/DATA/Git/WatchNext/server/node_modules/axios/lib/core/settle.js:17:12)
+    at IncomingMessage.handleStreamEnd (/media/eoin/DATA/Git/WatchNext/server/node_modules/axios/lib/adapters/http.js:260:11)
+    at IncomingMessage.emit (node:events:390:22)
+    at endReadableNT (node:internal/streams/readable:1307:12)
+    at processTicksAndRejections (node:internal/process/task_queues:81:21) {
+  config: {
+    url: 'https://xwatchnextx.herokuapp.com/api/user',
+    method: 'post',
+    data: '{"headers":{"authorization":"Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjhPcXI4QVJyTHdoeXFDeFRYTmN1dCJ9.eyJpc3MiOiJodHRwczovL3dhdGNobmV4dDIwMjAudXMuYXV0aDAuY29tLyIsInN1YiI6IlI3UHVDYThHSElnalVpVnVoVEpHME5ZT1ZFYnlnTVMzQGNsaWVudHMiLCJhdWQiOiJodHRwczovL3h3YXRjaG5leHR4Lmhlcm9rdWFwcC5jb20vIiwiaWF0IjoxNjE1ODMzMjc0LCJleHAiOjE2MTU5MTk2NzQsImF6cCI6IlI3UHVDYThHSElnalVpVnVoVEpHME5ZT1ZFYnlnTVMzIiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.NUbTANv6y4hWYKs54bZ-PQpF2F12HPpTQANXO4sQcgwLlntVlSQHpG0XlYnHs5rjTlYZLUdQ70IvV7LLrYViWuuGaPG9ZqAsWNWVBWAFR5bTBFPPF8E2G1PLfoI5Rsm-tkpA9UVxWR_ytnWdiodEDrb9LMtxlewLMyuoGDdF5FrPVB6BueipbhTgd0zLK2muHGlnXzh0YhWkwsj2T22FHusOQ85MaE8e-4NV3ZaOwS6Fse57h1BDWitF-fASkHKVZ_kWZ9x_UREzfB62o9MOmDs-fEggFOVTLGz5buHrcPNfHQTmWgSqfXgQK-FRSNoJyMghUQOiHivPe0EGdeYSPQ"},"data":{"user_id":"lynaghe@gmail.com","username":"lynaghe@gmail.com"}}',
+    headers: {
+      Accept: 'application/json, text/plain, */*',
+      'Content-Type': 'application/json;charset=utf-8',
+      'User-Agent': 'axios/0.21.1',
+      'Content-Length': 848
+    },
+    transformRequest: [ [Function: transformRequest] ],
+    transformResponse: [ [Function: transformResponse] ],
+    timeout: 0,
+    adapter: [Function: httpAdapter],
+    xsrfCookieName: 'XSRF-TOKEN',
+    xsrfHeaderName: 'X-XSRF-TOKEN',
+    maxContentLength: -1,
+    maxBodyLength: -1,
+    validateStatus: [Function: validateStatus]
+  },
+  request: <ref *1> ClientRequest {
+    _events: [Object: null prototype] {
+      abort: [Function (anonymous)],
+      aborted: [Function (anonymous)],
+      connect: [Function (anonymous)],
+      error: [Function (anonymous)],
+      socket: [Function (anonymous)],
+      timeout: [Function (anonymous)],
+      prefinish: [Function: requestOnPrefinish]
+    },
+    _eventsCount: 7,
+    _maxListeners: undefined,
+    outputData: [],
+    outputSize: 0,
+    writable: true,
+    destroyed: false,
+    _last: true,
+    chunkedEncoding: false,
+    shouldKeepAlive: false,
+    _defaultKeepAlive: true,
+    useChunkedEncodingByDefault: true,
+    sendDate: false,
+    _removedConnection: false,
+    _removedContLen: false,
+    _removedTE: false,
+    _contentLength: null,
+    _hasBody: true,
+    _trailer: '',
+    finished: true,
+    _headerSent: true,
+    _closed: false,
+    socket: TLSSocket {
+      _tlsOptions: [Object],
+      _secureEstablished: true,
+      _securePending: false,
+      _newSessionPending: false,
+      _controlReleased: true,
+      secureConnecting: false,
+      _SNICallback: null,
+      servername: 'xwatchnextx.herokuapp.com',
+      alpnProtocol: false,
+      authorized: true,
+      authorizationError: null,
+      encrypted: true,
+      _events: [Object: null prototype],
+      _eventsCount: 10,
+      connecting: false,
+      _hadError: false,
+      _parent: null,
+      _host: 'xwatchnextx.herokuapp.com',
+      _readableState: [ReadableState],
+      _maxListeners: undefined,
+      _writableState: [WritableState],
+      allowHalfOpen: false,
+      _sockname: null,
+      _pendingData: null,
+      _pendingEncoding: '',
+      server: undefined,
+      _server: null,
+      ssl: [TLSWrap],
+      _requestCert: true,
+      _rejectUnauthorized: true,
+      parser: null,
+      _httpMessage: [Circular *1],
+      [Symbol(res)]: [TLSWrap],
+      [Symbol(verified)]: true,
+      [Symbol(pendingSession)]: null,
+      [Symbol(async_id_symbol)]: 78,
+      [Symbol(kHandle)]: [TLSWrap],
+      [Symbol(kSetNoDelay)]: false,
+      [Symbol(lastWriteQueueSize)]: 0,
+      [Symbol(timeout)]: null,
+      [Symbol(kBuffer)]: null,
+      [Symbol(kBufferCb)]: null,
+      [Symbol(kBufferGen)]: null,
+      [Symbol(kCapture)]: false,
+      [Symbol(kBytesRead)]: 0,
+      [Symbol(kBytesWritten)]: 0,
+      [Symbol(connect-options)]: [Object],
+      [Symbol(RequestTimeout)]: undefined
+    },
+    _header: 'POST /api/user HTTP/1.1\r\n' +
+      'Accept: application/json, text/plain, */*\r\n' +
+      'Content-Type: application/json;charset=utf-8\r\n' +
+      'User-Agent: axios/0.21.1\r\n' +
+      'Content-Length: 848\r\n' +
+      'Host: xwatchnextx.herokuapp.com\r\n' +
+      'Connection: close\r\n' +
+      '\r\n',
+    _keepAliveTimeout: 0,
+    _onPendingData: {},
+    agent: Agent {
+      _events: [Object: null prototype],
+      _eventsCount: 2,
+      _maxListeners: undefined,
+      defaultPort: 443,
+      protocol: 'https:',
+      options: [Object],
+      requests: {},
+      sockets: [Object],
+      freeSockets: {},
+      keepAliveMsecs: 1000,
+      keepAlive: false,
+      maxSockets: Infinity,
+      maxFreeSockets: 256,
+      scheduling: 'lifo',
+      maxTotalSockets: Infinity,
+      totalSocketCount: 1,
+      maxCachedSessions: 100,
+      _sessionCache: [Object],
+      [Symbol(kCapture)]: false
+    },
+    socketPath: undefined,
+    method: 'POST',
+    maxHeaderSize: undefined,
+    insecureHTTPParser: undefined,
+    path: '/api/user',
+    _ended: true,
+    res: IncomingMessage {
+      _readableState: [ReadableState],
+      _events: [Object: null prototype],
+      _eventsCount: 3,
+      _maxListeners: undefined,
+      socket: [TLSSocket],
+      httpVersionMajor: 1,
+      httpVersionMinor: 1,
+      httpVersion: '1.1',
+      complete: true,
+      rawHeaders: [Array],
+      rawTrailers: [],
+      aborted: false,
+      upgrade: false,
+      url: '',
+      method: null,
+      statusCode: 401,
+      statusMessage: 'Unauthorized',
+      client: [TLSSocket],
+      _consuming: false,
+      _dumped: false,
+      req: [Circular *1],
+      responseUrl: 'https://xwatchnextx.herokuapp.com/api/user',
+      redirects: [],
+      [Symbol(kCapture)]: false,
+      [Symbol(kHeaders)]: [Object],
+      [Symbol(kHeadersCount)]: 18,
+      [Symbol(kTrailers)]: null,
+      [Symbol(kTrailersCount)]: 0,
+      [Symbol(RequestTimeout)]: undefined
+    },
+    aborted: false,
+    timeoutCb: null,
+    upgradeOrConnect: false,
+    parser: null,
+    maxHeadersCount: null,
+    reusedSocket: false,
+    host: 'xwatchnextx.herokuapp.com',
+    protocol: 'https:',
+    _redirectable: Writable {
+      _writableState: [WritableState],
+      _events: [Object: null prototype],
+      _eventsCount: 2,
+      _maxListeners: undefined,
+      _options: [Object],
+      _ended: true,
+      _ending: true,
+      _redirectCount: 0,
+      _redirects: [],
+      _requestBodyLength: 848,
+      _requestBodyBuffers: [],
+      _onNativeResponse: [Function (anonymous)],
+      _currentRequest: [Circular *1],
+      _currentUrl: 'https://xwatchnextx.herokuapp.com/api/user',
+      [Symbol(kCapture)]: false
+    },
+    [Symbol(kCapture)]: false,
+    [Symbol(kNeedDrain)]: false,
+    [Symbol(corked)]: 0,
+    [Symbol(kOutHeaders)]: [Object: null prototype] {
+      accept: [Array],
+      'content-type': [Array],
+      'user-agent': [Array],
+      'content-length': [Array],
+      host: [Array]
+    }
+  },
+  response: {
+    status: 401,
+    statusText: 'Unauthorized',
+    headers: {
+      server: 'Cowboy',
+      connection: 'close',
+      'x-powered-by': 'Express',
+      'content-security-policy': "default-src 'none'",
+      'x-content-type-options': 'nosniff',
+      'content-type': 'text/html; charset=utf-8',
+      'content-length': '139',
+      date: 'Mon, 15 Mar 2021 18:34:42 GMT',
+      via: '1.1 vegur'
+    },
+    config: {
+      url: 'https://xwatchnextx.herokuapp.com/api/user',
+      method: 'post',
+      data: '{"headers":{"authorization":"Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjhPcXI4QVJyTHdoeXFDeFRYTmN1dCJ9.eyJpc3MiOiJodHRwczovL3dhdGNobmV4dDIwMjAudXMuYXV0aDAuY29tLyIsInN1YiI6IlI3UHVDYThHSElnalVpVnVoVEpHME5ZT1ZFYnlnTVMzQGNsaWVudHMiLCJhdWQiOiJodHRwczovL3h3YXRjaG5leHR4Lmhlcm9rdWFwcC5jb20vIiwiaWF0IjoxNjE1ODMzMjc0LCJleHAiOjE2MTU5MTk2NzQsImF6cCI6IlI3UHVDYThHSElnalVpVnVoVEpHME5ZT1ZFYnlnTVMzIiwiZ3R5IjoiY2xpZW50LWNyZWRlbnRpYWxzIn0.NUbTANv6y4hWYKs54bZ-PQpF2F12HPpTQANXO4sQcgwLlntVlSQHpG0XlYnHs5rjTlYZLUdQ70IvV7LLrYViWuuGaPG9ZqAsWNWVBWAFR5bTBFPPF8E2G1PLfoI5Rsm-tkpA9UVxWR_ytnWdiodEDrb9LMtxlewLMyuoGDdF5FrPVB6BueipbhTgd0zLK2muHGlnXzh0YhWkwsj2T22FHusOQ85MaE8e-4NV3ZaOwS6Fse57h1BDWitF-fASkHKVZ_kWZ9x_UREzfB62o9MOmDs-fEggFOVTLGz5buHrcPNfHQTmWgSqfXgQK-FRSNoJyMghUQOiHivPe0EGdeYSPQ"},"data":{"user_id":"lynaghe@gmail.com","username":"lynaghe@gmail.com"}}',
+      headers: [Object],
+      transformRequest: [Array],
+      transformResponse: [Array],
+      timeout: 0,
+      adapter: [Function: httpAdapter],
+      xsrfCookieName: 'XSRF-TOKEN',
+      xsrfHeaderName: 'X-XSRF-TOKEN',
+      maxContentLength: -1,
+      maxBodyLength: -1,
+      validateStatus: [Function: validateStatus]
+    },
+    request: <ref *1> ClientRequest {
+      _events: [Object: null prototype],
+      _eventsCount: 7,
+      _maxListeners: undefined,
+      outputData: [],
+      outputSize: 0,
+      writable: true,
+      destroyed: false,
+      _last: true,
+      chunkedEncoding: false,
+      shouldKeepAlive: false,
+      _defaultKeepAlive: true,
+      useChunkedEncodingByDefault: true,
+      sendDate: false,
+      _removedConnection: false,
+      _removedContLen: false,
+      _removedTE: false,
+      _contentLength: null,
+      _hasBody: true,
+      _trailer: '',
+      finished: true,
+      _headerSent: true,
+      _closed: false,
+      socket: [TLSSocket],
+      _header: 'POST /api/user HTTP/1.1\r\n' +
+        'Accept: application/json, text/plain, */*\r\n' +
+        'Content-Type: application/json;charset=utf-8\r\n' +
+        'User-Agent: axios/0.21.1\r\n' +
+        'Content-Length: 848\r\n' +
+        'Host: xwatchnextx.herokuapp.com\r\n' +
+        'Connection: close\r\n' +
+        '\r\n',
+      _keepAliveTimeout: 0,
+      _onPendingData: {},
+      agent: [Agent],
+      socketPath: undefined,
+      method: 'POST',
+      maxHeaderSize: undefined,
+      insecureHTTPParser: undefined,
+      path: '/api/user',
+      _ended: true,
+      res: [IncomingMessage],
+      aborted: false,
+      timeoutCb: null,
+      upgradeOrConnect: false,
+      parser: null,
+      maxHeadersCount: null,
+      reusedSocket: false,
+      host: 'xwatchnextx.herokuapp.com',
+      protocol: 'https:',
+      _redirectable: [Writable],
+      [Symbol(kCapture)]: false,
+      [Symbol(kNeedDrain)]: false,
+      [Symbol(corked)]: 0,
+      [Symbol(kOutHeaders)]: [Object: null prototype]
+    },
+    data: '<!DOCTYPE html>\n' +
+      '<html lang="en">\n' +
+      '<head>\n' +
+      '<meta charset="utf-8">\n' +
+      '<title>Error</title>\n' +
+      '</head>\n' +
+      '<body>\n' +
+      '<pre>Unauthorized</pre>\n' +
+      '</body>\n' +
+      '</html>\n'
+  },
+  isAxiosError: true,
+  toJSON: [Function: toJSON]
+}
