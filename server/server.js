@@ -229,7 +229,7 @@ io.on("connection", function (socket) {
         //unable to create new user
         socket.emit("loginResp", { success: true });
       }
-    }).catch(err => {console.log("new user fail")});
+    }).catch(err => {console.log("new user fail"); socket.emit("loginResp", { success: true });});
     //}
     // }).catch(err => {
     //     // Issue in logging in user on backend
