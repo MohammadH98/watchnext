@@ -255,7 +255,7 @@ class App extends React.Component {
                 requestMovies={this.requestMovies}
               />
             )}
-            {this.state.inRoom && ( //if you are in a room
+            {this.state.inRoom && //if you are in a room
               <View>
                 <RoomScreen />
                 <Button
