@@ -18,7 +18,6 @@ const io = require("socket.io")(server, {
 const path = require("path");
 const e = require("express");
 require("dotenv").config();
-console.log(process.env.CLIENT_SECRET);
 
 /*
     Socket utility functions
@@ -43,14 +42,13 @@ function addRoom(socket, sID, roomName) {
     //add new session to database
     axios
       .post("https://xwatchnextx.herokuapp.com/api/matching-session", {
+        session_id: sID,
+        creator_id: SOCKET_LIST[socket.id].uID,
+        name: roomName,
+        },{
         headers: {
-          authorization: `Bearer ${DBTOKEN}`,
-        },
-        data: {
-          session_id: sID,
-          creator_id: SOCKET_LIST[socket.id].uID,
-          name: roomName,
-        },
+            authorization: `Bearer ${DBTOKEN}`,
+        }
       })
       .then((response) => {
         // Add the socket to the given room, titled by the index
@@ -131,7 +129,7 @@ function sendRecommender(socket) {
 
 function doesUserExist(uID) {
   axios
-    .get(`https://xwatchnextx.herokuapp.com/api/user/${uID}`, {
+    .get(`https://xwatchnextx.herokuapp.com/api/user/${uID}`, {}, {
       headers: {
         authorization: `Bearer ${DBTOKEN}`,
       },
@@ -157,16 +155,15 @@ function createNewUser(uID) {
   return new Promise((resolve, reject) => {
     axios
       .post(`https://xwatchnextx.herokuapp.com/api/user`, {
+        user_id: uID,
+        username: uID
+        },{
         headers: {
-          authorization: `Bearer ${DBTOKEN}`,
-        },
-        data: {
-          user_id: uID,
-          username: uID,
-        },
+            authorization: `Bearer ${DBTOKEN}`, 
+          }
       })
       .then((response) => {
-        if (response.status == 200) {
+        if (response.status == 201) {
           console.log("createUser request");
           resolve(true);
         } else {
@@ -231,7 +228,7 @@ io.on("connection", function (socket) {
         //unable to create new user
         socket.emit("loginResp", { success: false });
       }
-    });
+    }).catch(err => {console.log("new user fail")});
     //}
     // }).catch(err => {
     //     // Issue in logging in user on backend

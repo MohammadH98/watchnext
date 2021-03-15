@@ -27,7 +27,7 @@ import LogoutButton from "./app/components/LogoutButton";
 import HomeScreen from "./app/screens/HomeScreen";
 import SetupScreen from "./app/screens/SetupScreen";
 
-const socket = io("https://bb9990cfd327.ngrok.io", {
+const socket = io("https://4454e281f83f.ngrok.io", {
   transports: ["websocket"],
 });
 
