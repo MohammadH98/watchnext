@@ -1,13 +1,28 @@
 import React, { Component } from "react";
-import { StyleSheet, View, KeyboardAvoidingView } from "react-native";
+import { StyleSheet, View, ScrollView, KeyboardAvoidingView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { TextInput, Text, Title, Searchbar, Caption, IconButton } from "react-native-paper";
+import { Text, Title, Searchbar, Caption, IconButton, Divider, Avatar } from "react-native-paper";
 
-export default class HomeScreen extends Component {
+function ExportData(data)
+{
+    return [
+        {"username": "jzak99", "name": "Jacob Zarankin", "numMatches": "56", "avatar": "JZ", "color": "green"},
+        {"username": "moclutch69", "name": "Mo Clutch", "numMatches": "22", "avatar": "MC", "color": "purple"},
+        {"username": "lynaghe420", "name": "Eoin Lynagh", "numMatches": "3", "avatar": "EL", "color": "pink"},
+        {"username": "jackiscool", "name": "Jack Loparco", "numMatches": "7", "avatar": "JL", "color": "blue"},
+        {"username": "thegang3", "name": "The Gang", "numMatches": "15", "avatar": "TG", "color": "purple"},
+        {"username": "capstonegroup99", "name": "Capstone Boys", "numMatches": "33", "avatar": "CB", "color": "green"},
+        {"username": "jabil", "name": "Jack, Jacob, and Bilal", "numMatches": "42", "avatar": "JJ", "color": "green"},
+        {"username": "4ch3", "name": "Mohammad, Eoin, Mo, and Paul", "numMatches": "8", "avatar": "ME", "color": "green"}
+    ];
+}
+
+export default class HomeScreen extends Component 
+{
     constructor(props)
     {
         super(props);
-        this.state = {searchQuery: ''}
+        this.state = {searchQuery: '', matchingSessions: ExportData(props.data)};
     }
 
     setSearchQuery(searchQuery)
@@ -53,7 +68,30 @@ export default class HomeScreen extends Component {
                     </LinearGradient>
                 </View>
                 <View style={styles.content}>
+                    <ScrollView>
+                        <Title style={{marginLeft: 15, marginTop: 15, fontSize: 30}}>Matching Sessions</Title>
+                        {this.state.matchingSessions.map((matchingSession) => (
+                            <View>
+                                <View key={matchingSession.username} style={styles.matchingSession}>
+                                    <Avatar.Text size={50} label={matchingSession.avatar}/>
+                                    <View style={{paddingLeft: 10}}>
+                                        <Text style={{fontWeight: 'bold'}}>{matchingSession.name}</Text>
+                                        <Caption>{matchingSession.numMatches} total matches</Caption>
+                                    </View>
+                                    <IconButton
+                                        icon="information"
+                                        color='purple'
+                                        size={30}
+                                        style={{marginLeft: 'auto'}}
+                                        onPress={() => console.log('Matching Session Menu Pressed')}
+                                    />
+                                </View>
+                                <Divider/>
+                            </View>
+                        ))}
+                    </ScrollView>
                 </View>
+                <Divider/>
                 <View style={styles.bottom}>
                     <IconButton
                         icon="home"
@@ -76,30 +114,38 @@ export default class HomeScreen extends Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  container: 
+  {
     flex: 1
   },
   top: 
   {
-    flex: 1,
+    flex: 1.15,
   },
   content: 
   {
-    flex: 4.5,
-    backgroundColor: 'blue'
+    flex: 5
   },
   bottom: 
   {
-    flex: 0.5,
+    flex: 0.6,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row'
   },
-  linearGradient: {
+  linearGradient: 
+  {
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    height: 200,
+    height: 150,
     width: '100%',
+    paddingTop: 50
+  },
+  matchingSession:
+  {
+    alignItems: 'center',
+    flexDirection: 'row',
+    padding: 15
   }
 });
