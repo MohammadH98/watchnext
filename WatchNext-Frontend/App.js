@@ -92,6 +92,7 @@ class App extends React.Component {
     this.requestMovies = this.requestMovies.bind(this);
     this.loginToApp = this.loginToApp.bind(this);
     this.logoutOfApp = this.logoutOfApp.bind(this);
+    this.loginSetupComplete = this.loginSetupComplete.bind(this);
 
     socket.on(
       "connect",
@@ -174,13 +175,6 @@ class App extends React.Component {
   }
 
   /**
-   * sets the application to matching session mode
-   */
-  goMatching() {
-    this.requestMovies();
-  }
-
-  /**
    * sends an invitation to the other user
    */
   sendInvite() {
@@ -203,9 +197,19 @@ class App extends React.Component {
     });
   }
 
+  loginSetupComplete() {
+    this.setState({
+      firstLogin: false,
+    });
+  }
+
   loginToApp(token) {
     tokenDecoded = jwtDecode(token);
-    socket.emit("loginUser", { token: token, tokenDecoded: tokenDecoded });
+    //socket.emit("loginUser", { token: token, tokenDecoded: tokenDecoded });
+    this.setState({
+      loggedIn: true,
+      firstLogin: true, //data.first
+    });
   }
 
   logoutOfApp() {
@@ -237,56 +241,48 @@ class App extends React.Component {
   render() {
     console.log(this.state);
     if (this.state.loggedIn && !this.state.firstLogin) {
-      return (
-        <SafeAreaView style={[styles.mainContainer, { paddingTop: 20 }]}>
-          <LinearGradient
-            colors={[GradientColour1, GradientColour2]}
-            style={styles.background}
+      if (this.state.inMatchingSession) {
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <SwipeScreen
+              data={this.state.movies}
+              requestMovies={this.requestMovies}
+            />
+          </PaperProvider>
+        );
+      }
+      if (!this.state.inRoom && !this.state.inMatchingSession) {
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <HomeScreen enterMatching={this.requestMovies} />
+          </PaperProvider>
+        );
+      }
+
+      {
+        this.state.isInvite && ( //if you have been invited
+          <WebInviteView
+            acceptInvite={this.acceptInvite}
+            rejectInvite={this.rejectInvite}
           />
+        );
+      }
+      {
+        this.state.inRoom && ( //if you are in a room
           <View>
-            {this.state.isInvite && ( //if you have been invited
-              <WebInviteView
-                acceptInvite={this.acceptInvite}
-                rejectInvite={this.rejectInvite}
-              />
-            )}
-            {this.state.inMatchingSession && ( //if you are in a matching session
-              <SwipeScreen
-                data={this.state.movies}
-                requestMovies={this.requestMovies}
-              />
-            )}
-            {this.state.inRoom && ( //if you are in a room
-              <View>
-                <RoomScreen />
-                <Button
-                  title={"Send Invite"}
-                  onPress={() => this.sendInvite()}
-                />
-              </View>
-            )}
-            {!this.state.inRoom &&
-              !this.state.inMatchingSession && ( //if you aren't doing anything
-                <View>
-                  <Button
-                    title="Go To Matching Session"
-                    onPress={() => this.requestMovies()}
-                  ></Button>
-                  <Button
-                    title="Go To Room"
-                    onPress={() => this.requestRoom()}
-                  ></Button>
-                  <LogoutButton logout={this.logoutOfApp} />
-                </View>
-              )}
+            <RoomScreen />
+            <Button title={"Send Invite"} onPress={() => this.sendInvite()} />
           </View>
-        </SafeAreaView>
-      );
+        );
+      }
+      {
+        !this.state.inRoom && !this.state.inMatchingSession && <HomeScreen />;
+      }
     }
     if (this.state.loggedIn && this.state.firstLogin) {
       return (
         <PaperProvider theme={DefaultTheme}>
-          <SetupScreen />
+          <SetupScreen onCompletion={this.loginSetupComplete} />
         </PaperProvider>
       );
     }
