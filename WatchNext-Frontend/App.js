@@ -27,7 +27,11 @@ import LogoutButton from "./app/components/LogoutButton";
 import HomeScreen from "./app/screens/HomeScreen";
 import SetupScreen from "./app/screens/SetupScreen";
 
+<<<<<<< Updated upstream
 const socket = io("https://fab155604213.ngrok.io", {
+=======
+const socket = io("https://4454e281f83f.ngrok.io", {
+>>>>>>> Stashed changes
   transports: ["websocket"],
 });
 
@@ -266,20 +270,19 @@ class App extends React.Component {
                 />
               </View>
             )}
-            {!this.state.inRoom &&
-              !this.state.inMatchingSession && ( //if you aren't doing anything
-                <View>
-                  <Button
-                    title="Go To Matching Session"
-                    onPress={() => this.requestMovies()}
-                  ></Button>
-                  <Button
-                    title="Go To Room"
-                    onPress={() => this.requestRoom()}
-                  ></Button>
-                  <LogoutButton logout={this.logoutOfApp} />
-                </View>
-              )}
+            {!this.state.inRoom && !this.state.inMatchingSession && //if you aren't doing anything
+              <View>
+                <Button
+                  title='Go To Matching Session'
+                  onPress={() => this.requestMovies()}
+                ></Button>
+                <Button
+                  title='Go To Room'
+                  onPress={() => this.requestRoom()}
+                ></Button>
+                <LogoutButton logout={this.logoutOfApp}/>
+              </View >
+            }
           </View>
         </SafeAreaView>
       );

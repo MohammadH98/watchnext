@@ -144,29 +144,29 @@ function doesUserExist(uID){
 
 function createNewUser(uID){
      // Add user to DB
-     axios.get(`https://xwatchnextx.herokuapp.com/api/user`, {
-        headers: { 
-            authorization: `Bearer ${DBTOKEN}`
-        },
-        data: {
-            user_id: uID,
-            // username: data.user,
-            // age: data.age,
-            //img: data.img
-        }
-    }).then(response => {
-        if (response.status == 200){
-            console.log("createUser request")
-            return true
-        }
-        else{
-            console.log("request failed")
-            return false
-        }
-        // socket.emit('recvAuth', response.data); 
-    }).catch(err => {
-        console.log(err)
-    });
+     return new Promise((resolve, reject) => {
+        axios.get(`https://xwatchnextx.herokuapp.com/api/user`, {
+            headers: { 
+                authorization: `Bearer ${DBTOKEN}`
+            },
+            data: {
+                user_id: uID,
+            }
+        }).then(response => {
+            if (response.status == 200){
+                console.log("createUser request")
+                resolve(true)
+            }
+            else{
+                console.log("request failed")
+                resolve(false)
+            }
+            // socket.emit('recvAuth', response.data); 
+        }).catch(err => {
+            console.log(err)
+            reject(err);
+        });
+     })
 }
 
 function recvRecommender(sID){
@@ -200,14 +200,14 @@ io.on('connection', function (socket) {
     // Log in the current socket user
     socket.on('loginUser', function (data) {
         // Check if user already exists
-        doesUserExist(data.tokenDecoded.email).then(exists => {
+        /*doesUserExist(data.tokenDecoded.email).then(exists => {
             if (exists){
                 // User exists, assign to user and send to frontend
                 SOCKET_LIST[socket.id].uID = data.tokenDecoded.email
                 console.log(`Socket ${socket.id} logged in with uID ${uobj.uID}`)
                 socket.emit('loginResp', { success: true, first: false });
             }
-            else {
+            else {*/
                 // Make a new DB entry for user, send response to frontend
                 createNewUser(data.tokenDecoded.email).then(response =>{
                     if (response){
@@ -220,7 +220,7 @@ io.on('connection', function (socket) {
                         socket.emit('loginResp', {success: false});
                     }
                 })
-            }
+            //}
         }).catch(err => {
             // Issue in logging in user on backend
             socket.emit('loginResp', {success: false});
