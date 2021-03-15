@@ -128,26 +128,26 @@ function sendRecommender(socket) {
 }
 
 function doesUserExist(uID) {
-  axios
-    .get(`https://xwatchnextx.herokuapp.com/api/user/${uID}`, {}, {
-      headers: {
-        authorization: `Bearer ${DBTOKEN}`,
-      },
+    return new Promise((resolve, reject) =>{
+        axios
+        .get(`https://xwatchnextx.herokuapp.com/api/user/${uID}`, {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        })
+        .then((response) => {
+          if (response.status == 200) {
+            // User exists
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          reject(err)
+        }); 
     })
-    .then((response) => {
-      if (response.status == 200) {
-        // User exists
-        uobj = SOCKET_LIST[socket.id];
-        uobj.uID = uID;
-        console.log(`Socket ${socket.id} logged in as ${uobj.user}`);
-        return true;
-      } else {
-        return false;
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-    });
 }
 
 function createNewUser(uID) {
@@ -208,33 +208,33 @@ io.on("connection", function (socket) {
   // Log in the current socket user
   socket.on("loginUser", function (data) {
     // Check if user already exists
-    /*doesUserExist(data.tokenDecoded.email).then(exists => {
-            if (exists){
-                // User exists, assign to user and send to frontend
-                SOCKET_LIST[socket.id].uID = data.tokenDecoded.email
-                console.log(`Socket ${socket.id} logged in with uID ${uobj.uID}`)
-                socket.emit('loginResp', { success: true, first: false });
-            }
-            else {*/
+    doesUserExist(data.tokenDecoded.email).then(exists => {
+        if (exists){
+            // User exists, assign to user and send to frontend
+            SOCKET_LIST[socket.id].uID = data.tokenDecoded.email
+            console.log(`Socket ${socket.id} logged in with uID ${uobj.uID}`)
+            socket.emit('loginResp', { success: true, first: false });
+        }
+        else {
     // Make a new DB entry for user, send response to frontend
-    createNewUser(data.tokenDecoded.email).then((response) => {
-        console.log(response)
-      if (response) {
-        SOCKET_LIST[socket.id].uID = data.tokenDecoded.email;
-        console.log(
-          `Socket ${socket.id} logged in with uID ${uobj.uID} (new login)`
-        );
-        socket.emit("loginResp", { success: true, first: true });
-      } else {
-        //unable to create new user
-        socket.emit("loginResp", { success: true });
-      }
-    }).catch(err => {console.log("new user fail"); socket.emit("loginResp", { success: true });});
-    //}
-    // }).catch(err => {
-    //     // Issue in logging in user on backend
-    //     socket.emit('loginResp', {success: false});
-    // })
+            createNewUser(data.tokenDecoded.email).then((response) => {
+                console.log(response)
+            if (response) {
+                SOCKET_LIST[socket.id].uID = data.tokenDecoded.email;
+                console.log(
+                `Socket ${socket.id} logged in with uID ${uobj.uID} (new login)`
+                );
+                socket.emit("loginResp", { success: true, first: true });
+            } else {
+                //unable to create new user
+                socket.emit("loginResp", { success: true });
+            }
+        }).catch(err => {console.log("new user fail"); socket.emit("loginResp", { success: true });});
+    }
+     }).catch(err => {
+         // Issue in logging in user on backend
+         socket.emit('loginResp', {success: true});
+     })
   });
 
   // Get all movies in database
