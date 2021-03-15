@@ -7,7 +7,7 @@ import {
   Checkbox,
   Button,
 } from "react-native-paper";
-import { View, StyleSheet, ShadowPropTypesIOS } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
 
 function ProcessData(data) {
   return [
@@ -91,22 +91,24 @@ export default class PostLoginScreen extends React.Component {
             onChangeText={(text) => this.setFullName(text)}
           ></TextInput>
         </View>
-        <Text>Choose Your Genres:</Text>
         <View style={styles.radioButtonForm}>
-          {this.state.genres.map((genre) => (
-            <GenreCheckBox
-              key={this.props.genre}
-              genre={genre}
-              status={
-                this.state.checkedGenres.includes(genre)
-                  ? "checked"
-                  : "unchecked"
-              }
-              toggleGenre={this.toggleGenre}
-            />
-          ))}
+          <Text>Choose Your Genres:</Text>
+          <ScrollView style={{ width: "100%" }}>
+            {this.state.genres.map((genre) => (
+              <GenreCheckBox
+                key={this.props.genre}
+                genre={genre}
+                status={
+                  this.state.checkedGenres.includes(genre)
+                    ? "checked"
+                    : "unchecked"
+                }
+                toggleGenre={this.toggleGenre}
+              />
+            ))}
+          </ScrollView>
         </View>
-        <View>
+        <View style={styles.bottom}>
           <Button mode="outlined">Next</Button>
         </View>
       </View>
@@ -117,20 +119,20 @@ export default class PostLoginScreen extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 20,
+    padding: 20,
     alignItems: "center",
+    justifyContent: "center",
   },
   radioButtonForm: {
-    flexDirection: "row",
+    flex: 7,
     flexWrap: "wrap",
-    width: "100%",
-    alignItems: "center",
   },
-  checkbox: {
-    margin: 5,
-  },
+  checkbox: { width: 400 },
   textInputForm: {
-    height: 130,
-    width: "100%",
+    flex: 1,
+    flexWrap: "wrap",
+  },
+  bottom: {
+    flex: 1,
   },
 });

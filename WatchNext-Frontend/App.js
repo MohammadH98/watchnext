@@ -285,9 +285,7 @@ class App extends React.Component {
     if (this.state.loggedIn && this.state.firstLogin) {
       return (
         <PaperProvider theme={DefaultTheme}>
-          <SafeAreaView style={{ paddingTop: 20 }}>
-            <PostLoginScreen data={""} />
-          </SafeAreaView>
+          <PostLoginScreen data={""} />
         </PaperProvider>
       );
     }
