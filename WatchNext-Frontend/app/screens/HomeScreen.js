@@ -101,7 +101,7 @@ export default class HomeScreen extends Component {
       >
         <View style={styles.top}>
           <LinearGradient
-            colors={["purple", "fuchsia"]}
+            colors={["purple", "mediumpurple"]}
             style={styles.linearGradient}
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}

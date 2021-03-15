@@ -27,7 +27,7 @@ import LogoutButton from "./app/components/LogoutButton";
 import HomeScreen from "./app/screens/HomeScreen";
 import SetupScreen from "./app/screens/SetupScreen";
 
-const socket = io("https://4454e281f83f.ngrok.io", {
+const socket = io("https://bb9990cfd327.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -93,6 +93,7 @@ class App extends React.Component {
     this.loginToApp = this.loginToApp.bind(this);
     this.logoutOfApp = this.logoutOfApp.bind(this);
     this.loginSetupComplete = this.loginSetupComplete.bind(this);
+    this.endMatchingSession = this.endMatchingSession.bind(this);
 
     socket.on(
       "connect",
@@ -203,13 +204,15 @@ class App extends React.Component {
     });
   }
 
+  endMatchingSession() {
+    this.setState({
+      inMatchingSession: false,
+    });
+  }
+
   loginToApp(token) {
     tokenDecoded = jwtDecode(token);
-    //socket.emit("loginUser", { token: token, tokenDecoded: tokenDecoded });
-    this.setState({
-      loggedIn: true,
-      firstLogin: true, //data.first
-    });
+    socket.emit("loginUser", { token: token, tokenDecoded: tokenDecoded });
   }
 
   logoutOfApp() {
@@ -244,9 +247,16 @@ class App extends React.Component {
       if (this.state.inMatchingSession) {
         return (
           <PaperProvider theme={DefaultTheme}>
+            <LinearGradient
+              colors={["purple", "mediumpurple"]}
+              style={styles.linearGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            />
             <SwipeScreen
               data={this.state.movies}
               requestMovies={this.requestMovies}
+              endMatching={this.endMatchingSession}
             />
           </PaperProvider>
         );
@@ -321,6 +331,13 @@ const styles = StyleSheet.create({
     width: 400,
     height: 600,
     marginBottom: 25,
+  },
+  linearGradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 1000,
   },
 });
 
