@@ -92,6 +92,7 @@ class App extends React.Component {
     this.requestMovies = this.requestMovies.bind(this);
     this.loginToApp = this.loginToApp.bind(this);
     this.logoutOfApp = this.logoutOfApp.bind(this);
+    this.loginSetupComplete = this.loginSetupComplete.bind(this);
 
     socket.on(
       "connect",
@@ -203,9 +204,19 @@ class App extends React.Component {
     });
   }
 
+  loginSetupComplete() {
+    this.setState({
+      firstLogin: false,
+    });
+  }
+
   loginToApp(token) {
     tokenDecoded = jwtDecode(token);
-    socket.emit("loginUser", { token: token, tokenDecoded: tokenDecoded });
+    //socket.emit("loginUser", { token: token, tokenDecoded: tokenDecoded });
+    this.setState({
+      loggedIn: true,
+      firstLogin: true, //data.first
+    });
   }
 
   logoutOfApp() {
@@ -238,7 +249,7 @@ class App extends React.Component {
     console.log(this.state);
     if (this.state.loggedIn && !this.state.firstLogin) {
       return (
-        <SafeAreaView style={[styles.mainContainer, { paddingTop: 20 }]}>
+        <PaperProvider theme={DefaultTheme}>
           <LinearGradient
             colors={[GradientColour1, GradientColour2]}
             style={styles.background}
@@ -268,25 +279,18 @@ class App extends React.Component {
             {!this.state.inRoom &&
               !this.state.inMatchingSession && ( //if you aren't doing anything
                 <View>
-                  <Button
-                    title="Go To Matching Session"
-                    onPress={() => this.requestMovies()}
-                  ></Button>
-                  <Button
-                    title="Go To Room"
-                    onPress={() => this.requestRoom()}
-                  ></Button>
-                  <LogoutButton logout={this.logoutOfApp} />
+                  <HomeScreen />
+                  {/* <LogoutButton logout={this.logoutOfApp} /> */}
                 </View>
               )}
           </View>
-        </SafeAreaView>
+        </PaperProvider>
       );
     }
     if (this.state.loggedIn && this.state.firstLogin) {
       return (
         <PaperProvider theme={DefaultTheme}>
-          <SetupScreen />
+          <SetupScreen onCompletion={this.loginSetupComplete} />
         </PaperProvider>
       );
     }
