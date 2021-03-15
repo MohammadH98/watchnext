@@ -67,21 +67,19 @@ export default class PostLoginScreen extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        <Surface>
-          <Title>Finish Setting Up Your Account</Title>
-          <View style={styles.textInputForm}>
-            <TextInput
-              label="Full Name"
-              value={this.state.fullName}
-              onChangeText={(text) => this.setFullName(text)}
-            ></TextInput>
-            <TextInput
-              label="Username"
-              value={this.state.fullName}
-              onChangeText={(text) => this.setFullName(text)}
-            ></TextInput>
-          </View>
-        </Surface>
+        <Title>Finish Setting Up Your Account</Title>
+        <View style={styles.textInputForm}>
+          <TextInput
+            label="Full Name"
+            value={this.state.fullName}
+            onChangeText={(text) => this.setFullName(text)}
+          ></TextInput>
+          <TextInput
+            label="Username"
+            value={this.state.fullName}
+            onChangeText={(text) => this.setFullName(text)}
+          ></TextInput>
+        </View>
         <Title>Choose Your Genres:</Title>
         <View style={styles.radioButtonForm}>
           <ScrollView style={{ width: "100%" }}>
