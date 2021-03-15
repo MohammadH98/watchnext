@@ -15,7 +15,7 @@ function SwipeScreen(props) {
       <View>
         <IconButton
           icon="arrow-left"
-          color="black"
+          color="white"
           size={40}
           onPress={() => props.endMatching()}
         />
