@@ -27,7 +27,7 @@ import LogoutButton from "./app/components/LogoutButton";
 import HomeScreen from "./app/screens/HomeScreen";
 import SetupScreen from "./app/screens/SetupScreen";
 
-const socket = io("https://baf09d9cfae3.ngrok.io", {
+const socket = io("https://47f926f7c00b.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -105,9 +105,18 @@ class App extends React.Component {
             if (data.success) {
               this.setState({
                 loggedIn: true,
-                firstLogin: true, //data.first
+                firstLogin: data.first,
               });
             }
+          }.bind(this)
+        );
+
+        socket.on(
+          "editResp",
+          function(data){
+            this.setState({
+              firstLogin: false,
+            });
           }.bind(this)
         );
 
@@ -198,10 +207,8 @@ class App extends React.Component {
     });
   }
 
-  loginSetupComplete() {
-    this.setState({
-      firstLogin: false,
-    });
+  loginSetupComplete(firstname, lastname, username, selectedGenres) {
+    socket.emit("editUser", {firstname: firstname, lastname: lastname, username: username, selectedGenres: selectedGenres})
   }
 
   endMatchingSession() {

@@ -70,7 +70,7 @@ export default class SetupScreen extends Component {
 
   nextStage = () => {
     if (this.state.stageCompleted) {
-      this.props.onCompletion();
+      this.props.onCompletion(this.state.firstName, this.state.lastName, this.state.username, this.state.selectedGenres);
     } else {
       this.setState({ stageCompleted: !this.state.stageCompleted });
     }

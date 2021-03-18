@@ -144,8 +144,12 @@ function doesUserExist(uID) {
           }
         })
         .catch((err) => {
-          console.log(err);
-          reject(err)
+          if (err.statusCode == 404)
+            resolve(false)
+          else {
+            console.log(err);
+            reject(err)
+          }
         }); 
     })
 }
@@ -222,14 +226,14 @@ io.on("connection", function (socket) {
             if (response) {
                 SOCKET_LIST[socket.id].uID = data.tokenDecoded.email;
                 console.log(
-                `Socket ${socket.id} logged in with uID ${uobj.uID} (new login)`
+                `Socket ${socket.id} logged in with uID ${SOCKET_LIST[socket.id].uID} (new login)`
                 );
-                socket.emit("loginResp", { success: true, first: true });
+                socket.emit("loginResp", { success: true, first: data.tokenDecoded['https://watchnext.com/is_new']});
             } else {
                 //unable to create new user
                 socket.emit("loginResp", { success: true });
             }
-        }).catch(err => {console.log("new user fail"); socket.emit("loginResp", { success: true });});
+        }).catch(err => {console.log(err); socket.emit("loginResp", { success: true });});
     }
      }).catch(err => {
          // Issue in logging in user on backend
@@ -387,49 +391,49 @@ io.on("connection", function (socket) {
     }
   });
 
-  // Change user settings
+  // Change user settings (firstname, lastname, username, genres)
   // REQ: {user: "New username" (str), img: "Base64 encoded image" (str/bit?)}
-  socket.on("editUsername", function (data) {
-    if (data.user.trim()) {
+  // REQ: {firstname: firstname, lastname: lastname, username: username, selectedGenres: selectedGenres}
+  socket.on("editUser", function (data) {
+    if (data.username.trim()) {
       // Update username
       axios
-        .get(`https://xwatchnextx.herokuapp.com/api/user/username`, {
+        .patch(`https://xwatchnextx.herokuapp.com/api/user/username`, {
+          user_id: SOCKET_LIST[socket.id].uID,
+          username: data.username
+        }, {
           headers: {
             authorization: `Bearer ${DBTOKEN}`,
-          },
-          data: {
-            user_id: SOCKET_LIST[socket.id].uID,
-            username: data.user,
           },
         })
         .then((response) => {
           console.log("changeUsername request");
-          socket.emit("changeResp", response.data);
+          socket.emit("editResp", response.data);
         })
         .catch((err) => {
           console.log(err);
         });
     }
-    if (data.img) {
-      // Update image
-      axios
-        .get(`https://xwatchnextx.herokuapp.com/api/user/image`, {
-          headers: {
-            authorization: `Bearer ${DBTOKEN}`,
-          },
-          data: {
-            user_id: SOCKET_LIST[socket.id].uID,
-            image: data.img,
-          },
-        })
-        .then((response) => {
-          console.log("changeProfileImage request");
-          socket.emit("changeResp", response.data);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
+    // if (data.img) {
+    //   // Update image
+    //   axios
+    //     .get(`https://xwatchnextx.herokuapp.com/api/user/image`, {
+    //       headers: {
+    //         authorization: `Bearer ${DBTOKEN}`,
+    //       },
+    //       data: {
+    //         user_id: SOCKET_LIST[socket.id].uID,
+    //         image: data.img,
+    //       },
+    //     })
+    //     .then((response) => {
+    //       console.log("changeProfileImage request");
+    //       socket.emit("changeResp", response.data);
+    //     })
+    //     .catch((err) => {
+    //       console.log(err);
+    //     });
+    // }
   });
 
   // Set movie rating based on swipe action
