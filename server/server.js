@@ -41,15 +41,19 @@ function addRoom(socket, sID, roomName) {
     sID = uuidv4();
     //add new session to database
     axios
-      .post("https://xwatchnextx.herokuapp.com/api/matching-session", {
-        session_id: sID,
-        creator_id: SOCKET_LIST[socket.id].uID,
-        name: roomName,
-        },{
-        headers: {
+      .post(
+        "https://xwatchnextx.herokuapp.com/api/matching-session",
+        {
+          session_id: sID,
+          creator_id: SOCKET_LIST[socket.id].uID,
+          name: roomName,
+        },
+        {
+          headers: {
             authorization: `Bearer ${DBTOKEN}`,
+          },
         }
-      })
+      )
       .then((response) => {
         // Add the socket to the given room, titled by the index
         socket.join(sID);
@@ -128,44 +132,47 @@ function sendRecommender(socket) {
 }
 
 function doesUserExist(uID) {
-    return new Promise((resolve, reject) =>{
-        axios
-        .get(`https://xwatchnextx.herokuapp.com/api/user/${uID}`, {
-          headers: {
-            authorization: `Bearer ${DBTOKEN}`,
-          },
-        })
-        .then((response) => {
-          if (response.status == 200) {
-            // User exists
-            resolve(true);
-          } else {
-            resolve(false);
-          }
-        })
-        .catch((err) => {
-          if (err.statusCode == 404)
-            resolve(false)
-          else {
-            console.log(err);
-            reject(err)
-          }
-        }); 
-    })
+  return new Promise((resolve, reject) => {
+    axios
+      .get(`https://xwatchnextx.herokuapp.com/api/user/${uID}`, {
+        headers: {
+          authorization: `Bearer ${DBTOKEN}`,
+        },
+      })
+      .then((response) => {
+        if (response.status == 200) {
+          // User exists
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      })
+      .catch((err) => {
+        if (err.statusCode == 404) resolve(false);
+        else {
+          console.log(err);
+          reject(err);
+        }
+      });
+  });
 }
 
 function createNewUser(uID) {
   // Add user to DB
   return new Promise((resolve, reject) => {
     axios
-      .post(`https://xwatchnextx.herokuapp.com/api/user`, {
-        user_id: uID,
-        username: uID
-        },{
-        headers: {
-            authorization: `Bearer ${DBTOKEN}`, 
-          }
-      })
+      .post(
+        `https://xwatchnextx.herokuapp.com/api/user`,
+        {
+          user_id: uID,
+          username: uID,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
       .then((response) => {
         if (response.status == 201) {
           console.log("createUser request");
@@ -212,33 +219,44 @@ io.on("connection", function (socket) {
   // Log in the current socket user
   socket.on("loginUser", function (data) {
     // Check if user already exists
-    doesUserExist(data.tokenDecoded.email).then(exists => {
-        if (exists){
-            // User exists, assign to user and send to frontend
-            SOCKET_LIST[socket.id].uID = data.tokenDecoded.email
-            console.log(`Socket ${socket.id} logged in with uID ${uobj.uID}`)
-            socket.emit('loginResp', { success: true, first: false });
-        }
-        else {
-    // Make a new DB entry for user, send response to frontend
-            createNewUser(data.tokenDecoded.email).then((response) => {
-                console.log(response)
-            if (response) {
+    doesUserExist(data.tokenDecoded.email)
+      .then((exists) => {
+        if (exists) {
+          // User exists, assign to user and send to frontend
+          SOCKET_LIST[socket.id].uID = data.tokenDecoded.email;
+          console.log(`Socket ${socket.id} logged in with uID ${uobj.uID}`);
+          socket.emit("loginResp", { success: true, first: false });
+        } else {
+          // Make a new DB entry for user, send response to frontend
+          createNewUser(data.tokenDecoded.email)
+            .then((response) => {
+              console.log(response);
+              if (response) {
                 SOCKET_LIST[socket.id].uID = data.tokenDecoded.email;
                 console.log(
-                `Socket ${socket.id} logged in with uID ${SOCKET_LIST[socket.id].uID} (new login)`
+                  `Socket ${socket.id} logged in with uID ${
+                    SOCKET_LIST[socket.id].uID
+                  } (new login)`
                 );
-                socket.emit("loginResp", { success: true, first: data.tokenDecoded['https://watchnext.com/is_new']});
-            } else {
+                socket.emit("loginResp", {
+                  success: true,
+                  first: data.tokenDecoded["https://watchnext.com/is_new"],
+                });
+              } else {
                 //unable to create new user
                 socket.emit("loginResp", { success: true });
-            }
-        }).catch(err => {console.log(err); socket.emit("loginResp", { success: true });});
-    }
-     }).catch(err => {
-         // Issue in logging in user on backend
-         socket.emit('loginResp', {success: true});
-     })
+              }
+            })
+            .catch((err) => {
+              console.log(err);
+              socket.emit("loginResp", { success: true });
+            });
+        }
+      })
+      .catch((err) => {
+        // Issue in logging in user on backend
+        socket.emit("loginResp", { success: true });
+      });
   });
 
   // Get all movies in database
@@ -393,19 +411,26 @@ io.on("connection", function (socket) {
 
   // Change user settings (firstname, lastname, username, genres)
   // REQ: {user: "New username" (str), img: "Base64 encoded image" (str/bit?)}
-  // REQ: {firstname: firstname, lastname: lastname, username: username, selectedGenres: selectedGenres}
+  // REQ: {firstname: firstname, lastname: lastname, username: username, selectedGenres: selectedGenres str(array)}
   socket.on("editUser", function (data) {
     if (data.username.trim()) {
       // Update username
       axios
-        .patch(`https://xwatchnextx.herokuapp.com/api/user/username`, {
-          user_id: SOCKET_LIST[socket.id].uID,
-          username: data.username
-        }, {
-          headers: {
-            authorization: `Bearer ${DBTOKEN}`,
+        .patch(
+          `https://xwatchnextx.herokuapp.com/api/user`,
+          {
+            user_id: SOCKET_LIST[socket.id].uID,
+            username: data.username,
+            firstname: data.firstname,
+            lastname: data.lastname,
+            genres: data.selectedGenres
           },
-        })
+          {
+            headers: {
+              authorization: `Bearer ${DBTOKEN}`,
+            },
+          }
+        )
         .then((response) => {
           console.log("changeUsername request");
           socket.emit("editResp", response.data);
