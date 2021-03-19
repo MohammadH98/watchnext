@@ -53,6 +53,9 @@ router.get('/user/:id', userController.getOne);
 // update user's username
 router.patch('/user/username', userController.changeUsername);
 
+// update user attributes (username, firstname, lastname, genres)
+router.patch('/user', userController.updateUser);
+
 //update user's profile image
 router.patch('/user/image', userController.changeImage);
 

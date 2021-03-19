@@ -15,6 +15,14 @@ var userSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  firstname: {
+    type: String,
+    required: true,
+  },
+  lastname: {
+    type: String,
+    required: true,
+  },
   image: {
     type: String
   },
@@ -31,6 +39,10 @@ var userSchema = mongoose.Schema({
     required: false
   },
   matching_sessions:{
+    type: [String],
+    required: false
+  },
+  genres:{
     type: [String],
     required: false
   },

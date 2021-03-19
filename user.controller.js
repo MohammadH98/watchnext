@@ -99,6 +99,41 @@ exports.changeUsername = function(req, res){
   })
 }
 
+// handles updating user's firstname, lastname, username, genres
+exports.updateUser = function(req, res){
+
+  //validate that request contains all neccesary parts
+  if (!req.body.user_id){
+    return res.status(400).json({
+      message: "Please include user_id"
+    })
+  }
+
+  User.findOne({user_id: req.body.user_id}).then(user=>{
+
+    if (!user)
+      return res.status(404).json({message: 'Unable to find any user with that ID'})
+    else
+      user.username = req.body.username ? req.body.username : user.username;
+      user.firstname = req.body.firstname ? req.body.firstname : user.firstname;
+      user.lastname = req.body.lastname ? req.body.lastname : user.lastname;
+      user.genres = req.body.genres ? req.body.genres : user.genres;
+
+
+    //save user and check for errors
+    user.save().then(user=>{
+      res.json({
+        message: 'user info updated',
+        data: user
+      });
+    }).catch(err=>{
+      res.status(500).json(err);
+    })
+  }).catch(err=>{
+    res.status(500).json(err)
+  })
+}
+
 // handles updating user's profile image
 exports.changeImage = function(req, res){
 
