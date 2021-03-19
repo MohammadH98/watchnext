@@ -24,11 +24,11 @@ var sessionSchema = mongoose.Schema({
     required: false
   },
   likes: {
-    type: [String],
+    type: [{}],
     required: false
   },
   dislikes:{
-    type: [String],
+    type: [{}],
     required: false
   },
   watchnext:{

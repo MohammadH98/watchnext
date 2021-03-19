@@ -28,9 +28,14 @@ exports.new = function(req, res){
         data: user
       });
     }).catch(err =>{
-      res.status(500).json({
-        message: err.message || "some error occured while creating new user"
-      })
+      if (err.code == 11000)
+        res.status(409).json({message: "a user with that username or user_id already exists"});
+      else{
+        console.log(err)
+        res.status(500).json({
+          message: err.message || "some error occured while creating new user"
+        })
+      }
     })
 };
 
@@ -127,7 +132,10 @@ exports.updateUser = function(req, res){
         data: user
       });
     }).catch(err=>{
-      res.status(500).json(err);
+      if (err.code == 11000)
+        res.status(409).json({message: "The requested username is already in use"});
+      else 
+        res.status(500).json({message: err.message});
     })
   }).catch(err=>{
     res.status(500).json(err)

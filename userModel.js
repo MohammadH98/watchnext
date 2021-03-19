@@ -14,14 +14,15 @@ var userSchema = mongoose.Schema({
   username: {
     type: String,
     required: true,
+    unique: true
   },
   firstname: {
     type: String,
-    required: true,
+    required: false
   },
   lastname: {
     type: String,
-    required: true,
+    required: false
   },
   image: {
     type: String

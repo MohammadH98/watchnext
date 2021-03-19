@@ -193,20 +193,20 @@ exports.removeMember = function(req, res){
 exports.addMovieToLikes = function(req, res){
 
   //validate that request contains all neccesary parts
-  if (!req.body.session_id || !req.body.movie_id){
+  if (!req.body.session_id || !req.body.movie_id || !req.body.user_id){
     return res.status(400).json({
-      message: "Please include session_id and movie_id"
+      message: "Please include session_id, user_id and movie_id"
     })
   }
 
   Session.findOne({session_id: req.body.session_id}).then(session=>{
     if (!session)
       return res.status(404).json({message: 'Unable to find any session with that ID'})
-    if (session.likes.indexOf(req.body.movie_id)>=0)
+    if (session.likes.findIndex( p=>{return p.movie_id == req.body.movie_id && p.user_id == req.body.user_id})>=0)
       return res.status(409).json({message: 'A movie with that ID already appears in the likes'})
 
     var new_likes_arr = session.likes.slice()
-    new_likes_arr.push(req.body.movie_id)
+    new_likes_arr.push({movie_id: req.body.movie_id, user_id: req.body.user_id })
     session.likes = new_likes_arr;
 
     //save user and check for errors
@@ -228,16 +228,17 @@ exports.addMovieToLikes = function(req, res){
 exports.removeMovieFromLikes = function(req, res){
 
   //validate that request contains all neccesary parts
-  if (!req.body.session_id || !req.body.movie_id){
+  if (!req.body.session_id || !req.body.movie_id || !req.body.user_id ){
     return res.status(400).json({
-      message: "Please include session_id and movie_id"
+      message: "Please include session_id, user_id, and movie_id"
     })
   }
 
   Session.findOne({session_id: req.body.session_id}).then(session=>{
     if (!session)
       return res.status(404).json({message: 'Unable to find any session with that ID'})
-    sessionIndex = session.likes.indexOf(req.body.movie_id)
+    //sessionIndex = session.likes.indexOf({movie_id: req.body.movie_id, user_id: req.body.user_id})
+    sessionIndex = session.likes.findIndex( p=>{return p.movie_id == req.body.movie_id && p.user_id == req.body.user_id})
     if (sessionIndex<0)
       return res.status(404).json({message: 'Unable to find any movie with that ID in the session likes'})
 
@@ -262,20 +263,20 @@ exports.removeMovieFromLikes = function(req, res){
 exports.addMovieToDislikes = function(req, res){
 
   //validate that request contains all neccesary parts
-  if (!req.body.session_id || !req.body.movie_id){
+  if (!req.body.session_id || !req.body.movie_id || !req.body.user_id){
     return res.status(400).json({
-      message: "Please include session_id and movie_id"
+      message: "Please include session_id, user_id and movie_id"
     })
   }
 
   Session.findOne({session_id: req.body.session_id}).then(session=>{
     if (!session)
       return res.status(404).json({message: 'Unable to find any session with that ID'})
-    if (session.dislikes.indexOf(req.body.movie_id)>=0)
+    if (session.dislikes.findIndex( p=>{return p.movie_id == req.body.movie_id && p.user_id == req.body.user_id})>=0)
       return res.status(409).json({message: 'A movie with that ID already appears in the dislikes'})
 
     var new_dislikes_arr = session.dislikes.slice()
-    new_dislikes_arr.push(req.body.movie_id)
+    new_dislikes_arr.push({movie_id: req.body.movie_id, user_id: req.body.user_id})
     session.dislikes = new_dislikes_arr;
 
     //save user and check for errors
@@ -297,16 +298,17 @@ exports.addMovieToDislikes = function(req, res){
 exports.removeMovieFromDislikes = function(req, res){
 
   //validate that request contains all neccesary parts
-  if (!req.body.session_id || !req.body.movie_id){
+  if (!req.body.session_id || !req.body.movie_id || !req.body.user_id){
     return res.status(400).json({
-      message: "Please include session_id and movie_id"
+      message: "Please include session_id, user_id and movie_id"
     })
   }
 
   Session.findOne({session_id: req.body.session_id}).then(session=>{
     if (!session)
       return res.status(404).json({message: 'Unable to find any session with that ID'})
-    sessionIndex = session.dislikes.indexOf(req.body.movie_id)
+    // sessionIndex = session.dislikes.indexOf(req.body.movie_id)
+    sessionIndex = session.dislikes.findIndex( p=>{return p.movie_id == req.body.movie_id && p.user_id == req.body.user_id})
     if (sessionIndex<0)
       return res.status(404).json({message: 'Unable to find any movie with that ID in the session dislikes'})
 
