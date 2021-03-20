@@ -62,9 +62,27 @@ exports.getAll = function(req, res){
   });
 };
 
-// handles viewing individual matching session's data
-exports.getOne = function (req, res){
-  Session.findOne({session_id: req.params.id}).then(session=>{
+// // handles viewing individual matching session's data
+// exports.getOne = function (req, res){
+//   Session.findOne({session_id: req.params.id}).then(session=>{
+//     if (session){
+//       res.json({
+//         message: 'matchin session details loading...',
+//         data: session
+//       });
+//     }
+//     else
+//       res.status(404).json({
+//         message: 'Unable to find any matching session with that id'
+//       })
+//   }).catch(err =>{
+//     res.status(500).json({message: err});
+//   });
+// };
+
+// handles viewing specified matching sessions
+exports.getOneOrMore = function (req, res){
+  Session.find({'session_id': {$in: req.params.id.split(',')}}).then(session=>{
     if (session){
       res.json({
         message: 'matchin session details loading...',

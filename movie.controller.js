@@ -107,9 +107,27 @@ exports.getManyRandom = function(req, res){
     });
 };
 
-//handles viewing specific movie info
-exports.getOne = function (req, res){
-  Movie.findOne({id: req.params.id}).then(movie=>{
+// //handles viewing specific movie info
+// exports.getOne = function (req, res){
+//   Movie.findOne({id: req.params.id}).then(movie=>{
+//     if (movie){
+//       res.json({
+//         message: 'Movie details loading...',
+//         data: movie
+//       });
+//     }
+//     else
+//       res.status(404).json({
+//         message: 'Unable to find any movies with that id'
+//       })
+//   }).catch(err =>{
+//     res.json(err);
+//   });
+// };
+
+//handles viewing info for specified movies
+exports.getOneOrMore = function (req, res){
+  Movie.find({'id': {$in: req.params.id.split(',')}}).then(movie=>{
     if (movie){
       res.json({
         message: 'Movie details loading...',

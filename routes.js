@@ -28,8 +28,8 @@ router.get('/movie/random', movieController.getRandom);
 // Get random movies (8)
 router.get('/movies/random', movieController.getManyRandom);
 
-// Get movie with specified id
-router.get('/movie/:id', movieController.getOne);
+// Get movies with specified id's
+router.get('/movie/:id', movieController.getOneOrMore);
 
 // Delete movie with specified id
 router.delete('/movie/:id', movieController.delete);
@@ -47,8 +47,8 @@ router.post('/user', userController.new);
 // viewing all users
 router.get('/users', userController.getAll);
 
-// view individual user (allows you to view their liked or disliked list there)
-router.get('/user/:id', userController.getOne);
+// view individual user or multiple specified users (allows you to view their liked or disliked list there)
+router.get('/user/:id', userController.getOneOrMore);
 
 // update user's username
 router.patch('/user/username', userController.changeUsername);
@@ -95,8 +95,8 @@ router.post('/matching-session', matchingSessionController.new);
 //get all matching sessions
 router.get('/matching-sessions', matchingSessionController.getAll);
 
-//get all matching sessions
-router.get('/matching-session/:id', matchingSessionController.getOne);
+//get specified matching sessions
+router.get('/matching-session/:id', matchingSessionController.getOneOrMore);
 
 //change matching session name
 router.patch('/matching-session/name', matchingSessionController.changeName);

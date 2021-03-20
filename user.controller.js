@@ -55,9 +55,27 @@ exports.getAll = function(req, res){
   });
 };
 
+// // handles viewing individual user (allows you to view their liked or disliked list there)
+// exports.getOne = function (req, res){
+//   User.findOne({user_id: req.params.id}).then(user=>{
+//     if (user){
+//       res.json({
+//         message: 'User details loading...',
+//         data: user
+//       });
+//     }
+//     else
+//       res.status(404).json({
+//         message: 'Unable to find any user with that id'
+//       })
+//   }).catch(err =>{
+//     res.status(500).json({message: err});
+//   });
+// };
+
 // handles viewing individual user (allows you to view their liked or disliked list there)
-exports.getOne = function (req, res){
-  User.findOne({user_id: req.params.id}).then(user=>{
+exports.getOneOrMore = function (req, res){
+  User.find({'user_id': {$in: req.params.id.split(',')}}).then(user=>{
     if (user){
       res.json({
         message: 'User details loading...',
