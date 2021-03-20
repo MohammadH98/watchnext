@@ -129,7 +129,7 @@ exports.changeName = function(req, res){
   })
 }
 
-//add member to matching session
+//add member(s) to matching session
 exports.addMember = function(req, res){
 
   //validate that request contains all neccesary parts
@@ -139,6 +139,7 @@ exports.addMember = function(req, res){
     })
   }
 
+  if (typeof(req.body.user_id) == "string"){
   User.findOne({user_id: req.body.user_id}).then(user=>{
     if (!user)
       return res.status(404).json({message: 'Unable to find any user with that ID'})
@@ -169,6 +170,41 @@ exports.addMember = function(req, res){
   }).catch(err=>{
     res.status(500).json(err)
   });
+  }
+
+  else{
+    User.find({"user_id": {$in: req.body.user_id}}).then(users=>{
+      if (users.length !== req.body.user_id.length)
+        return res.status(404).json({message: 'Unable to find any user with that ID'})
+      Session.findOne({session_id: req.body.session_id}).then(session=>{
+        if (!session)
+          return res.status(404).json({message: 'Unable to find any session with that ID'})
+        if (session.members.indexOf(req.body.user_id)>=0)
+          return res.status(409).json({message: 'A user with that ID already appears in the session member list'})
+  
+        var new_members_arr = session.members.slice()
+        new_members_arr = new_members_arr.concat(req.body.user_id)
+        session.members = new_members_arr;
+  
+        //save user and check for errors
+        session.save().then(session=>{
+          res.json({
+            message: 'added user to members list',
+            data: session
+          });
+        }).catch(err=>{
+          res.status(500).json(err);
+        })
+  
+      }).catch(err=>{
+        res.status(500).json(err)
+      })
+  
+    }).catch(err=>{
+      res.status(500).json(err)
+    });
+  }
+
 }
 
 //remove member from matching session
