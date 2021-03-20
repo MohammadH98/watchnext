@@ -26,7 +26,7 @@ require("dotenv").config();
 // Find a user by username
 function userFind(username) {
   for (var i in SOCKET_LIST) {
-    if (username == SOCKET_LIST[i].user) {
+    if (username == SOCKET_LIST[i].uID) {
       return i;
     }
   }
@@ -39,6 +39,9 @@ function addRoom(socket, sID, roomName) {
   // Get new room ID is one is not passed and create the room
   if (!sID) {
     sID = uuidv4();
+    console.log("SID " + sID);
+    console.log("SOCKET LIST:" + SOCKET_LIST);
+    console.log("ROOM NAME " + roomName);
     //add new session to database
     axios
       .post(
@@ -60,6 +63,8 @@ function addRoom(socket, sID, roomName) {
         SOCKET_LIST[socket.id].sID = sID;
         // Make the room in the room list
         ROOM_LIST[sID] = io.sockets.adapter.rooms[sID];
+        console.log("66: " + ROOM_LIST[sID]);
+        ROOM_LIST[sID].uIDs = [SOCKET_LIST[socket.id].uID];
         console.log(`Room ID#${sID} created`);
         return sID;
       })
@@ -71,7 +76,28 @@ function addRoom(socket, sID, roomName) {
     // Add the socket to the given room, titled by the index
     socket.join(sID);
     SOCKET_LIST[socket.id].sID = sID;
+    ROOM_LIST[sID].uIDs.push(SOCKET_LIST[socket.id].uID);
+    io.to(sID).emit("roomJoin", ROOM_LIST[sID].uIDs);
     return sID;
+  }
+}
+
+// Leave a room
+function leaveRoom(socket) {
+  // Remove user from room uID list
+  sID = SOCKET_LIST[socket.id].sID;
+  uID = SOCKET_LIST[socket.id].uID;
+  ROOM_LIST[sID].uIDs.splice(ROOM_LIST[sID].uIDs.indexOf(uID), 1);
+  // Remove room from socket
+  socket.leave(sID);
+  SOCKET_LIST[socket.id].sID = null;
+  // See if room is empty
+  if (ROOM_LIST[sID].uIDs.length == 0) {
+    // Delete the room
+    ROOM_LIST[sID] = null;
+  } else {
+    // Let everyone else know they left
+    io.to(sID).emit("roomLeave", ROOM_LIST[sID].uIDs);
   }
 }
 
@@ -423,7 +449,7 @@ io.on("connection", function (socket) {
             username: data.username,
             firstname: data.firstname,
             lastname: data.lastname,
-            genres: data.selectedGenres
+            genres: data.selectedGenres,
           },
           {
             headers: {
@@ -924,31 +950,20 @@ io.on("connection", function (socket) {
 
   // When new room is requested
   // REQ: {sID: "ID of matching session" (str), name: "Name of matching session (str)"}
-  socket.on("getRoom", function (data) {
+  socket.on("getRoom", async function (data) {
     // Check if the session ID is given
     if (data.sID) {
       // Add the user to the room
-      uobj.sID = addRoom(socket, data.sID);
+      // uobj.sID = addRoom(socket, data.sID);
+      sID = await addRoom(socket, data.sID);
     } else {
       // Make a room
-      uobj.SID = addRoom(socket, null, data.name);
+      // uobj.sID = addRoom(socket, null, data.name);
+      sID = await addRoom(socket, null, data.name);
     }
     // Notify client to show room view with given room data
-    socket.emit("recvRoom", { room: ROOM_LIST[uobj.sID] });
-  });
-
-  // When an invite is sent
-  socket.on("sendInvite", function (data) {
-    // Get user and invitee ID
-    var uobj = SOCKET_LIST[socket.id];
-    var invobj = SOCKET_LIST[userFind(data.user)];
-    // Make sure invitee could be found
-    if (invobj == null) {
-      uobj.emit("failInv", { user: data.user });
-      return;
-    }
-    // Send invitee an invite request with the given user's ID
-    invobj.emit("recvInv", { user: uobj.user });
+    // socket.emit("recvRoom", { room: ROOM_LIST[uobj.sID] });
+    socket.emit("recvRoom", { room: ROOM_LIST[sID] });
   });
 
   // When an invite is accepted

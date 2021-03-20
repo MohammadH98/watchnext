@@ -27,7 +27,7 @@ import LogoutButton from "./app/components/LogoutButton";
 import HomeScreen from "./app/screens/HomeScreen";
 import SetupScreen from "./app/screens/SetupScreen";
 
-const socket = io("https://08de9b53aac3.ngrok.io", {
+const socket = io("https://b74e0b9513da.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -90,6 +90,7 @@ class App extends React.Component {
     this.rejectInvite = this.rejectInvite.bind(this);
     this.createInviteAlert = this.createInviteAlert.bind(this);
     this.requestMovies = this.requestMovies.bind(this);
+    this.requestRoom = this.requestRoom.bind(this);
     this.loginToApp = this.loginToApp.bind(this);
     this.logoutOfApp = this.logoutOfApp.bind(this);
     this.loginSetupComplete = this.loginSetupComplete.bind(this);
@@ -180,8 +181,8 @@ class App extends React.Component {
   /**
    * Notifies the server to provide a matching room
    */
-  requestRoom() {
-    socket.emit("getRoom", "");
+  requestRoom(roomName) {
+    socket.emit("getRoom", { name: roomName });
   }
 
   /**
@@ -276,11 +277,20 @@ class App extends React.Component {
       if (!this.state.inRoom && !this.state.inMatchingSession) {
         return (
           <PaperProvider theme={DefaultTheme}>
-            <HomeScreen enterMatching={this.requestMovies} />
+            <HomeScreen
+              enterMatching={this.requestMovies}
+              requestRoom={this.requestRoom}
+            />
           </PaperProvider>
         );
       }
-
+      if (this.state.inRoom)
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <RoomScreen />
+            <Button title={"Send Invite"} onPress={() => this.sendInvite()} />
+          </PaperProvider>
+        );
       {
         this.state.isInvite && ( //if you have been invited
           <WebInviteView
@@ -288,17 +298,6 @@ class App extends React.Component {
             rejectInvite={this.rejectInvite}
           />
         );
-      }
-      {
-        this.state.inRoom && ( //if you are in a room
-          <View>
-            <RoomScreen />
-            <Button title={"Send Invite"} onPress={() => this.sendInvite()} />
-          </View>
-        );
-      }
-      {
-        !this.state.inRoom && !this.state.inMatchingSession && <HomeScreen />;
       }
     }
     if (this.state.loggedIn && this.state.firstLogin) {

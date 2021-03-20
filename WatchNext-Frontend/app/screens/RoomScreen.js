@@ -1,12 +1,12 @@
-import React from 'react';
-import { Text, View } from 'react-native';
+import React, { Component } from "react";
+import { Text } from "react-native-paper";
 
-function RoomScreen(props) {
+export default class RoomScreen extends Component {
+  render() {
     return (
-        <View>
-            <Text>You are in a room</Text>
-        </View>
+      <div>
+        <Text>You are in a room</Text>
+      </div>
     );
+  }
 }
-
-export default RoomScreen;
