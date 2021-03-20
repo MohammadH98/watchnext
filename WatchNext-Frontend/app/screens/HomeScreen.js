@@ -158,6 +158,7 @@ export default class HomeScreen extends Component {
                 style={{ flex: 1 }}
               />
               <TextInput
+                label="Friend's Username"
                 placeholder="Add Users..."
                 onChangeText={(text) => this.onChangeSearch(text)}
                 value={this.state.searchQuery}
@@ -194,7 +195,6 @@ export default class HomeScreen extends Component {
             />
           </LinearGradient>
         </View>
-        <Divider />
         <View style={styles.content}>
           <ScrollView>
             <Title style={{ marginLeft: 15, marginTop: 15, fontSize: 24 }}>
@@ -267,11 +267,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
   },
   linearGradient: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
-    height: 150,
-    width: "100%",
     paddingTop: 50,
   },
   matchingSession: {
