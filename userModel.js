@@ -28,11 +28,11 @@ var userSchema = mongoose.Schema({
     type: String
   },
   likes: {
-    type: [String],
+    type: [{}],
     required: false
   },
   dislikes:{
-    type: [String],
+    type: [{}],
     required: false
   },
   friends_list:{

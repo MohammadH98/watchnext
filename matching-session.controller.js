@@ -279,29 +279,68 @@ exports.addMovieToLikes = function(req, res){
     })
   }
 
-  Session.findOne({session_id: req.body.session_id}).then(session=>{
-    if (!session)
-      return res.status(404).json({message: 'Unable to find any session with that ID'})
-    if (session.likes.findIndex( p=>{return p.movie_id == req.body.movie_id && p.user_id == req.body.user_id})>=0)
-      return res.status(409).json({message: 'A movie with that ID already appears in the likes'})
+  if(typeof(req.body.movie_id) == "string"){ 
+    Session.findOne({session_id: req.body.session_id}).then(session=>{
+      if (!session)
+        return res.status(404).json({message: 'Unable to find any session with that ID'})
+      
+      if (session.likes.findIndex( p=>{return p.movie_id == req.body.movie_id && p.user_id == req.body.user_id})>=0)
+        return res.status(409).json({message: 'A movie with that ID already appears in the likes'})
 
-    var new_likes_arr = session.likes.slice()
-    new_likes_arr.push({movie_id: req.body.movie_id, user_id: req.body.user_id })
-    session.likes = new_likes_arr;
+      var new_likes_arr = session.likes.slice()
+      new_likes_arr.push({movie_id: req.body.movie_id, user_id: req.body.user_id })
+      session.likes = new_likes_arr;
 
-    //save user and check for errors
-    session.save().then(session=>{
-      res.json({
-        message: 'added movie to session likes',
-        data: session
-      });
+      //save user and check for errors
+      session.save().then(session=>{
+        res.json({
+          message: 'added movie to session likes',
+          data: session
+        });
+      }).catch(err=>{
+        res.status(500).json(err);
+      })
+
     }).catch(err=>{
-      res.status(500).json(err);
+      res.status(500).json(err)
     })
+  }else{
+    Session.findOne({session_id: req.body.session_id}).then(session=>{
+      if (!session)
+        return res.status(404).json({message: 'Unable to find any session with that ID'})
+      
+      //Commented out check for same movie added to likes multiple times by one user 
+      // if (session.likes.findIndex( p=>{return p.movie_id == req.body.movie_id && p.user_id == req.body.user_id})>=0)
+      //   return res.status(409).json({message: 'A movie with that ID already appears in the likes'})
 
-  }).catch(err=>{
-    res.status(500).json(err)
-  })
+      
+      var new_likes_arr = session.likes.slice();
+      // new_likes_arr.push({movie_id: req.body.movie_id, user_id: req.body.user_id })
+      var add_to_likes = req.body.movie_id.map(data =>{ 
+        var new_data ={};
+        new_data.movie_id = data[0];
+        new_data.user_id = req.body.user_id;
+        new_data.time = data[1];
+        return new_data
+      });
+      session.likes = new_likes_arr.concat(add_to_likes);
+
+      //save user and check for errors
+      session.save().then(session=>{
+        res.json({
+          message: 'added movie to session likes',
+          data: session
+        });
+      }).catch(err=>{
+        console.log(err)
+        res.status(500).json(err);
+      })
+
+    }).catch(err=>{
+      console.log(err)
+      res.status(500).json(err)
+    })
+  }
 }
 
 //remove movie from session likes
@@ -349,29 +388,67 @@ exports.addMovieToDislikes = function(req, res){
     })
   }
 
-  Session.findOne({session_id: req.body.session_id}).then(session=>{
-    if (!session)
-      return res.status(404).json({message: 'Unable to find any session with that ID'})
-    if (session.dislikes.findIndex( p=>{return p.movie_id == req.body.movie_id && p.user_id == req.body.user_id})>=0)
-      return res.status(409).json({message: 'A movie with that ID already appears in the dislikes'})
+  if(typeof(req.body.movie_id) == "string"){ 
+    Session.findOne({session_id: req.body.session_id}).then(session=>{
+      if (!session)
+        return res.status(404).json({message: 'Unable to find any session with that ID'})
+      if (session.dislikes.findIndex( p=>{return p.movie_id == req.body.movie_id && p.user_id == req.body.user_id})>=0)
+        return res.status(409).json({message: 'A movie with that ID already appears in the dislikes'})
 
-    var new_dislikes_arr = session.dislikes.slice()
-    new_dislikes_arr.push({movie_id: req.body.movie_id, user_id: req.body.user_id})
-    session.dislikes = new_dislikes_arr;
+      var new_dislikes_arr = session.dislikes.slice()
+      new_dislikes_arr.push({movie_id: req.body.movie_id, user_id: req.body.user_id})
+      session.dislikes = new_dislikes_arr;
 
-    //save user and check for errors
-    session.save().then(session=>{
-      res.json({
-        message: 'added movie to session dislikes',
-        data: session
-      });
+      //save user and check for errors
+      session.save().then(session=>{
+        res.json({
+          message: 'added movie to session dislikes',
+          data: session
+        });
+      }).catch(err=>{
+        res.status(500).json(err);
+      })
+
     }).catch(err=>{
-      res.status(500).json(err);
+      res.status(500).json(err)
     })
+  }else{
+    Session.findOne({session_id: req.body.session_id}).then(session=>{
+      if (!session)
+        return res.status(404).json({message: 'Unable to find any session with that ID'})
+      
+      //Commented out check for same movie added to likes multiple times by one user 
+      // if (session.likes.findIndex( p=>{return p.movie_id == req.body.movie_id && p.user_id == req.body.user_id})>=0)
+      //   return res.status(409).json({message: 'A movie with that ID already appears in the likes'})
 
-  }).catch(err=>{
-    res.status(500).json(err)
-  })
+      
+      var new_dislikes_arr = session.dislikes.slice();
+      // new_likes_arr.push({movie_id: req.body.movie_id, user_id: req.body.user_id })
+      var add_to_dislikes = req.body.movie_id.map(data =>{ 
+        var new_data ={};
+        new_data.movie_id = data[0];
+        new_data.user_id = req.body.user_id;
+        new_data.time = data[1];
+        return new_data
+      });
+      session.dislikes = new_dislikes_arr.concat(add_to_dislikes);
+
+      //save user and check for errors
+      session.save().then(session=>{
+        res.json({
+          message: 'added movie to session likes',
+          data: session
+        });
+      }).catch(err=>{
+        console.log(err)
+        res.status(500).json(err);
+      })
+
+    }).catch(err=>{
+      console.log(err)
+      res.status(500).json(err)
+    })
+  }
 }
 
 //remove movie from session likes
