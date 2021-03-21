@@ -27,7 +27,7 @@ import LogoutButton from "./app/components/LogoutButton";
 import HomeScreen from "./app/screens/HomeScreen";
 import SetupScreen from "./app/screens/SetupScreen";
 
-const socket = io("https://95a39b88d0e9.ngrok.io", {
+const socket = io("https://59d958c84d67.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -175,7 +175,7 @@ class App extends React.Component {
         );
 
         socket.on(
-          "recvInv",
+          "recvInvite",
           function (data) {
             console.log(data);
             this.setState({ isInvite: true });
