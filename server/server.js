@@ -26,7 +26,7 @@ require("dotenv").config();
 // Find a user by uID
 function userFind(uID) {
   for (var i in SOCKET_LIST) {
-    if (username == SOCKET_LIST[i].uID) {
+    if (uID == SOCKET_LIST[i].uID) {
       return i;
     }
   }
@@ -56,15 +56,26 @@ function addRoom(socket, sID, roomName) {
           }
         )
         .then((response) => {
-          // Add the socket to the given room, titled by the index
-          socket.join(sID);
-          SOCKET_LIST[socket.id].sID = sID;
-          // Make the room in the room list
-          ROOM_LIST[sID] = io.sockets.adapter.rooms.get(sID);
-          ROOM_LIST[sID].uIDs = [SOCKET_LIST[socket.id].uID];
-          ROOM_LIST[sID].name = roomName;
-          console.log(`Room ID "${sID}" created`);
-          resolve(response.data.data);
+          axios
+            .post(
+              "https://xwatchnextx.herokuapp.com/api/user/matching-session",
+              { user_id: SOCKET_LIST[socket.id].uID, session_id: sID },
+              { headers: { authorization: `Bearer ${DBTOKEN}` } }
+            )
+            .then((response2) => {
+              // Add the socket to the given room, titled by the index
+              socket.join(sID);
+              SOCKET_LIST[socket.id].sID = sID;
+              // Make the room in the room list
+              ROOM_LIST[sID] = io.sockets.adapter.rooms.get(sID);
+              ROOM_LIST[sID].uIDs = [SOCKET_LIST[socket.id].uID];
+              ROOM_LIST[sID].name = roomName;
+              console.log(`Room ID "${sID}" created`);
+              resolve(response.data.data);
+            })
+            .catch((err) => {
+              console.log(err);
+            });
         })
         .catch((err) => {
           console.log(err);
@@ -88,7 +99,6 @@ function addRoom(socket, sID, roomName) {
             SOCKET_LIST[socket.id].sID = sID;
             ROOM_LIST[sID].uIDs.push(SOCKET_LIST[socket.id].uID);
             io.to(sID).emit("roomJoin", ROOM_LIST[sID].uIDs);
-            console.log("");
             resolve(response.data.data[0]);
           } else {
             resolve(false);
@@ -189,19 +199,14 @@ function doesUserExist(uID) {
         },
       })
       .then((response) => {
-        console.log("does user exist response");
-        console.log(response.status);
         if (response.status >= 200) {
-          console.log("user exists response data");
-          console.log(response.data.data);
           // User exists
-          resolve(response.data.data);
+          resolve(response.data.data[0]);
         } else {
           resolve(false);
         }
       })
       .catch((err) => {
-        console.log("does user exists error");
         if (err.statusCode == 404) resolve(false);
         else {
           console.log(err);
@@ -230,6 +235,7 @@ function createNewUser(uID) {
       .then((response) => {
         if (response.status == 201) {
           console.log("createUser request");
+          //maybe send back user profile
           resolve(true);
         } else {
           console.log("request failed");
@@ -276,7 +282,9 @@ io.on("connection", function (socket) {
     doesUserExist(data.tokenDecoded.email)
       .then((user) => {
         if (user) {
-          console.log("user exists");
+          console.log(
+            "User currently exists in DB: " + data.tokenDecoded.email
+          );
           // User exists, assign to user and send to frontend
           SOCKET_LIST[socket.id].uID = data.tokenDecoded.email;
           //console.log(`Socket ${socket.id} logged in with uID ${uobj.uID}`); //this line doesn't work
@@ -285,7 +293,6 @@ io.on("connection", function (socket) {
           // Make a new DB entry for user, send response to frontend
           createNewUser(data.tokenDecoded.email)
             .then((response) => {
-              console.log(response);
               if (response) {
                 SOCKET_LIST[socket.id].uID = data.tokenDecoded.email;
                 console.log(
@@ -299,12 +306,14 @@ io.on("connection", function (socket) {
                 });
               } else {
                 //unable to create new user
-                socket.emit("loginResp", { success: true });
+                console.log("Create new user null response");
+                socket.emit("loginResp", { success: false });
               }
             })
             .catch((err) => {
+              console.log("Create new user err");
               console.log(err);
-              socket.emit("loginResp", { success: true });
+              socket.emit("loginResp", { success: false });
             });
         }
       })
@@ -733,6 +742,32 @@ io.on("connection", function (socket) {
       });
   });
 
+  // Get all matching sessions for the current user
+  //REQ: {user_id: userid}
+  //Currently in use
+  socket.on("getSessions", function (data) {
+    // Get sessions for a given user from uID
+    axios
+      .get(
+        `https://xwatchnextx.herokuapp.com/api/matching-sessions/user/${
+          SOCKET_LIST[socket.id].uID
+        }`,
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        // Send back matching session data
+        console.log("getMatchSession request");
+        socket.emit("recvSessions", response.data.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
   // Edit matching session settings (name, img)
   // REQ: {sID: "ID of matching session" (str), name: "New name of matching session" (str)}
   // TODO: Implement img
@@ -799,6 +834,51 @@ io.on("connection", function (socket) {
           console.log(err);
         });
     }
+  });
+
+  //Add likes or dislikes to a matching session and a user
+  //REQ: {user_id: , session_id: , liked: [...,[movie_id, time]] ,  disliked: [...,[movie_id, time]]}
+  socket.on("sendRatings", function (data) {
+    //user id, movieid, time
+    axios
+      .post(
+        "https://xwatchnextx.herokuapp.com/api/matching-session/likes",
+        {
+          session_id: data.session_id,
+          movie_id: data.liked,
+          user_id: data.user_id,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        axios
+          .post(
+            "https://xwatchnextx.herokuapp.com/api/matching-session/dislikes",
+            {
+              session_id: data.session_id,
+              movie_id: data.disliked,
+              user_id: data.user_id,
+            },
+            {
+              headers: {
+                authorization: `Bearer ${DBTOKEN}`,
+              },
+            }
+          )
+          .then((response) => {
+            socket.emit("sendRatingsResponse", { success: true });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   });
 
   // Add/remove likes/dislikes from session
@@ -1001,8 +1081,47 @@ io.on("connection", function (socket) {
   });
 
   // Send an invite to a new user
-  // REQ: {uID: "ID of user"}
+  // REQ: {uIDs: "ID of user(s)", sID: "ID of session"}
   socket.on("sendInvite", function (data) {
+    // Try to add session to user in DB
+    console.log("invite data");
+    console.log(data);
+    axios
+      .post(
+        `https://xwatchnextx.herokuapp.com/api/matching-session/members`,
+        {
+          user_id: data.uIDs.map((x) => x.toLowerCase()),
+          session_id: data.sID,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log("sendInvite request");
+        console.log(data.uIDs);
+        console.log(data.sID);
+        socket.emit("inviteResp", { success: true });
+        console.log("userFind");
+        for (var i = 0; i < data.uIDs.length; i++) {
+          //
+          uID = data.uIDs[i];
+          usock = SOCKET_LIST[userFind(uID)];
+          if (usock) {
+            // If the user is online, send them a message as well
+            usock.emit("recvInvite", response.data.data);
+            console.log("sent invite");
+          }
+        }
+      })
+      .catch((err) => {
+        socket.emit("inviteResp", { success: false });
+      });
+  });
+
+  /*socket.on("sendInvite", function (data) {
     // Make sure user is found
     if (userFind(data.uID)) {
       // Send an invite to the user
@@ -1016,7 +1135,7 @@ io.on("connection", function (socket) {
       // User not found return error
       socket.emit("inviteResp", { success: false });
     }
-  });
+  });*/
 
   // When a user disconnects, remove them from the active user list
   socket.on("disconnect", function () {

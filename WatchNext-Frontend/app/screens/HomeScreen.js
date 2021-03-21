@@ -22,79 +22,26 @@ import {
   TextInput,
 } from "react-native-paper";
 
-function ExportData(data) {
-  return [
-    {
-      username: "jzak99",
-      name: "Jacob Zarankin",
-      numMatches: "56",
-      avatar: "JZ",
-      color: "green",
-    },
-    {
-      username: "moclutch69",
-      name: "Mo Clutch",
-      numMatches: "22",
-      avatar: "MC",
-      color: "purple",
-    },
-    {
-      username: "lynaghe420",
-      name: "Eoin Lynagh",
-      numMatches: "3",
-      avatar: "EL",
-      color: "pink",
-    },
-    {
-      username: "jackiscool",
-      name: "Jack Loparco",
-      numMatches: "7",
-      avatar: "JL",
-      color: "blue",
-    },
-    {
-      username: "thegang3",
-      name: "The Gang",
-      numMatches: "15",
-      avatar: "TG",
-      color: "purple",
-    },
-    {
-      username: "capstonegroup99",
-      name: "Capstone Boys",
-      numMatches: "33",
-      avatar: "CB",
-      color: "green",
-    },
-    {
-      username: "jabil",
-      name: "Jack, Jacob, and Bilal",
-      numMatches: "42",
-      avatar: "JJ",
-      color: "green",
-    },
-    {
-      username: "4ch3",
-      name: "Mohammad, Eoin, Mo, and Paul",
-      numMatches: "8",
-      avatar: "ME",
-      color: "green",
-    },
-  ];
-}
-
 export default class HomeScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
       searchQuery: "",
-      matchingSessions: ExportData(props.data),
       firstModalVisible: false,
       secondModalVisible: false,
       roomName: "New Matching Session",
+      addedUsers: [], //add yourself to rooms by default
     };
 
     this.hideModal = this.hideModal.bind(this);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.text !== this.props.text) {
+      this.setState({
+        matchingSessions: sortSessions(this.props.matchingSessions),
+      });
+    }
   }
 
   setSearchQuery(searchQuery) {
@@ -121,7 +68,23 @@ export default class HomeScreen extends Component {
     this.setState({ roomName: roomName });
   }
 
+  addUser(name) {
+    newNames = this.state.addedUsers;
+    newNames.push(name);
+    this.setState({
+      addedUsers: newNames,
+    });
+  }
+
+  sortSessions(sessions) {
+    sessions.sort(function (a, b) {
+      return a.created_on < b.created_on; //sorts on created, updated date would obviously be vbe
+    });
+    return sessions;
+  }
+
   render() {
+    console.log(this.state);
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -163,11 +126,21 @@ export default class HomeScreen extends Component {
                 onChangeText={(text) => this.onChangeSearch(text)}
                 value={this.state.searchQuery}
               />
-              <Button mode="contained">Add User</Button>
+              <Button
+                mode="contained"
+                onPress={() => this.addUser(this.state.searchQuery)}
+              >
+                Add User
+              </Button>
               <Divider />
               <Button
                 mode="contained"
-                onPress={() => this.props.requestRoom(this.state.roomName)}
+                onPress={() =>
+                  this.props.requestRoom(
+                    this.state.roomName,
+                    this.state.addedUsers
+                  )
+                }
               >
                 Submit Matching Session
               </Button>
@@ -203,29 +176,31 @@ export default class HomeScreen extends Component {
             <Title style={{ marginLeft: 15, marginTop: 15, fontSize: 24 }}>
               Matching Sessions
             </Title>
-            {this.state.matchingSessions.map((matchingSession) => (
-              <View key={matchingSession.username}>
-                <View style={styles.matchingSession}>
-                  <Avatar.Text size={50} label={matchingSession.avatar} />
-                  <View style={{ paddingLeft: 10 }}>
-                    <Text style={{ fontWeight: "bold" }}>
-                      {matchingSession.name}
-                    </Text>
-                    <Caption>
-                      {matchingSession.numMatches} total matches
-                    </Caption>
+            {this.sortSessions(this.props.matchingSessions).map(
+              (matchingSession) => (
+                <View key={matchingSession.session_id}>
+                  <View style={styles.matchingSession}>
+                    <Avatar.Text size={50} label={matchingSession.un} />
+                    <View style={{ paddingLeft: 10 }}>
+                      <Text style={{ fontWeight: "bold" }}>
+                        {matchingSession.name}
+                      </Text>
+                      <Caption>
+                        {matchingSession.likes.length} total matches
+                      </Caption>
+                    </View>
+                    <IconButton
+                      icon="information"
+                      color="purple"
+                      size={30}
+                      style={{ marginLeft: "auto" }}
+                      onPress={() => this.props.enterMatching()}
+                    />
                   </View>
-                  <IconButton
-                    icon="information"
-                    color="purple"
-                    size={30}
-                    style={{ marginLeft: "auto" }}
-                    onPress={() => this.props.enterMatching()}
-                  />
+                  <Divider />
                 </View>
-                <Divider />
-              </View>
-            ))}
+              )
+            )}
           </ScrollView>
         </View>
         <Divider />
