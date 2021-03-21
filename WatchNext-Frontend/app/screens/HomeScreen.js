@@ -70,7 +70,7 @@ export default class HomeScreen extends Component {
 
   addUser(name) {
     newNames = this.state.addedUsers;
-    newNames.push(name);
+    newNames.push(name.toLowerCase());
     this.setState({
       addedUsers: newNames,
     });
