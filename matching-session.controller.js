@@ -214,10 +214,43 @@ exports.addMember = function(req, res){
   
         //save user and check for errors
         session.save().then(session=>{
-          res.json({
-            message: 'added user to members list',
-            data: session
-          });
+
+          let requests = users.map(user=>{
+            return new Promise((resolve, reject)=>{
+              user.matching_sessions.push(req.body.session_id);
+              user.save().then(data=>{
+                resolve(data);
+              }).catch(err=>{
+                console.log(err);
+                reject(err)
+              });
+            })
+          })
+
+          Promise.all(requests).then(()=>{
+            res.json({
+              message: 'added session to users matching session lists to members list',
+              data: session
+            });
+          }).catch(err=>{
+            res.status(500).json({message: "an error occured during adding matching sessions to users"})
+          })
+
+          // updated_users_object 
+
+          // //take each user object, add session to matching_sessions array and save object
+          // for (i=0; i<users.length; i++){
+          //   users[i].matching_sessions.push(req.body.session_id);
+          //   await users[i].save().then().catch(err=>{
+          //     console.log(err);
+          //     res.status(500).json({message: "an error occured during adding matching sessions to users"})
+          //   });
+          // }
+
+          // res.json({
+          //   message: 'added user to members list',
+          //   data: session
+          // });
         }).catch(err=>{
           res.status(500).json(err);
         })
