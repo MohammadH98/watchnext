@@ -39,9 +39,6 @@ function addRoom(socket, sID, roomName) {
   // Get new room ID is one is not passed and create the room
   if (!sID) {
     sID = uuidv4();
-    console.log("SID " + sID);
-    console.log("SOCKET LIST:" + SOCKET_LIST);
-    console.log("ROOM NAME " + roomName);
     //add new session to database
     axios
       .post(
@@ -62,10 +59,9 @@ function addRoom(socket, sID, roomName) {
         socket.join(sID);
         SOCKET_LIST[socket.id].sID = sID;
         // Make the room in the room list
-        ROOM_LIST[sID] = io.sockets.adapter.rooms[sID];
-        console.log("66: " + ROOM_LIST[sID]);
+        ROOM_LIST[sID] = io.sockets.adapter.rooms.get(sID);
         ROOM_LIST[sID].uIDs = [SOCKET_LIST[socket.id].uID];
-        console.log(`Room ID#${sID} created`);
+        console.log(`Room ID "${sID}" created`);
         return sID;
       })
       .catch((err) => {
@@ -966,18 +962,22 @@ io.on("connection", function (socket) {
     socket.emit("recvRoom", { room: ROOM_LIST[sID] });
   });
 
-  // When an invite is accepted
-  socket.on("acceptInvite", function (data) {
-    // Get user socket
-    var uobj = SOCKET_LIST[socket.id];
-    // Get inviter socket and associated room ID
-    var sID = SOCKET_LIST[userFind(data.user)].sID;
-    // Add user socket to room and set the id
-    socket.join(sID);
-    uobj.sID = sID;
-    // Notify client to show room view with given room data
-    uobj.to(id.sID).emit("testrec", uobj.user);
-    socket.emit("recvRoom", { room: ROOM_LIST[sID] });
+  // Send an invite to a new user
+  // REQ: {uID: "ID of user"}
+  socket.on("sendInvite", function (data) {
+    // Make sure user is found
+    if (SOCKET_LIST[data.uID]) {
+      // Send an invite to the user
+      SOCKET_LIST[data.uID].emit("recvInvite", {
+        roomID: SOCKET_LIST[socket.id].sID,
+        user: SOCKET_LIST[socket.id].user,
+      });
+      // Let the original socket know the invite was successful
+      socket.emit("inviteResp", { success: true });
+    } else {
+      // User not found return error
+      socket.emit("inviteResp", { success: false });
+    }
   });
 
   // When a user disconnects, remove them from the active user list

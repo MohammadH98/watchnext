@@ -27,7 +27,7 @@ import LogoutButton from "./app/components/LogoutButton";
 import HomeScreen from "./app/screens/HomeScreen";
 import SetupScreen from "./app/screens/SetupScreen";
 
-const socket = io("https://b74e0b9513da.ngrok.io", {
+const socket = io("https://dcbe28fbd05e.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -134,6 +134,7 @@ class App extends React.Component {
         socket.on(
           "recvRoom",
           function (data) {
+            console.log(data.room);
             this.setState({
               inRoom: true,
             });
