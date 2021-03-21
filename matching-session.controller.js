@@ -98,6 +98,32 @@ exports.getOneOrMore = function (req, res){
   });
 };
 
+// handles viewing specified matching sessions
+exports.getSessionsOfUser = function (req, res){
+  //find user then get sessionid's from them 
+  User.findOne({user_id: req.params.id}).then(user=>{
+    if (!user)
+      return res.status(404).json({message: 'Unable to find any user with that ID'})
+
+    Session.find({'session_id': {$in: user.matching_sessions}}).then(session=>{
+      if (session){
+        res.json({
+          message: 'matchin session details loading...',
+          data: session
+        });
+      }
+      else
+        res.status(404).json({
+          message: 'Unable to find any matching session with that id'
+        })
+    }).catch(err=>{
+      res.status(500).json({message: err})
+    })
+  }).catch(err =>{
+    res.status(500).json({message: err});
+  });
+};
+
 // handles updating session name
 exports.changeName = function(req, res){
 

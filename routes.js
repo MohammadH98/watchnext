@@ -98,6 +98,9 @@ router.get('/matching-sessions', matchingSessionController.getAll);
 //get specified matching sessions
 router.get('/matching-session/:id', matchingSessionController.getOneOrMore);
 
+//get specified users matching sessions
+router.get('/matching-sessions/user/:id', matchingSessionController.getSessionsOfUser);
+
 //change matching session name
 router.patch('/matching-session/name', matchingSessionController.changeName);
 
