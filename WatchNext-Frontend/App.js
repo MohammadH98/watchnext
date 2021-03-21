@@ -102,11 +102,12 @@ class App extends React.Component {
         socket.on(
           "loginResp",
           function (data) {
-            // Check if successful
+            console.log(data);
             if (data.success) {
               this.setState({
                 loggedIn: true,
                 firstLogin: data.first,
+                username: data.user.username,
               });
             }
           }.bind(this)
@@ -115,8 +116,10 @@ class App extends React.Component {
         socket.on(
           "editResp",
           function (data) {
+            //console.log(data);
             this.setState({
               firstLogin: false,
+              username: data.username,
             });
           }.bind(this)
         );
@@ -235,6 +238,10 @@ class App extends React.Component {
     this.setState({
       loggedIn: false,
     });
+  }
+
+  getSession() {
+    socket.emit("getSessions", { username: this.state.username });
   }
 
   /**

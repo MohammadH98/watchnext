@@ -64,19 +64,43 @@ function addRoom(socket, sID, roomName) {
           ROOM_LIST[sID].uIDs = [SOCKET_LIST[socket.id].uID];
           ROOM_LIST[sID].name = roomName;
           console.log(`Room ID "${sID}" created`);
-          resolve(sID);
+          resolve(response.data.data);
         })
         .catch((err) => {
           console.log(err);
           resolve(null);
         });
     } else {
-      // Add the socket to the given room, titled by the index
-      socket.join(sID);
-      SOCKET_LIST[socket.id].sID = sID;
-      ROOM_LIST[sID].uIDs.push(SOCKET_LIST[socket.id].uID);
-      io.to(sID).emit("roomJoin", ROOM_LIST[sID].uIDs);
-      resolve(sID);
+      //may also want to send new session list to user socket
+
+      //get requested session info
+      axios
+        .get(`https://xwatchnextx.herokuapp.com/api/matching-session/${sID}`, {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        })
+        .then((response) => {
+          if (response.status >= 200) {
+            // User exists
+            resolve(true);
+            // Add the socket to the given room, titled by the index
+            SOCKET_LIST[socket.id].sID = sID;
+            ROOM_LIST[sID].uIDs.push(SOCKET_LIST[socket.id].uID);
+            io.to(sID).emit("roomJoin", ROOM_LIST[sID].uIDs);
+            console.log("");
+            resolve(response.data.data[0]);
+          } else {
+            resolve(false);
+          }
+        })
+        .catch((err) => {
+          if (err.statusCode == 404) resolve(false);
+          else {
+            console.log(err);
+            reject(err);
+          }
+        });
     }
   });
 }
@@ -165,14 +189,19 @@ function doesUserExist(uID) {
         },
       })
       .then((response) => {
-        if (response.status == 200) {
+        console.log("does user exist response");
+        console.log(response.status);
+        if (response.status >= 200) {
+          console.log("user exists response data");
+          console.log(response.data.data);
           // User exists
-          resolve(true);
+          resolve(response.data.data);
         } else {
           resolve(false);
         }
       })
       .catch((err) => {
+        console.log("does user exists error");
         if (err.statusCode == 404) resolve(false);
         else {
           console.log(err);
@@ -245,12 +274,13 @@ io.on("connection", function (socket) {
   socket.on("loginUser", function (data) {
     // Check if user already exists
     doesUserExist(data.tokenDecoded.email)
-      .then((exists) => {
-        if (exists) {
+      .then((user) => {
+        if (user) {
+          console.log("user exists");
           // User exists, assign to user and send to frontend
           SOCKET_LIST[socket.id].uID = data.tokenDecoded.email;
-          console.log(`Socket ${socket.id} logged in with uID ${uobj.uID}`);
-          socket.emit("loginResp", { success: true, first: false });
+          //console.log(`Socket ${socket.id} logged in with uID ${uobj.uID}`); //this line doesn't work
+          socket.emit("loginResp", { success: true, first: false, user: user });
         } else {
           // Make a new DB entry for user, send response to frontend
           createNewUser(data.tokenDecoded.email)
@@ -280,6 +310,8 @@ io.on("connection", function (socket) {
       })
       .catch((err) => {
         // Issue in logging in user on backend
+        console.log(err);
+
         socket.emit("loginResp", { success: true });
       });
   });
@@ -954,15 +986,18 @@ io.on("connection", function (socket) {
     if (data.sID) {
       // Add the user to the room
       // uobj.sID = addRoom(socket, data.sID);
-      sID = await addRoom(socket, data.sID);
+      room_info = await addRoom(socket, data.sID);
     } else {
       // Make a room
       // uobj.sID = addRoom(socket, null, data.name);
-      sID = await addRoom(socket, null, data.name);
+      room_info = await addRoom(socket, null, data.name);
     }
     // Notify client to show room view with given room data
     // socket.emit("recvRoom", { room: ROOM_LIST[uobj.sID] });
-    socket.emit("recvRoom", { room: ROOM_LIST[sID] });
+    socket.emit("recvRoom", {
+      room: ROOM_LIST[room_info.session_id],
+      info: room_info,
+    });
   });
 
   // Send an invite to a new user
