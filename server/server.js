@@ -23,8 +23,8 @@ require("dotenv").config();
     Socket utility functions
 */
 
-// Find a user by username
-function userFind(username) {
+// Find a user by uID
+function userFind(uID) {
   for (var i in SOCKET_LIST) {
     if (username == SOCKET_LIST[i].uID) {
       return i;
@@ -36,46 +36,49 @@ function userFind(username) {
 
 // Create a new room
 function addRoom(socket, sID, roomName) {
-  // Get new room ID is one is not passed and create the room
-  if (!sID) {
-    sID = uuidv4();
-    //add new session to database
-    axios
-      .post(
-        "https://xwatchnextx.herokuapp.com/api/matching-session",
-        {
-          session_id: sID,
-          creator_id: SOCKET_LIST[socket.id].uID,
-          name: roomName,
-        },
-        {
-          headers: {
-            authorization: `Bearer ${DBTOKEN}`,
+  return new Promise((resolve, reject) => {
+    // Get new room ID is one is not passed and create the room
+    if (!sID) {
+      sID = uuidv4();
+      //add new session to database
+      axios
+        .post(
+          "https://xwatchnextx.herokuapp.com/api/matching-session",
+          {
+            session_id: sID,
+            creator_id: SOCKET_LIST[socket.id].uID,
+            name: roomName,
           },
-        }
-      )
-      .then((response) => {
-        // Add the socket to the given room, titled by the index
-        socket.join(sID);
-        SOCKET_LIST[socket.id].sID = sID;
-        // Make the room in the room list
-        ROOM_LIST[sID] = io.sockets.adapter.rooms.get(sID);
-        ROOM_LIST[sID].uIDs = [SOCKET_LIST[socket.id].uID];
-        console.log(`Room ID "${sID}" created`);
-        return sID;
-      })
-      .catch((err) => {
-        console.log(err);
-        return null;
-      });
-  } else {
-    // Add the socket to the given room, titled by the index
-    socket.join(sID);
-    SOCKET_LIST[socket.id].sID = sID;
-    ROOM_LIST[sID].uIDs.push(SOCKET_LIST[socket.id].uID);
-    io.to(sID).emit("roomJoin", ROOM_LIST[sID].uIDs);
-    return sID;
-  }
+          {
+            headers: {
+              authorization: `Bearer ${DBTOKEN}`,
+            },
+          }
+        )
+        .then((response) => {
+          // Add the socket to the given room, titled by the index
+          socket.join(sID);
+          SOCKET_LIST[socket.id].sID = sID;
+          // Make the room in the room list
+          ROOM_LIST[sID] = io.sockets.adapter.rooms.get(sID);
+          ROOM_LIST[sID].uIDs = [SOCKET_LIST[socket.id].uID];
+          ROOM_LIST[sID].name = roomName;
+          console.log(`Room ID "${sID}" created`);
+          resolve(sID);
+        })
+        .catch((err) => {
+          console.log(err);
+          resolve(null);
+        });
+    } else {
+      // Add the socket to the given room, titled by the index
+      socket.join(sID);
+      SOCKET_LIST[socket.id].sID = sID;
+      ROOM_LIST[sID].uIDs.push(SOCKET_LIST[socket.id].uID);
+      io.to(sID).emit("roomJoin", ROOM_LIST[sID].uIDs);
+      resolve(sID);
+    }
+  });
 }
 
 // Leave a room
@@ -966,11 +969,11 @@ io.on("connection", function (socket) {
   // REQ: {uID: "ID of user"}
   socket.on("sendInvite", function (data) {
     // Make sure user is found
-    if (SOCKET_LIST[data.uID]) {
+    if (userFind(data.uID)) {
       // Send an invite to the user
-      SOCKET_LIST[data.uID].emit("recvInvite", {
-        roomID: SOCKET_LIST[socket.id].sID,
-        user: SOCKET_LIST[socket.id].user,
+      SOCKET_LIST[userFind(data.uID)].emit("recvInvite", {
+        sID: SOCKET_LIST[socket.id].sID,
+        user: SOCKET_LIST[socket.id].uID,
       });
       // Let the original socket know the invite was successful
       socket.emit("inviteResp", { success: true });

@@ -134,6 +134,8 @@ class App extends React.Component {
         socket.on(
           "recvRoom",
           function (data) {
+            console.log("recvroom");
+            console.log(data);
             console.log(data.room);
             this.setState({
               inRoom: true,

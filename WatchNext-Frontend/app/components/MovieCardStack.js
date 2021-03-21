@@ -128,7 +128,7 @@ class CardInterior extends React.Component {
       } else {
         return (
           <View>
-            <Image
+            <Image //some kind of error with this
               source={{
                 uri: movie.image,
                 width: ImageWidth,

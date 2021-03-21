@@ -181,7 +181,10 @@ export default class HomeScreen extends Component {
           >
             <Avatar.Image
               size={30}
-              source="https://scontent-yyz1-1.xx.fbcdn.net/v/t1.0-9/44680002_954885824711081_5944810765792837632_n.jpg?_nc_cat=111&ccb=1-3&_nc_sid=09cbfe&_nc_ohc=a3bhJJenSFMAX_BxU6x&_nc_ht=scontent-yyz1-1.xx&oh=c6b574bda74f8019eb6fc24ec1479e87&oe=607A29B1"
+              source={{
+                uri:
+                  "https://scontent-yyz1-1.xx.fbcdn.net/v/t1.0-9/44680002_954885824711081_5944810765792837632_n.jpg?_nc_cat=111&ccb=1-3&_nc_sid=09cbfe&_nc_ohc=a3bhJJenSFMAX_BxU6x&_nc_ht=scontent-yyz1-1.xx&oh=c6b574bda74f8019eb6fc24ec1479e87&oe=607A29B1",
+              }}
             />
             <Title style={{ flex: 3, color: "white", fontSize: 28 }}>
               WatchNext
@@ -201,11 +204,8 @@ export default class HomeScreen extends Component {
               Matching Sessions
             </Title>
             {this.state.matchingSessions.map((matchingSession) => (
-              <View>
-                <View
-                  key={matchingSession.username}
-                  style={styles.matchingSession}
-                >
+              <View key={matchingSession.username}>
+                <View style={styles.matchingSession}>
                   <Avatar.Text size={50} label={matchingSession.avatar} />
                   <View style={{ paddingLeft: 10 }}>
                     <Text style={{ fontWeight: "bold" }}>
