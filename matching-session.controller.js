@@ -341,24 +341,21 @@ exports.addMovieToLikes = function(req, res){
 
       // console.log("session likes")
       // console.log(session.likes)
-      //check if movie and user combo already exists, if so don't add
-      // var current_likes_ids_only = session.likes.map(movie=>movie.movie_id)
-      // console.log("current likes ids only")
-      // console.log(current_likes_ids_only)
-      // var non_duplicate_likes = req.body.movie_id.filter((like, index) => {
-      //   console.log("like")
-      //   console.log(like)
-      //   console.log("index")
-      //   console.log(index)
-      //   console.log("current like included?")
-      //   console.log(current_likes_ids_only.includes(like.movie_id))
-      //   console.log("session")
-      //   index2 = current_likes_ids_only.indexOf(like.movie_id)
-      //   return index2 < 0 || session.likes[index2].user_id != like.user_id
-      // })
-      // console.log("non_duplicate_likes")
-      // console.log(non_duplicate_likes)
-      var non_duplicate_likes = req.body.movie_id;
+      //check if movie and user combo already exists, if so don't add. The way this is being done is so fucking inneficient. Plsssss find a better way.
+      var non_duplicate_likes = req.body.movie_id.filter((like, index) => {
+        var addmovie = true;
+
+        for (var i=0;i<session.likes.length;i++){
+          if (session.likes[i].movie_id == like[0] && session.likes[i].user_id == req.body.user_id){
+            addmovie = false;
+            break;
+          }
+        }
+        return addmovie
+      })
+
+
+      // var non_duplicate_likes = req.body.movie_id;
 
       
       var new_likes_arr = session.likes.slice();
@@ -494,12 +491,23 @@ exports.addMovieToDislikes = function(req, res){
       if (!session)
         return res.status(404).json({message: 'Unable to find any session with that ID'})
       
-      //check if movie and user combo already exists, if so don't add
+      //check if movie and user combo already exists, if so don't add. The way this is being done is so fucking inneficient. Plsssss find a better way.
       // var current_dislikes_ids_only = session.dislikes.map(movie=>movie.movie_id)
-      // var non_duplicate_dislikes = req.body.movie_id.filter((dislike, index) => {
-      //   return current_dislikes_ids_only.includes(dislike.movie_id) && session.dislikes[index].user_id == dislike.user_id
-      // })
-      var non_duplicate_dislikes = req.body.movie_id
+      var non_duplicate_dislikes = req.body.movie_id.filter((dislike, index) => {
+        var addmovie = true;
+
+        for (var i=0;i<session.dislikes.length;i++){
+          if (session.dislikes[i].movie_id == dislike[0] && session.dislikes[i].user_id == req.body.user_id){
+            addmovie = false;
+            break;
+          }
+        }
+        return addmovie
+      })
+
+      // console.log(non_duplicate_dislikes)
+
+      // var non_duplicate_dislikes = req.body.movie_id
       
       var new_dislikes_arr = session.dislikes.slice();
       // new_likes_arr.push({movie_id: req.body.movie_id, user_id: req.body.user_id })
