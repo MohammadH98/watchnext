@@ -353,6 +353,10 @@ exports.addMovieToLikes = function(req, res){
         }
         return addmovie
       })
+      //might be able to use arr.some here instead
+      //for ever element in the likes array 
+      //do session.likes.some(item => item.movie_id == req.body.movie_id[i][0] && item.user_id == req.body.user_id)
+      //console.log(arr.some(item=>{item.movie_id}))
 
 
       // var non_duplicate_likes = req.body.movie_id;
@@ -439,10 +443,24 @@ exports.removeMovieFromLikes = function(req, res){
 
     //save user and check for errors
     session.save().then(session=>{
-      res.json({
-        message: 'removed movie from session likes',
-        data: session
-      });
+      //also delete from users likes 
+      User.findOne({user_id: req.body.user_id}).then(user=>{
+        likeIndex = user.likes.findIndex(like=>{return like.movie_id == req.body.movie_id})
+        if (likeIndex>-1)
+          user.likes.splice(likeIndex, 1);
+        user.save().then(user=>{
+          res.json({
+            message: 'removed movie from session likes and user likes',
+            data: {session: session, user: user}
+          });
+        }).catch(err=>{
+          console.log(err)
+          res.status(500).json({message: err.message})
+        })
+      }).catch(err=>{
+        console.log(err)
+        res.status(500).json({message: "unable to remove movie from user's likes"})
+      })
     }).catch(err=>{
       res.status(500).json(err);
     })
@@ -591,14 +609,27 @@ exports.removeMovieFromDislikes = function(req, res){
 
     //save user and check for errors
     session.save().then(session=>{
-      res.json({
-        message: 'removed movie from session dislikes',
-        data: session
-      });
+      //also delete from users likes 
+      User.findOne({user_id: req.body.user_id}).then(user=>{
+        dislikeIndex = user.dislikes.findIndex(dislike=>{return dislike.movie_id == req.body.movie_id})
+        if (dislikeIndex>-1)
+          user.dislikes.splice(dislikeIndex, 1);
+        user.save().then(user=>{
+          res.json({
+            message: 'removed movie from session dislikes and user likes',
+            data: {session: session, user: user}
+          });
+        }).catch(err=>{
+          console.log(err)
+          res.status(500).json({message: err.message})
+        })
+      }).catch(err=>{
+        console.log(err)
+        res.status(500).json({message: "unable to remove movie from user's dislikes"})
+      })
     }).catch(err=>{
       res.status(500).json(err);
     })
-
   }).catch(err=>{
     res.status(500).json(err)
   })

@@ -236,28 +236,55 @@ exports.removeMovieFromLikes = function(req, res){
     })
   }
 
-  User.findOne({user_id: req.body.user_id}).then(user=>{
-    if (!user)
-      return res.status(404).json({message: 'Unable to find any user with that ID'})
-    movieIndex = user.likes.indexOf(req.body.movie_id)
-    if (movieIndex<0)
-      return res.status(404).json({message: 'Unable to find any movie with that ID in the user\'s likes'})
+  if (typeof(req.body.movie_id) == "string"){
+    User.findOne({user_id: req.body.user_id}).then(user=>{
+      if (!user)
+        return res.status(404).json({message: 'Unable to find any user with that ID'})
+      movieIndex = user.likes.indexOf(req.body.movie_id)
+      if (movieIndex<0)
+        return res.status(404).json({message: 'Unable to find any movie with that ID in the user\'s likes'})
 
-    user.likes.splice(movieIndex, 1)
+      user.likes.splice(movieIndex, 1)
 
-    //save user and check for errors
-    user.save().then(user=>{
-      res.json({
-        message: 'removed movie from user\'s likes',
-        data: user
-      });
+      //save user and check for errors
+      user.save().then(user=>{
+        res.json({
+          message: 'removed movie from user\'s likes',
+          data: user
+        });
+      }).catch(err=>{
+        res.status(500).json(err);
+      })
+
     }).catch(err=>{
-      res.status(500).json(err);
+      res.status(500).json(err)
     })
+  }else{
+    User.findOne({user_id: req.body.user_id}).then(user=>{
+      if (!user)
+        return res.status(404).json({message: 'Unable to find any user with that ID'})
+      var movies = user.likes.map(like=>{return like.movie_id})
+      console.log("movies")
+      console.log(movies)
+      var new_user_likes_arr = user.likes.filter(like=>{return !req.body.movie_id.includes(like.movie_id)})
+      console.log("new_user_likes_arr")
+      console.log(new_user_likes_arr)
+      user.likes = new_user_likes_arr
 
-  }).catch(err=>{
-    res.status(500).json(err)
-  })
+      //save user and check for errors
+      user.save().then(user=>{
+        res.json({
+          message: 'removed movie from user\'s likes',
+          data: user
+        });
+      }).catch(err=>{
+        res.status(500).json(err);
+      })
+
+    }).catch(err=>{
+      res.status(500).json(err)
+    })
+  }
 }
 
 //remove movie from user's likes
@@ -305,28 +332,55 @@ exports.removeMovieFromDislikes = function(req, res){
     })
   }
 
-  User.findOne({user_id: req.body.user_id}).then(user=>{
-    if (!user)
-      return res.status(404).json({message: 'Unable to find any user with that ID'})
-    movieIndex = user.dislikes.indexOf(req.body.movie_id)
-    if (movieIndex<0)
-      return res.status(404).json({message: 'Unable to find any movie with that ID in the user\'s dislikes'})
+  if (typeof(req.body.movie_id) == "string"){
+    User.findOne({user_id: req.body.user_id}).then(user=>{
+      if (!user)
+        return res.status(404).json({message: 'Unable to find any user with that ID'})
+      movieIndex = user.dislikes.indexOf(req.body.movie_id)
+      if (movieIndex<0)
+        return res.status(404).json({message: 'Unable to find any movie with that ID in the user\'s dislikes'})
 
-    user.dislikes.splice(movieIndex, 1)
+      user.dislikes.splice(movieIndex, 1)
 
-    //save user and check for errors
-    user.save().then(user=>{
-      res.json({
-        message: 'removed movie from user\'s dislikes',
-        data: user
-      });
+      //save user and check for errors
+      user.save().then(user=>{
+        res.json({
+          message: 'removed movie from user\'s dislikes',
+          data: user
+        });
+      }).catch(err=>{
+        res.status(500).json(err);
+      })
+
     }).catch(err=>{
-      res.status(500).json(err);
+      res.status(500).json(err)
     })
+  }else{
+    User.findOne({user_id: req.body.user_id}).then(user=>{
+      if (!user)
+        return res.status(404).json({message: 'Unable to find any user with that ID'})
+      var movies = user.dislikes.map(dislike=>{return dislike.movie_id})
+      console.log("movies")
+      console.log(movies)
+      var new_user_dislikes_arr = user.dislikes.filter(dislike=>{return !req.body.movie_id.includes(dislike.movie_id)})
+      console.log("new_user_dislikes_arr")
+      console.log(new_user_dislikes_arr)
+      user.dislikes = new_user_dislikes_arr
 
-  }).catch(err=>{
-    res.status(500).json(err)
-  })
+      //save user and check for errors
+      user.save().then(user=>{
+        res.json({
+          message: 'removed movie from user\'s dislikes',
+          data: user
+        });
+      }).catch(err=>{
+        res.status(500).json(err);
+      })
+
+    }).catch(err=>{
+      res.status(500).json(err)
+    })
+  }
 }
 
 //add friend
