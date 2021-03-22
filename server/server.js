@@ -56,26 +56,15 @@ function addRoom(socket, sID, roomName) {
           }
         )
         .then((response) => {
-          axios
-            .post(
-              "https://xwatchnextx.herokuapp.com/api/user/matching-session",
-              { user_id: SOCKET_LIST[socket.id].uID, session_id: sID },
-              { headers: { authorization: `Bearer ${DBTOKEN}` } }
-            )
-            .then((response2) => {
-              // Add the socket to the given room, titled by the index
-              socket.join(sID);
-              SOCKET_LIST[socket.id].sID = sID;
-              // Make the room in the room list
-              ROOM_LIST[sID] = io.sockets.adapter.rooms.get(sID);
-              ROOM_LIST[sID].uIDs = [SOCKET_LIST[socket.id].uID];
-              ROOM_LIST[sID].name = roomName;
-              console.log(`Room ID "${sID}" created`);
-              resolve(response.data.data);
-            })
-            .catch((err) => {
-              console.log(err);
-            });
+           // Add the socket to the given room, titled by the index
+          socket.join(sID);
+          SOCKET_LIST[socket.id].sID = sID;
+          // Make the room in the room list
+          ROOM_LIST[sID] = io.sockets.adapter.rooms.get(sID);
+          ROOM_LIST[sID].uIDs = [SOCKET_LIST[socket.id].uID];
+          ROOM_LIST[sID].name = roomName;
+          console.log(`Room ID "${sID}" created`);
+          resolve(response.data.data);
         })
         .catch((err) => {
           console.log(err);
