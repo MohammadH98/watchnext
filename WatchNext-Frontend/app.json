@@ -3,6 +3,7 @@
     "name": "WatchNext-Frontend",
     "slug": "WatchNext-Frontend",
     "version": "1.0.0",
+    "scheme": "watchnext",
     "orientation": "portrait",
     "icon": "./app/assets/icon.png",
     "splash": {

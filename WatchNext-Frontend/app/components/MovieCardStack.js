@@ -18,6 +18,7 @@ import {
   Button,
   DefaultTheme,
   FAB,
+  IconButton,
 } from "react-native-paper";
 
 const ImageHeight = 550;
@@ -128,7 +129,7 @@ class CardInterior extends React.Component {
       } else {
         return (
           <View>
-            <Image
+            <Image //some kind of error with this
               source={{
                 uri: movie.image,
                 width: ImageWidth,
@@ -324,10 +325,16 @@ class MovieCardStack extends React.Component {
   }
 
   render() {
-    logger(this.state);
+    //console.log(this.state.movies.length);
     if (this.state.showStack) {
       return (
         <View style={styles.mainContainer}>
+          <IconButton
+            icon="arrow-left"
+            color="white"
+            size={40}
+            onPress={() => this.props.endMatching()}
+          />
           <CardStack
             style={styles.card}
             ref={(swiper) => {

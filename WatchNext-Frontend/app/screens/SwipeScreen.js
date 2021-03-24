@@ -13,13 +13,11 @@ function SwipeScreen(props) {
   return (
     <View style={styles.mainContainer}>
       <View>
-        <IconButton
-          icon="arrow-left"
-          color="white"
-          size={40}
-          onPress={() => props.endMatching()}
+        <MovieCardStack
+          data={props.data}
+          requestMovies={props.requestMovies}
+          endMatching={props.endMatching}
         />
-        <MovieCardStack data={props.data} requestMovies={props.requestMovies} />
       </View>
     </View>
   );
