@@ -92,10 +92,10 @@ export default class HomeScreen extends Component {
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.container}
+        style={styles.mainContainer}
         enabled={false}
       >
-        <View style={styles.top}>
+        <View style={styles.topBar}>
           <IconButton
             icon="arrow-left"
             color="black"
@@ -110,7 +110,7 @@ export default class HomeScreen extends Component {
             onPress={() => console.log("Logout Button Pressed")}
           />
         </View>
-        <View style={styles.details}>
+        <View style={styles.overview}>
           <View>
             <Avatar.Image
               size={150}
@@ -121,12 +121,7 @@ export default class HomeScreen extends Component {
             />
             <FAB
               icon="camera"
-              style={{
-                backgroundColor: "purple",
-                position: "absolute",
-                top: 50,
-                left: 120,
-              }}
+              style={styles.avatarButton}
               color="white"
               onPress={() => console.log("Avatar Change Button Pressed")}
             />
@@ -134,8 +129,8 @@ export default class HomeScreen extends Component {
           <Headline style={{ fontWeight: "bold" }}>{this.state.name}</Headline>
           <Subheading>{this.state.username}</Subheading>
         </View>
-        <View style={styles.edit}>
-          <View style={styles.buttons}>
+        <View style={styles.configContainer}>
+          <View style={styles.pageSelectionButtons}>
             <Button
               mode="text"
               labelStyle={{ color: this.state.genrePage ? "purple" : "black" }}
@@ -154,17 +149,8 @@ export default class HomeScreen extends Component {
           <Divider />
           {this.state.genrePage ? (
             <View>
-              <Caption
-                style={{
-                  marginTop: 15,
-                  marginBottom: 10,
-                  alignSelf: "center",
-                  fontSize: 16,
-                }}
-              >
-                Favourite Genres
-              </Caption>
-              <View style={styles.genres}>
+              <Caption style={styles.genreHeading}>Favourite Genres</Caption>
+              <View style={styles.genreSelection}>
                 {this.state.genres.map((genre) => (
                   <Button
                     key={genre}
@@ -176,7 +162,7 @@ export default class HomeScreen extends Component {
                         ? "purple"
                         : "lightgrey",
                       margin: 3,
-                      marginBottom: 15,
+                      marginBottom: 10,
                       borderRadius: 20,
                     }}
                     labelStyle={{
@@ -195,11 +181,11 @@ export default class HomeScreen extends Component {
           ) : (
             <View>
               <View>
-                <View style={styles.editContainer}>
+                <View style={styles.userDetailContainer}>
                   {!this.state.editName && (
                     <Caption style={{ fontSize: 14 }}>Name</Caption>
                   )}
-                  <View style={styles.editFields}>
+                  <View style={styles.userDetailField}>
                     {!this.state.editName ? (
                       <Text style={{ fontSize: 16 }}>{this.state.name}</Text>
                     ) : (
@@ -221,11 +207,11 @@ export default class HomeScreen extends Component {
                     </Button>
                   </View>
                 </View>
-                <View style={styles.editContainer}>
+                <View style={styles.userDetailContainer}>
                   {!this.state.editUsername && (
                     <Caption style={{ fontSize: 14 }}>Username</Caption>
                   )}
-                  <View style={styles.editFields}>
+                  <View style={styles.userDetailField}>
                     {!this.state.editUsername ? (
                       <Text style={{ fontSize: 16 }}>
                         {this.state.username}
@@ -249,9 +235,9 @@ export default class HomeScreen extends Component {
                     </Button>
                   </View>
                 </View>
-                <View style={styles.editContainer}>
+                <View style={styles.userDetailContainer}>
                   <Caption style={{ fontSize: 14 }}>Email</Caption>
-                  <View style={styles.editFields}>
+                  <View style={styles.userDetailField}>
                     <Text style={{ fontSize: 16 }}>bj1998@mcmaster.ca</Text>
                     <Button
                       mode="text"
@@ -280,11 +266,7 @@ export default class HomeScreen extends Component {
                 <Button
                   mode="contained"
                   icon="delete"
-                  style={{
-                    backgroundColor: "red",
-                    borderRadius: 20,
-                    marginTop: 10,
-                  }}
+                  style={styles.deleteAccount}
                   onPress={() => console.log("Delete Account Pressed")}
                 >
                   Delete Account
@@ -293,9 +275,9 @@ export default class HomeScreen extends Component {
             </View>
           )}
         </View>
-        <View styles={styles.bottomContainer}>
+        <View styles={{flex: 1}}>
           <Divider />
-          <View style={styles.bottom}>
+          <View style={styles.bottomBar}>
             <IconButton
               icon="home"
               color="black"
@@ -316,46 +298,60 @@ export default class HomeScreen extends Component {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  mainContainer: {
     flex: 1,
   },
-  top: {
+  topBar: {
     flex: 1,
     alignItems: "center",
     justifyContent: "space-between",
     flexDirection: "row",
   },
-  details: {
+  overview: {
     flex: 1.5,
     alignItems: "center",
     justifyContent: "flex-end",
   },
-  edit: {
+  avatarButton: {
+    backgroundColor: "purple",
+    position: "absolute",
+    top: 50,
+    left: 120,
+  },
+  configContainer: {
     flex: 3.5,
     justifyContent: "center",
   },
-  buttons: {
+  pageSelectionButtons: {
     justifyContent: "space-around",
     flexDirection: "row",
   },
-  genres: {
+  genreHeading: {
+    marginTop: 15,
+    marginBottom: 10,
+    alignSelf: "center",
+    fontSize: 16,
+  },
+  genreSelection: {
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
     flexWrap: "wrap",
   },
-  editContainer: {
+  userDetailContainer: {
     marginLeft: 15,
     marginTop: 10,
   },
-  editFields: {
+  userDetailField: {
     flexDirection: "row",
     alignItems: "center",
   },
-  bottomContainer: {
-    flex: 1,
+  deleteAccount: {
+    backgroundColor: "red",
+    borderRadius: 20,
+    marginTop: 10,
   },
-  bottom: {
+  bottomBar: {
     alignItems: "center",
     justifyContent: "space-around",
     flexDirection: "row",
