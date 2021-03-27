@@ -938,6 +938,36 @@ io.on("connection", function (socket) {
     }
   });
 
+  //send back all the matches to be shown on the matches list
+  //this is in use
+  //REQ: {sid: "id of matching session" (str)} * may not be required because can get from socket?
+  // this is not done!!!!!
+  socket.on("showMatches", function(data){
+    // matches logic goes here
+    // get id for all the matches
+    // do api call to get the movies based on all the id's
+    axios
+    .get(`https://xwatchnextx.herokuapp.com/api/matching-session/${SOCKET_LIST[socket.id].sID}`, {
+      headers: {
+        authorization: `Bearer ${DBTOKEN}`,
+      },
+    })
+    .then((response) => {
+      console.log("matching session object");
+      let matching_session_obj = response.data.data[0]
+      console.log(matching_session_obj)
+
+      //filter likes
+
+      socket.emit("receiveMatches", response.data.data[0])
+      
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+    
+  }) 
+
   // Add/remove from watch next/watched/etc.
   // REQ: {sid: "ID of matching session" (str), mid: "ID of movie" (str), watched: "Add/Remove movie watched" (bool), watchnext: "Add/Remove movie watch next" (bool) }
   // TODO: Ask mo why there isn't a delete for watchnext
