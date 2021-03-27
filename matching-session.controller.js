@@ -223,7 +223,7 @@ exports.addMember = function(req, res){
         new_members_arr = new_members_arr.concat(req.body.user_id)
         session.members = new_members_arr;
   
-        //save user and check for errors
+        //save session and check for errors
         session.save().then(session=>{
 
           let requests = users.map(user=>{
@@ -607,7 +607,7 @@ exports.removeMovieFromDislikes = function(req, res){
 
     session.dislikes.splice(sessionIndex, 1)
 
-    //save user and check for errors
+    //save session and check for errors
     session.save().then(session=>{
       //also delete from users likes 
       User.findOne({user_id: req.body.user_id}).then(user=>{
@@ -651,7 +651,7 @@ exports.changeWatchnext = function(req, res){
 
     session.watchnext = req.body.movie_id
 
-    //save user and check for errors
+    //save session and check for errors
     session.save().then(session=>{
       res.json({
         message: 'change movie in watchnext',
@@ -686,7 +686,7 @@ exports.addMovieToWatched = function(req, res){
     new_watched_arr.push(req.body.movie_id)
     session.watched = new_watched_arr;
 
-    //save user and check for errors
+    //save session and check for errors
     session.save().then(session=>{
       res.json({
         message: 'added movie to session watched',
@@ -720,7 +720,7 @@ exports.removeMovieFromWatched = function(req, res){
 
     session.watched.splice(sessionIndex, 1)
 
-    //save user and check for errors
+    //save session and check for errors
     session.save().then(session=>{
       res.json({
         message: 'removed movie from session watched',
@@ -735,20 +735,52 @@ exports.removeMovieFromWatched = function(req, res){
   })
 }
 
-// handles deleteing user
+// handles deleteing matchign session
 exports.delete = function (req, res){
-
-  Session.deleteOne({session_id: req.params.id})
-    .then(session=>{
-      if (!session.deletedCount)
+  Session.findOne({session_id: req.params.id}).then(session=>{
+    Session.deleteOne({session_id: req.params.id})
+    .then(session_results=>{
+      console.log("session")
+      console.log(session)
+      if (!session_results.deletedCount)
         return res.status(404).json({message: "no session with that id found"})
+      else{
+        console.log('session members')
+        console.log(session.members)
+        User.find({'user_id': {$in: session.members}}).then(users=>{
+          console.log("users")
+          console.log(users)
+          let requests = users.map(user=>{
+            return new Promise((resolve, reject)=>{
+              var session_index = user.matching_sessions.indexOf(req.params.id);
+              user.matching_sessions.splice(session_index, 1);
+              user.save().then(data=>{
+                resolve(data);
+              }).catch(err=>{
+                console.log(err);
+                reject(err)
+              });
+            })
+          })
 
-      res.json({
-        status: 'success',
-        message: 'session deleted'
-      })
-    })
-    .catch(err=>{
+          Promise.all(requests).then(()=>{
+            res.json({
+              status: 'success',
+              message: 'deleted matching session and removed it from all members'
+            });
+          })
+
+        }).catch(err=>{
+          console.log(err);
+          return res.status(500).json(err);
+        });
+      }
+    }).catch(err=>{
+      console.log(err)
       return res.status(500).json(err);
     });
+  }).catch(err=>{c
+    console.log(err)
+    return res.status(500).json(err);
+  })
 }
