@@ -7,6 +7,7 @@ import {
   Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import QRCode from "react-native-qrcode";
 import {
   Text,
   Title,
@@ -29,11 +30,14 @@ export default class HomeScreen extends Component {
       searchQuery: "",
       firstModalVisible: false,
       secondModalVisible: false,
+      qrVisible: false,
+      qrCodeText: "",
       roomName: "New Matching Session",
       addedUsers: [], //add yourself to rooms by default
     };
 
     this.hideModal = this.hideModal.bind(this);
+    this.hideQR = this.hideQR.bind(this);
   }
 
   componentDidUpdate(prevProps) {
@@ -83,8 +87,15 @@ export default class HomeScreen extends Component {
     return sessions;
   }
 
+  showQR(qrCodeText) {
+    this.setState({ qrVisible: true, qrCodeText: qrCodeText });
+  }
+
+  hideQR() {
+    this.setState({ qrVisible: false, qrCodeText: "" });
+  }
+
   render() {
-    console.log(this.state);
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -146,6 +157,20 @@ export default class HomeScreen extends Component {
               </Button>
             </Modal>
           </Portal>
+          <Portal>
+            <Modal
+              visible={this.state.qrVisible}
+              onDismiss={this.hideQR}
+              contentContainerStyle={styles.containerStyle}
+            >
+              <QRCode
+                value={this.state.qrCodeText}
+                size={500}
+                bgColor="purple"
+                fgColor="white"
+              />
+            </Modal>
+          </Portal>
           <LinearGradient
             colors={["purple", "mediumpurple"]}
             style={styles.linearGradient}
@@ -194,7 +219,20 @@ export default class HomeScreen extends Component {
                       color="purple"
                       size={30}
                       style={{ marginLeft: "auto" }}
-                      onPress={() => this.props.enterMatching()}
+                      onPress={() =>
+                        this.props.enterMatching(
+                          [],
+                          [],
+                          matchingSession.session_id
+                        )
+                      }
+                    />
+                    <IconButton
+                      icon="qrcode"
+                      color="black"
+                      size={40}
+                      onPress={() => this.showQR(matchingSession.session_id)}
+                      style={{ flex: 1 }}
                     />
                   </View>
                   <Divider />

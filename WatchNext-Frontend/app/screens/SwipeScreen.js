@@ -17,6 +17,8 @@ function SwipeScreen(props) {
           data={props.data}
           requestMovies={props.requestMovies}
           endMatching={props.endMatching}
+          currentMS={props.currentMS}
+          reset={props.reset}
         />
       </View>
     </View>

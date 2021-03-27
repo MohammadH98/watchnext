@@ -56,7 +56,7 @@ function addRoom(socket, sID, roomName) {
           }
         )
         .then((response) => {
-           // Add the socket to the given room, titled by the index
+          // Add the socket to the given room, titled by the index
           socket.join(sID);
           SOCKET_LIST[socket.id].sID = sID;
           // Make the room in the room list
@@ -829,6 +829,8 @@ io.on("connection", function (socket) {
   //REQ: {user_id: , session_id: , liked: [...,[movie_id, time]] ,  disliked: [...,[movie_id, time]]}
   socket.on("sendRatings", function (data) {
     //user id, movieid, time
+    console.log("data sent back from frontend");
+    console.log(data);
     axios
       .post(
         "https://xwatchnextx.herokuapp.com/api/matching-session/likes",
@@ -863,10 +865,12 @@ io.on("connection", function (socket) {
           })
           .catch((err) => {
             console.log(err);
+            socket.emit("sendRatingsResponse", { success: false });
           });
       })
       .catch((err) => {
         console.log(err);
+        socket.emit("sendRatingsResponse", { success: false });
       });
   });
 
@@ -942,31 +946,34 @@ io.on("connection", function (socket) {
   //this is in use
   //REQ: {sid: "id of matching session" (str)} * may not be required because can get from socket?
   // this is not done!!!!!
-  socket.on("showMatches", function(data){
+  socket.on("showMatches", function (data) {
     // matches logic goes here
     // get id for all the matches
     // do api call to get the movies based on all the id's
     axios
-    .get(`https://xwatchnextx.herokuapp.com/api/matching-session/${SOCKET_LIST[socket.id].sID}`, {
-      headers: {
-        authorization: `Bearer ${DBTOKEN}`,
-      },
-    })
-    .then((response) => {
-      console.log("matching session object");
-      let matching_session_obj = response.data.data[0]
-      console.log(matching_session_obj)
+      .get(
+        `https://xwatchnextx.herokuapp.com/api/matching-session/${
+          SOCKET_LIST[socket.id].sID
+        }`,
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log("matching session object");
+        let matching_session_obj = response.data.data[0];
+        console.log(matching_session_obj);
 
-      //filter likes
+        //filter likes
 
-      socket.emit("receiveMatches", response.data.data[0])
-      
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-    
-  }) 
+        socket.emit("receiveMatches", response.data.data[0]);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
 
   // Add/remove from watch next/watched/etc.
   // REQ: {sid: "ID of matching session" (str), mid: "ID of movie" (str), watched: "Add/Remove movie watched" (bool), watchnext: "Add/Remove movie watch next" (bool) }
