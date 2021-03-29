@@ -965,10 +965,96 @@ io.on("connection", function (socket) {
         console.log("matching session object");
         let matching_session_obj = response.data.data[0];
         console.log(matching_session_obj);
+        let num_members = matching_session_obj['members'].length
+        let num_majority = num_members == 2? num_majority = 2 : num_members % 2 == 1? Math.ceil(num_members/2) : num_members/2;
+        console.log(`num_majority= ${num_for_majority}`);
 
-        //filter likes
+        //case 1 member
+        if (num_members == 1){
+          //every like should appear in the matches list
+          let movie_ids = matching_session_obj["likes"].map(movie=>{return movie.movie_id})
+          console.log('movie ids')
+          console.log(movie_ids)
+          axios.get(`https://xwatchnextx.herokuapp.com/api/matching-session/${movie_ids}`, {
+            headers: {
+              authorization: `Bearer ${DBTOKEN}`
+            }
+          }).then((response)=>{
+            console.log('movies')
+            movies = response.data.data
+            console.log(movies)
+            socket.emit("receiveMatches", movies);
+          }).catch(err =>{
+            console.log(err)
+          })
+        }
 
-        socket.emit("receiveMatches", response.data.data[0]);
+        //case 2 members *or more
+        // else if(num_members == 2){
+        else {
+
+          //go through all the movies and create an object that increments the count of likes by one if it finds a match, and also adds the name of the user that liked it to the users list
+
+          //get all the movie titles that appear in likes, and filter down so no duplicates
+          //can check if the array has that movie first then if not add it to there
+          let movies_with_dup = matching_session_obj["likes"].map(movie=>{return movie.movie_id})
+          let movies = movies_with_dup.filter((elem, index, self)=>{ return index === self.indexOf(elem)})
+
+
+          //create movies array that contains the movie id, count, user.
+          //every time a user 
+          let matches_tracker_obj = {}
+          // let matches_tracker_obj_arr = movies.map(movieid =>{matches_tracker_obj.movieid = {count: 0, users: []}; return {movie_id: movieid, num_likes: 0, users: []}})
+          movies.map(movieid =>{matches_tracker_obj.movieid = {count: 0, users: []};})
+
+          //populate movies array with correct count and users
+          matching_session_obj["likes"].forEach(movie=>{matches_tracker_obj[movie.movie_id].count = matches_tracker_obj[movie.movie_id].count +1; matches_tracker_obj[movie.movie_id].users.push(movie.users)})
+
+          let matches_list = []
+          //filter the movies array so that only movie objects with count >=2 is still there
+          for (key in matches_tracker_obj){
+            if (matches_tracker_obj[key].count >= num_for_majority){
+              matches_list.push(key)
+            }
+          }
+          
+          //do api call to get the movie data
+          // let movie_ids = matching_session_obj["likes"].map(movie=>{return movie.movie_id})
+          let movie_ids = matches_list.join()
+          console.log('movie ids')
+          console.log(movie_ids)
+          axios.get(`https://xwatchnextx.herokuapp.com/api/matching-session/${movie_ids}`, {
+            headers: {
+              authorization: `Bearer ${DBTOKEN}`
+            }
+          }).then((response)=>{
+            console.log('movies')
+            movies = response.data.data
+            console.log(movies)
+            //add the users that liked it to the movie data
+            movies = movies.map(movie => {return {...movie, users: matches_tracker_obj[movie.movie_id]} })
+            console.log('movies with users added')
+            console.log(movies)
+
+            //send back the movie data
+            socket.emit("receiveMatches", movies);
+          }).catch(err =>{
+            console.log(err)
+          })
+
+        }
+
+        // //case 3 or more members and odd
+        // else if(num_members % 2 == 1 ){
+        //   //every movie that appears ceiling (num_members/2) should be in the matches list
+          
+        // }
+
+        // //case 3 or more members and even
+        // else if(num_members % 2 == 0){
+        //   //every movie that appears num_members/2 times should be in the matches list
+          
+        // }
       })
       .catch((err) => {
         console.log(err);
