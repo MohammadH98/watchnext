@@ -221,7 +221,11 @@ class MovieCardStack extends React.Component {
       this.setState({
         showStack: false,
       });
-      this.props.requestMovies();
+      this.props.requestMovies(
+        this.state.likedMovies,
+        this.state.dislikedMovies,
+        this.props.currentMS
+      );
     }
     if (currentID === null) {
       return;
@@ -325,7 +329,6 @@ class MovieCardStack extends React.Component {
   }
 
   render() {
-    //console.log(this.state.movies.length);
     if (this.state.showStack) {
       return (
         <View style={styles.mainContainer}>
@@ -333,7 +336,13 @@ class MovieCardStack extends React.Component {
             icon="arrow-left"
             color="white"
             size={40}
-            onPress={() => this.props.endMatching()}
+            onPress={() =>
+              this.props.endMatching(
+                this.state.likedMovies,
+                this.state.dislikedMovies,
+                this.props.currentMS
+              )
+            }
           />
           <CardStack
             style={styles.card}

@@ -27,7 +27,7 @@ import LogoutButton from "./app/components/LogoutButton";
 import HomeScreen from "./app/screens/HomeScreen";
 import SetupScreen from "./app/screens/SetupScreen";
 
-const socket = io("https://0e1252a3be4d.ngrok.io", {
+const socket = io("https://de2d12c02975.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -98,6 +98,7 @@ class App extends React.Component {
     this.endMatchingSession = this.endMatchingSession.bind(this);
     this.endRoom = this.endRoom.bind(this);
     this.sendInvite = this.sendInvite.bind(this);
+    this.setMatchingSessionID = this.setMatchingSessionID.bind(this);
 
     socket.on(
       "connect",
@@ -165,7 +166,7 @@ class App extends React.Component {
           "recvRoom",
           function (data) {
             console.log("receive room");
-            console.log(data);
+            //console.log(data);
             this.setState({
               inRoom: true,
               currentMatchingSessionID: data.info.session_id,
@@ -177,7 +178,7 @@ class App extends React.Component {
         socket.on(
           "recvInvite",
           function (data) {
-            console.log(data);
+            //console.log(data);
             this.setState({ isInvite: true });
             this.createInviteAlert();
             socket.emit("getSessions", "");
@@ -223,17 +224,19 @@ class App extends React.Component {
   /**
    * Notifies the server to provide movie data
    */
-  requestMovies(liked = [], disliked = []) {
-    //
+  requestMovies(liked = [], disliked = [], sessionID) {
+    this.setState({
+      currentMatchingSessionID: sessionID,
+    });
+    socket.emit("getRandomMovies", "");
     if (liked.length > 0 || disliked.length > 0) {
       socket.emit("sendRatings", {
         user_id: this.state.uID,
-        session_id: this.state.currentMatchingSessionID,
+        session_id: sessionID,
         liked: liked,
         disliked: disliked,
       });
     }
-    socket.emit("getRandomMovies", "");
   }
 
   endMatchingSession(liked = [], disliked = []) {
@@ -295,6 +298,12 @@ class App extends React.Component {
     });
   }
 
+  setMatchingSessionID(ID) {
+    this.setState({
+      currentMatchingSessionID: ID,
+    });
+  }
+
   createInviteAlert() {
     Alert.alert(
       "Invitation Received",
@@ -313,7 +322,6 @@ class App extends React.Component {
   }
 
   render() {
-    //console.log(this.state);
     if (this.state.loggedIn && !this.state.firstLogin) {
       if (this.state.inMatchingSession) {
         return (
@@ -328,6 +336,8 @@ class App extends React.Component {
               data={this.state.movies}
               requestMovies={this.requestMovies}
               endMatching={this.endMatchingSession}
+              currentMS={this.state.currentMatchingSessionID}
+              reset={this.state.preferencesRecv}
             />
           </PaperProvider>
         );
@@ -341,7 +351,6 @@ class App extends React.Component {
               matchingSessions={this.state.sessions}
               uID={this.state.uID}
               sendInvite={this.sendInvite}
-              currentMS={this.state.currentMatchingSessionID}
             />
           </PaperProvider>
         );
