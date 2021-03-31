@@ -119,9 +119,7 @@ class App extends React.Component {
           function (data) {
             console.log(data.user.image);
             if (data.success) {
-              this.updateScreen(
-                /*data.first*/ true ? "SetupScreen" : "HomeScreen"
-              );
+              this.updateScreen(data.first ? "SetupScreen" : "HomeScreen");
               this.setState({
                 username: data.user.username,
                 uID: data.user.user_id,
