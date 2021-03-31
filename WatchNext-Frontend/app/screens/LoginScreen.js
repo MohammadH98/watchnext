@@ -6,7 +6,10 @@ export default class LoginScreen extends Component {
   render() {
     return (
       <View>
-        <LoginButton loginToApp={this.props.loginToApp} />
+        <LoginButton
+          loginToApp={this.props.loginToApp}
+          style={{ marginTop: 150 }}
+        />
       </View>
     );
   }

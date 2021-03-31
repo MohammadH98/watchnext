@@ -16,9 +16,9 @@ function SwipeScreen(props) {
         <MovieCardStack
           data={props.data}
           requestMovies={props.requestMovies}
-          endMatching={props.endMatching}
+          saveRatings={props.saveRatings}
           currentMS={props.currentMS}
-          reset={props.reset}
+          requestMatches={props.requestMatches}
         />
       </View>
     </View>

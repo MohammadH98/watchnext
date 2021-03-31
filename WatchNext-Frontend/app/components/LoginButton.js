@@ -1,8 +1,8 @@
 import * as AuthSession from "expo-auth-session";
 import jwtDecode from "jwt-decode";
 import * as React from "react";
-import { Alert, Button, Platform, StyleSheet, Text, View } from "react-native";
-import { Socket } from "socket.io-client";
+import { Alert, Platform, StyleSheet, Text, View } from "react-native";
+import { Button } from "react-native-paper";
 
 // You need to swap out the Auth0 client id and domain with the one from your Auth0 client.
 // In your Auth0 client, you need to also add a url to your authorized redirect urls.
@@ -62,24 +62,14 @@ export default function LoginButton(props) {
   }, [result]);
 
   return (
-    <View style={styles.container}>
+    <View>
       {name ? ( //this basically means, if the token is decoded correctly and the state was updated on the login, we call the function from app.js, which stops displaying the login button
         <>{props.loginToApp(resultForLogin)}</>
       ) : (
-        <Button
-          disabled={!request}
-          title="Log into WatchNext"
-          onPress={() => promptAsync({ useProxy })}
-        />
+        <Button disabled={!request} onPress={() => promptAsync({ useProxy })}>
+          Login To WatchNext
+        </Button>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

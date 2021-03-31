@@ -337,12 +337,25 @@ class MovieCardStack extends React.Component {
             color="white"
             size={40}
             onPress={() =>
-              this.props.endMatching(
+              this.props.saveRatings(
                 this.state.likedMovies,
                 this.state.dislikedMovies,
-                this.props.currentMS
+                "HomeScreen"
               )
             }
+          />
+          <IconButton
+            icon="movie"
+            color="white"
+            size={40}
+            onPress={() => {
+              this.props.saveRatings(
+                this.state.likedMovies,
+                this.state.dislikedMovies,
+                "MatchesScreen"
+              );
+            }}
+            style={{ marginRight: 150 }}
           />
           <CardStack
             style={styles.card}

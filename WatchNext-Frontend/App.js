@@ -18,18 +18,17 @@ import {
   Button,
   DefaultTheme,
   FAB,
-  IconButton
+  IconButton,
 } from "react-native-paper";
 
 import SwipeScreen from "./app/screens/SwipeScreen";
-import RoomScreen from "./app/screens/RoomScreen";
 import LoginScreen from "./app/screens/LoginScreen";
 import LogoutButton from "./app/components/LogoutButton";
 import HomeScreen from "./app/screens/HomeScreen";
 import SetupScreen from "./app/screens/SetupScreen";
 import MatchesScreen from "./app/screens/MatchesScreen";
 
-const socket = io("http://c9bd1762d22d.ngrok.io", {
+const socket = io("https://90ebc8c4000d.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -79,11 +78,8 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      loggedIn: false, //TODO change back
-      firstLogin: true,
-      inRoom: false,
-      inMatchingSession: false,
-      inMatchesList: false,
+      currentScreen: "LoginScreen",
+      previousScreen: "",
       username: "",
       uID: "",
       isInvite: false,
@@ -99,11 +95,10 @@ class App extends React.Component {
     this.loginToApp = this.loginToApp.bind(this);
     this.logoutOfApp = this.logoutOfApp.bind(this);
     this.loginSetupComplete = this.loginSetupComplete.bind(this);
-    this.endMatchingSession = this.endMatchingSession.bind(this);
-    this.endRoom = this.endRoom.bind(this);
+    this.saveRatings = this.saveRatings.bind(this);
     this.sendInvite = this.sendInvite.bind(this);
     this.setMatchingSessionID = this.setMatchingSessionID.bind(this);
-    this.setMatchesList = this.setMatchesList.bind(this);
+    this.goBack = this.goBack.bind(this);
 
     socket.on(
       "connect",
@@ -111,33 +106,9 @@ class App extends React.Component {
         socket.on(
           "loginResp",
           function (data) {
-            /*Object {
-              "first": false,
-              "success": true,
-              "user": Object {
-                "__v": 2,
-                "_id": "6053dd21e2b36100150c9678",
-                "created_on": "2021-03-18T23:07:13.387Z",
-                "dislikes": Array [],
-                "firstname": "Eoin",
-                "friends_list": Array [],
-                "genres": Array [
-                  "Mystery",
-                  "Fantasy",
-                  "Anime",
-                  "Romance",
-                ],
-                "lastname": "Lynagh",
-                "likes": Array [],
-                "matching_sessions": Array [],
-                "user_id": "eoinlynagh18@gmail.com",
-                "username": "Lynaghe",
-              },
-            }*/
             if (data.success) {
+              this.updateScreen(data.first ? "SetupScreen" : "HomeScreen");
               this.setState({
-                loggedIn: true,
-                firstLogin: data.first,
                 username: data.user.username,
                 uID: data.user.user_id,
               });
@@ -149,9 +120,12 @@ class App extends React.Component {
         socket.on(
           "editResp",
           function (data) {
-            //console.log(data);
+            var currentS = this.state.currentScreen;
+            if (this.state.currentScreen === "SetupScreen") {
+              currentS = "HomeScreen";
+            }
+            this.updateScreen(currentS);
             this.setState({
-              firstLogin: false,
               username: data.username,
             });
           }.bind(this)
@@ -162,7 +136,7 @@ class App extends React.Component {
           function (data) {
             this.setState({
               movies: data,
-              inMatchingSession: true,
+              currentScreen: "SwipeScreen",
             });
           }.bind(this)
         );
@@ -171,9 +145,7 @@ class App extends React.Component {
           "recvRoom",
           function (data) {
             console.log("receive room");
-            //console.log(data);
             this.setState({
-              inRoom: true,
               currentMatchingSessionID: data.info.session_id,
             });
             socket.emit("getSessions", "");
@@ -183,7 +155,6 @@ class App extends React.Component {
         socket.on(
           "recvInvite",
           function (data) {
-            //console.log(data);
             this.setState({ isInvite: true });
             this.createInviteAlert();
             socket.emit("getSessions", "");
@@ -193,7 +164,6 @@ class App extends React.Component {
         socket.on(
           "recvSessions",
           function (data) {
-            //console.log("recv sessions");
             this.setState({
               sessions: data,
             });
@@ -206,19 +176,12 @@ class App extends React.Component {
 
         socket.on(
           "recvMatches",
-          function(data){
+          function (data) {
             // console.log('matches list data coming from socket')
             // console.log(data)
             this.setState({
               currentMatchesList: data.matches,
             });
-          }.bind(this)
-        );
-
-        socket.on(
-          "testrec",
-          function (data) {
-            logger("Test receive: " + data);
           }.bind(this)
         );
       }.bind(this)
@@ -255,23 +218,11 @@ class App extends React.Component {
     }
   }
 
- /**
-  * Notifies the server to provide matches list for session
-  */
-  requestMatches() {
-    socket.emit("showMatches", {session_id: this.state.currentMatchingSessionID});
-    this.setState({
-      inMatchesList: !this.state.inMatchesList
-    });
-  }
-
-  endMatchingSession(liked = [], disliked = []) {
+  saveRatings(liked = [], disliked = [], nextPage = "") {
     //submit the liked and disliked movies to the server
     //wait for response
     //update state
-    this.setState({
-      inMatchingSession: false,
-    });
+
     if (liked.length > 0 || disliked.length > 0) {
       socket.emit("sendRatings", {
         user_id: this.state.uID,
@@ -279,6 +230,16 @@ class App extends React.Component {
         liked: liked,
         disliked: disliked,
       });
+    }
+
+    if (nextPage == "MatchesScreen") {
+      socket.emit("showMatches", {
+        session_id: this.state.currentMatchingSessionID,
+      });
+    }
+
+    if (nextPage != "") {
+      this.updateScreen(nextPage);
     }
   }
 
@@ -306,22 +267,13 @@ class App extends React.Component {
     });
   }
 
-  endRoom() {
-    this.setState({
-      inRoom: false,
-    });
-  }
-
   loginToApp(token) {
     var tokenDecoded = jwtDecode(token);
-    //console.log(tokenDecoded);
     socket.emit("loginUser", { token: token, tokenDecoded: tokenDecoded });
   }
 
   logoutOfApp() {
-    this.setState({
-      loggedIn: false,
-    });
+    this.updateScreen("LoginScreen");
   }
 
   setMatchingSessionID(ID) {
@@ -347,42 +299,44 @@ class App extends React.Component {
     );
   }
 
-  setMatchesList() {
-    this.setState({inMatchesList: !this.state.inMatchesList});
+  goBack() {
+    this.updateScreen(this.state.previousScreen);
   }
 
+  updateScreen(newScreen) {
+    var oldScreen = this.state.currentScreen;
+    this.setState({
+      currentScreen: newScreen,
+      previousScreen: oldScreen,
+    });
+  }
 
   render() {
-    if (this.state.loggedIn && !this.state.firstLogin) {
-      if (this.state.inMatchingSession && !this.state.inMatchesList) {
+    {
+      this.state.isInvite && ( //if you have been invited
+        <WebInviteView
+          acceptInvite={this.acceptInvite}
+          rejectInvite={this.rejectInvite}
+        />
+      );
+    }
+
+    switch (this.state.currentScreen) {
+      case "LoginScreen":
         return (
           <PaperProvider theme={DefaultTheme}>
-            <LinearGradient
-              colors={["purple", "mediumpurple"]}
-              style={styles.linearGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
-            <IconButton
-              icon="movie"
-              color="white"
-              size={40}
-              onPress={() =>
-                  this.requestMatches()
-              }
-              style={{marginRight: 150}}
-            />
-            <SwipeScreen
-              data={this.state.movies}
-              requestMovies={this.requestMovies}
-              endMatching={this.endMatchingSession}
-              currentMS={this.state.currentMatchingSessionID}
-              reset={this.state.preferencesRecv}
-            />
+            <LoginScreen loginToApp={this.loginToApp} />
           </PaperProvider>
         );
-      }
-      if (!this.state.inRoom && !this.state.inMatchingSession && !this.state.inMatchesList) {
+
+      case "SetupScreen":
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <SetupScreen onCompletion={this.loginSetupComplete} />
+          </PaperProvider>
+        );
+
+      case "HomeScreen":
         return (
           <PaperProvider theme={DefaultTheme}>
             <HomeScreen
@@ -394,8 +348,15 @@ class App extends React.Component {
             />
           </PaperProvider>
         );
-      }
-      if (this.state.inRoom && !this.state.inMatchesList)
+
+      case "AccountScreen":
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <AccountScreen />
+          </PaperProvider>
+        );
+
+      case "SwipeScreen":
         return (
           <PaperProvider theme={DefaultTheme}>
             <LinearGradient
@@ -404,62 +365,136 @@ class App extends React.Component {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             />
-            <IconButton
-              icon="movie"
-              color="white"
-              size={40}
-              onPress={() =>
-                  this.requestMatches()
-              }
-              style={{marginRight: 150}}
-            />
             <SwipeScreen
               data={this.state.movies}
               requestMovies={this.requestMovies}
-              endMatching={this.endMatchingSession}
+              saveRatings={this.saveRatings}
               currentMS={this.state.currentMatchingSessionID}
-              reset={this.state.preferencesRecv}
             />
           </PaperProvider>
         );
-      {
-        this.state.isInvite && ( //if you have been invited
-          <WebInviteView
-            acceptInvite={this.acceptInvite}
-            rejectInvite={this.rejectInvite}
-          />
+
+      case "SessionSettingsScreen":
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <SessionSettingsScreen />
+          </PaperProvider>
         );
-      }
+
+      case "MatchesScreen":
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <MatchesScreen
+              goBack={this.goBack}
+              matches={this.state.currentMatchesList}
+            />
+          </PaperProvider>
+        );
     }
-    if (this.state.loggedIn && this.state.firstLogin && !this.state.inMatchesList) {
-      return (
-        <PaperProvider theme={DefaultTheme}>
-          <SetupScreen onCompletion={this.loginSetupComplete} />
-        </PaperProvider>
-      );
-    }
-    if (this.state.inMatchesList) {
-      return (
-        <PaperProvider theme={DefaultTheme}>
-          <MatchesScreen
-            endMatchesList={this.setMatchesList}
-            matches={this.state.currentMatchesList}
-          />
-        </PaperProvider>
-      );
-    }
-    return (
-      <SafeAreaView style={[styles.mainContainer, { paddingTop: 20 }]}>
-        <LinearGradient
-          // Background Linear Gradient
-          colors={[GradientColour1, GradientColour2]}
-          style={styles.background}
-        />
-        <View>
-          <LoginScreen loginToApp={this.loginToApp} />
-        </View>
-      </SafeAreaView>
-    );
+
+    //   if (this.state.loggedIn && !this.state.firstLogin) {
+    //     if (this.state.inMatchingSession && !this.state.inMatchesList) {
+    //       return (
+    //         <PaperProvider theme={DefaultTheme}>
+    //           <LinearGradient
+    //             colors={["purple", "mediumpurple"]}
+    //             style={styles.linearGradient}
+    //             start={{ x: 0, y: 0 }}
+    //             end={{ x: 1, y: 1 }}
+    //           />
+    //           <IconButton
+    //             icon="movie"
+    //             color="white"
+    //             size={40}
+    //             onPress={() => this.requestMatches()}
+    //             style={{ marginRight: 150 }}
+    //           />
+    //           <SwipeScreen
+    //             data={this.state.movies}
+    //             requestMovies={this.requestMovies}
+    //             endMatching={this.endMatchingSession}
+    //             currentMS={this.state.currentMatchingSessionID}
+    //             reset={this.state.preferencesRecv}
+    //           />
+    //         </PaperProvider>
+    //       );
+    //     }
+    //     if (
+    //       !this.state.inRoom &&
+    //       !this.state.inMatchingSession &&
+    //       !this.state.inMatchesList
+    //     ) {
+    //       return (
+    //         <PaperProvider theme={DefaultTheme}>
+    //           <HomeScreen
+    //             enterMatching={this.requestMovies}
+    //             requestRoom={this.requestRoom}
+    //             matchingSessions={this.state.sessions}
+    //             uID={this.state.uID}
+    //             sendInvite={this.sendInvite}
+    //           />
+    //         </PaperProvider>
+    //       );
+    //     }
+    //     if (this.state.inRoom && !this.state.inMatchesList)
+    //       return (
+    //         <PaperProvider theme={DefaultTheme}>
+    //           <LinearGradient
+    //             colors={["purple", "mediumpurple"]}
+    //             style={styles.linearGradient}
+    //             start={{ x: 0, y: 0 }}
+    //             end={{ x: 1, y: 1 }}
+    //           />
+    //           <IconButton
+    //             icon="movie"
+    //             color="white"
+    //             size={40}
+    //             onPress={() => this.requestMatches()}
+    //             style={{ marginRight: 150 }}
+    //           />
+    //           <SwipeScreen
+    //             data={this.state.movies}
+    //             requestMovies={this.requestMovies}
+    //             endMatching={this.endMatchingSession}
+    //             currentMS={this.state.currentMatchingSessionID}
+    //             reset={this.state.preferencesRecv}
+    //           />
+    //         </PaperProvider>
+    //       );
+    //   }
+    //   if (
+    //     this.state.loggedIn &&
+    //     this.state.firstLogin &&
+    //     !this.state.inMatchesList
+    //   ) {
+    //     return (
+    //       <PaperProvider theme={DefaultTheme}>
+    //         <SetupScreen onCompletion={this.loginSetupComplete} />
+    //       </PaperProvider>
+    //     );
+    //   }
+    //   if (this.state.inMatchesList) {
+    //     return (
+    //       <PaperProvider theme={DefaultTheme}>
+    //         <MatchesScreen
+    //           endMatchesList={this.setMatchesList}
+    //           matches={this.state.currentMatchesList}
+    //         />
+    //       </PaperProvider>
+    //     );
+    //   }
+    //   return (
+    //     <SafeAreaView style={[styles.mainContainer, { paddingTop: 20 }]}>
+    //       <LinearGradient
+    //         // Background Linear Gradient
+    //         colors={[GradientColour1, GradientColour2]}
+    //         style={styles.background}
+    //       />
+    //       <View>
+    //         <LoginScreen loginToApp={this.loginToApp} />
+    //       </View>
+    //     </SafeAreaView>
+    //   );
   }
 }
 

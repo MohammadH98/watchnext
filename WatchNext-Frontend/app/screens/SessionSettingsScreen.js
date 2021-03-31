@@ -33,7 +33,7 @@ function ExportData() {
     "Bollywood",
     "Independent",
     "Musical",
-    "Political"
+    "Political",
   ];
 }
 
@@ -72,7 +72,7 @@ function ExportData2() {
   ];
 }
 
-export default class SessionScreen extends Component {
+export default class SessionSettingsScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -184,7 +184,9 @@ export default class SessionScreen extends Component {
           <Divider />
           {this.state.genrePage ? (
             <View>
-              <Caption style={styles.genreHeading}>Filter Genres to Recommend</Caption>
+              <Caption style={styles.genreHeading}>
+                Filter Genres to Recommend
+              </Caption>
               <View style={styles.genreSelection}>
                 {this.state.genres.map((genre) => (
                   <Button
@@ -306,7 +308,7 @@ export default class SessionScreen extends Component {
             </View>
           )}
         </View>
-        <View styles={{flex: 1}}>
+        <View styles={{ flex: 1 }}>
           <Divider />
           <View style={styles.bottomBar}>
             <IconButton
