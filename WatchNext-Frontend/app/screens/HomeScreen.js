@@ -211,7 +211,7 @@ export default class HomeScreen extends Component {
                         {matchingSession.name}
                       </Text>
                       <Caption>
-                        {matchingSession.likes.length} total matches
+                        {matchingSession.num_matches} total matches
                       </Caption>
                     </View>
                     <IconButton
