@@ -117,7 +117,7 @@ class App extends React.Component {
         socket.on(
           "loginResp",
           function (data) {
-            console.log(data.user.image);
+            console.log("Image: " + data.user.image);
             if (data.success) {
               this.updateScreen(data.first ? "SetupScreen" : "HomeScreen");
               this.setState({
@@ -125,7 +125,6 @@ class App extends React.Component {
                 uID: data.user.user_id,
                 cloudImgUrl: data.user.image,
               });
-              console.log(data.user.image);
               socket.emit("getSessions", "");
             }
           }.bind(this)
@@ -274,7 +273,7 @@ class App extends React.Component {
 
   loginSetupComplete(firstname, lastname, username, selectedGenres) {
     var avatar = this.state.cloudImgUrl;
-    console.log("Image Url" + avatar);
+    // console.log("Image Url" + avatar);
     socket.emit("editUser", {
       firstname: firstname,
       lastname: lastname,

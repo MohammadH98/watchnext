@@ -469,7 +469,7 @@ io.on("connection", function (socket) {
   // REQ: {user: "New username" (str), img: "Base64 encoded image" (str/bit?)}
   // REQ: {firstname: firstname, lastname: lastname, username: username, selectedGenres: selectedGenres str(array), image: url}
   socket.on("editUser", function (data) {
-    console.log(image);
+    console.log(data.image);
     if (data.username.trim()) {
       // Update username
       axios
@@ -481,7 +481,7 @@ io.on("connection", function (socket) {
             firstname: data.firstname,
             lastname: data.lastname,
             genres: data.selectedGenres,
-            image: data.img,
+            image: data.image,
           },
           {
             headers: {

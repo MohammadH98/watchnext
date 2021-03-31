@@ -96,14 +96,16 @@ export default class HomeScreen extends Component {
   }
 
   getAvatarUrl() {
-    if (this.props.avatarLocation === "") {
+    if (
+      this.props.avatarLocation === undefined ||
+      this.props.avatarLocation === ""
+    ) {
       return "https://p.kindpng.com/picc/s/22-223910_circle-user-png-icon-transparent-png.png";
     }
     return this.props.avatarLocation;
   }
 
   render() {
-    console.log(this.props);
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
