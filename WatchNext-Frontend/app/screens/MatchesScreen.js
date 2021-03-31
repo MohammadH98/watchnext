@@ -74,12 +74,20 @@ export default class MatchesScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      matchesList: ExportData(),
+      matchesList: [],
       sessionName: "The Capstone Boys",
       sessionID: 999999,
       sessionAvatar:
         "https://banner2.cleanpng.com/20180717/cek/kisspng-computer-icons-desktop-wallpaper-team-concept-5b4e0cd3819810.4507019915318417475308.jpg",
     };
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.matches !== this.props.matches) {
+      this.setState({
+        matchesList: this.props.matches,
+      });
+    }
   }
 
   reorderMedia(from, to) {
@@ -89,10 +97,14 @@ export default class MatchesScreen extends Component {
   }
 
   render() {
+    console.log('matches screen props')
+    console.log(this.props.matches)
+    console.log('matches screen state')
+    console.log(this.state.matchesList);
     return (
       <View style={styles.mainContainer}>
         <Appbar.Header>
-          <Appbar.BackAction onPress={() => console.log("Back Pressed")} />
+          <Appbar.BackAction onPress={() => this.props.endMatchesList()} />
           <Appbar.Content title="The Capstone Boys" subtitle="Matches List" />
           <Avatar.Image
             size={40}
@@ -107,13 +119,13 @@ export default class MatchesScreen extends Component {
               data={this.state.matchesList}
               renderItemContent={({ item }) => (
                 <Surface style={styles.match}>
-                  <Avatar.Image size={50} source={{uri: item.avatar}} />
+                  <Avatar.Image size={50} source={{uri: item.image}} />
                   <View style={{ paddingLeft: 10 }}>
                     <Text style={{ fontWeight: "bold" }}>
-                      {item.name}
+                      {item.title}
                     </Text>
                     <Caption>
-                      {item.type}
+                      {item.media}
                     </Caption>
                   </View>
                   <IconButton
@@ -128,7 +140,7 @@ export default class MatchesScreen extends Component {
               onItemReorder={({ fromIndex, toIndex }) => {
                 this.reorderMedia(fromIndex, toIndex);
               }}
-              keyExtractor={(item) => item.name}
+              keyExtractor={(item) => item.title}
             />
           </View>
         </DraxProvider>

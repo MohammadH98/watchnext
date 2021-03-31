@@ -18,6 +18,7 @@ import {
   Button,
   DefaultTheme,
   FAB,
+  IconButton
 } from "react-native-paper";
 
 import SwipeScreen from "./app/screens/SwipeScreen";
@@ -26,8 +27,9 @@ import LoginScreen from "./app/screens/LoginScreen";
 import LogoutButton from "./app/components/LogoutButton";
 import HomeScreen from "./app/screens/HomeScreen";
 import SetupScreen from "./app/screens/SetupScreen";
+import MatchesScreen from "./app/screens/MatchesScreen";
 
-const socket = io("https://de2d12c02975.ngrok.io", {
+const socket = io("http://c9bd1762d22d.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -81,12 +83,14 @@ class App extends React.Component {
       firstLogin: true,
       inRoom: false,
       inMatchingSession: false,
+      inMatchesList: false,
       username: "",
       uID: "",
       isInvite: false,
       movies: [],
       sessions: [],
       currentMatchingSessionID: "",
+      currentMatchesList: [],
       addedUsers: [],
     };
 
@@ -99,6 +103,7 @@ class App extends React.Component {
     this.endRoom = this.endRoom.bind(this);
     this.sendInvite = this.sendInvite.bind(this);
     this.setMatchingSessionID = this.setMatchingSessionID.bind(this);
+    this.setMatchesList = this.setMatchesList.bind(this);
 
     socket.on(
       "connect",
@@ -200,6 +205,17 @@ class App extends React.Component {
         );
 
         socket.on(
+          "recvMatches",
+          function(data){
+            // console.log('matches list data coming from socket')
+            // console.log(data)
+            this.setState({
+              currentMatchesList: data.matches,
+            });
+          }.bind(this)
+        );
+
+        socket.on(
           "testrec",
           function (data) {
             logger("Test receive: " + data);
@@ -237,6 +253,16 @@ class App extends React.Component {
         disliked: disliked,
       });
     }
+  }
+
+ /**
+  * Notifies the server to provide matches list for session
+  */
+  requestMatches() {
+    socket.emit("showMatches", {session_id: this.state.currentMatchingSessionID});
+    this.setState({
+      inMatchesList: !this.state.inMatchesList
+    });
   }
 
   endMatchingSession(liked = [], disliked = []) {
@@ -321,9 +347,14 @@ class App extends React.Component {
     );
   }
 
+  setMatchesList() {
+    this.setState({inMatchesList: !this.state.inMatchesList});
+  }
+
+
   render() {
     if (this.state.loggedIn && !this.state.firstLogin) {
-      if (this.state.inMatchingSession) {
+      if (this.state.inMatchingSession && !this.state.inMatchesList) {
         return (
           <PaperProvider theme={DefaultTheme}>
             <LinearGradient
@@ -331,6 +362,15 @@ class App extends React.Component {
               style={styles.linearGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
+            />
+            <IconButton
+              icon="movie"
+              color="white"
+              size={40}
+              onPress={() =>
+                  this.requestMatches()
+              }
+              style={{marginRight: 150}}
             />
             <SwipeScreen
               data={this.state.movies}
@@ -342,7 +382,7 @@ class App extends React.Component {
           </PaperProvider>
         );
       }
-      if (!this.state.inRoom && !this.state.inMatchingSession) {
+      if (!this.state.inRoom && !this.state.inMatchingSession && !this.state.inMatchesList) {
         return (
           <PaperProvider theme={DefaultTheme}>
             <HomeScreen
@@ -355,11 +395,31 @@ class App extends React.Component {
           </PaperProvider>
         );
       }
-      if (this.state.inRoom)
+      if (this.state.inRoom && !this.state.inMatchesList)
         return (
           <PaperProvider theme={DefaultTheme}>
-            <RoomScreen endSession={this.endRoom} />
-            <Button title={"Send Invite"} onPress={() => this.sendInvite()} />
+            <LinearGradient
+              colors={["purple", "mediumpurple"]}
+              style={styles.linearGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            />
+            <IconButton
+              icon="movie"
+              color="white"
+              size={40}
+              onPress={() =>
+                  this.requestMatches()
+              }
+              style={{marginRight: 150}}
+            />
+            <SwipeScreen
+              data={this.state.movies}
+              requestMovies={this.requestMovies}
+              endMatching={this.endMatchingSession}
+              currentMS={this.state.currentMatchingSessionID}
+              reset={this.state.preferencesRecv}
+            />
           </PaperProvider>
         );
       {
@@ -371,10 +431,20 @@ class App extends React.Component {
         );
       }
     }
-    if (this.state.loggedIn && this.state.firstLogin) {
+    if (this.state.loggedIn && this.state.firstLogin && !this.state.inMatchesList) {
       return (
         <PaperProvider theme={DefaultTheme}>
           <SetupScreen onCompletion={this.loginSetupComplete} />
+        </PaperProvider>
+      );
+    }
+    if (this.state.inMatchesList) {
+      return (
+        <PaperProvider theme={DefaultTheme}>
+          <MatchesScreen
+            endMatchesList={this.setMatchesList}
+            matches={this.state.currentMatchesList}
+          />
         </PaperProvider>
       );
     }
