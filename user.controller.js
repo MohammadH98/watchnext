@@ -141,6 +141,7 @@ exports.updateUser = function(req, res){
       user.firstname = req.body.firstname ? req.body.firstname : user.firstname;
       user.lastname = req.body.lastname ? req.body.lastname : user.lastname;
       user.genres = req.body.genres ? req.body.genres : user.genres;
+      user.image = req.body.image ? req.body.image: user.image
 
 
     //save user and check for errors
