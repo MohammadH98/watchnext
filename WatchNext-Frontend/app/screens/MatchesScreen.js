@@ -9,7 +9,7 @@ import {
   Subheading,
   Appbar,
   IconButton,
-  Surface
+  Surface,
 } from "react-native-paper";
 import {
   widthPercentageToDP as wp,
@@ -97,36 +97,28 @@ export default class MatchesScreen extends Component {
   }
 
   render() {
-    console.log('matches screen props')
-    console.log(this.props.matches)
-    console.log('matches screen state')
-    console.log(this.state.matchesList);
     return (
       <View style={styles.mainContainer}>
         <Appbar.Header>
-          <Appbar.BackAction onPress={() => this.props.endMatchesList()} />
+          <Appbar.BackAction onPress={() => this.props.goBack()} />
           <Appbar.Content title="The Capstone Boys" subtitle="Matches List" />
           <Avatar.Image
             size={40}
             source={{
-              uri: this.state.sessionAvatar
+              uri: this.state.sessionAvatar,
             }}
           />
         </Appbar.Header>
         <DraxProvider>
-          <View style={{marginTop: 10}}>
+          <View style={{ marginTop: 10 }}>
             <DraxList
               data={this.state.matchesList}
               renderItemContent={({ item }) => (
                 <Surface style={styles.match}>
-                  <Avatar.Image size={50} source={{uri: item.image}} />
+                  <Avatar.Image size={50} source={{ uri: item.image }} />
                   <View style={{ paddingLeft: 10 }}>
-                    <Text style={{ fontWeight: "bold" }}>
-                      {item.title}
-                    </Text>
-                    <Caption>
-                      {item.media}
-                    </Caption>
+                    <Text style={{ fontWeight: "bold" }}>{item.title}</Text>
+                    <Caption>{item.media}</Caption>
                   </View>
                   <IconButton
                     icon="information"
@@ -164,6 +156,6 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingRight: 10,
     paddingBottom: 5,
-    paddingTop: 5
-  }
+    paddingTop: 5,
+  },
 });

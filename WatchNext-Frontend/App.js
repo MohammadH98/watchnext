@@ -18,18 +18,23 @@ import {
   Button,
   DefaultTheme,
   FAB,
-  IconButton
+  IconButton,
 } from "react-native-paper";
 
 import SwipeScreen from "./app/screens/SwipeScreen";
-import RoomScreen from "./app/screens/RoomScreen";
 import LoginScreen from "./app/screens/LoginScreen";
 import LogoutButton from "./app/components/LogoutButton";
 import HomeScreen from "./app/screens/HomeScreen";
 import SetupScreen from "./app/screens/SetupScreen";
 import MatchesScreen from "./app/screens/MatchesScreen";
+import AccountScreen from "./app/screens/AccountScreen";
 
-const socket = io("http://c9bd1762d22d.ngrok.io", {
+//For image uploading
+import * as ImagePicker from "expo-image-picker";
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
+// https://api.cloudinary.com/v1_1/hgxqzjwvu
+
+const socket = io("https://1486db6944c9.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -79,11 +84,8 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      loggedIn: false, //TODO change back
-      firstLogin: true,
-      inRoom: false,
-      inMatchingSession: false,
-      inMatchesList: false,
+      currentScreen: "LoginScreen",
+      previousScreen: "",
       username: "",
       uID: "",
       isInvite: false,
@@ -92,6 +94,8 @@ class App extends React.Component {
       currentMatchingSessionID: "",
       currentMatchesList: [],
       addedUsers: [],
+      localImgUrl: "",
+      cloudImgUrl: "",
     };
 
     this.requestMovies = this.requestMovies.bind(this);
@@ -99,11 +103,13 @@ class App extends React.Component {
     this.loginToApp = this.loginToApp.bind(this);
     this.logoutOfApp = this.logoutOfApp.bind(this);
     this.loginSetupComplete = this.loginSetupComplete.bind(this);
-    this.endMatchingSession = this.endMatchingSession.bind(this);
-    this.endRoom = this.endRoom.bind(this);
+    this.saveRatings = this.saveRatings.bind(this);
     this.sendInvite = this.sendInvite.bind(this);
     this.setMatchingSessionID = this.setMatchingSessionID.bind(this);
-    this.setMatchesList = this.setMatchesList.bind(this);
+
+    this.updateScreen = this.updateScreen.bind(this);
+    this.goBack = this.goBack.bind(this);
+    this.openImagePickerAsync = this.openImagePickerAsync.bind(this);
 
     socket.on(
       "connect",
@@ -111,36 +117,17 @@ class App extends React.Component {
         socket.on(
           "loginResp",
           function (data) {
-            /*Object {
-              "first": false,
-              "success": true,
-              "user": Object {
-                "__v": 2,
-                "_id": "6053dd21e2b36100150c9678",
-                "created_on": "2021-03-18T23:07:13.387Z",
-                "dislikes": Array [],
-                "firstname": "Eoin",
-                "friends_list": Array [],
-                "genres": Array [
-                  "Mystery",
-                  "Fantasy",
-                  "Anime",
-                  "Romance",
-                ],
-                "lastname": "Lynagh",
-                "likes": Array [],
-                "matching_sessions": Array [],
-                "user_id": "eoinlynagh18@gmail.com",
-                "username": "Lynaghe",
-              },
-            }*/
+            console.log(data.user.image);
             if (data.success) {
+              this.updateScreen(
+                /*data.first*/ true ? "SetupScreen" : "HomeScreen"
+              );
               this.setState({
-                loggedIn: true,
-                firstLogin: data.first,
                 username: data.user.username,
                 uID: data.user.user_id,
+                cloudImgUrl: data.user.image,
               });
+              console.log(data.user.image);
               socket.emit("getSessions", "");
             }
           }.bind(this)
@@ -149,9 +136,12 @@ class App extends React.Component {
         socket.on(
           "editResp",
           function (data) {
-            //console.log(data);
+            var currentS = this.state.currentScreen;
+            if (this.state.currentScreen === "SetupScreen") {
+              currentS = "HomeScreen";
+            }
+            this.updateScreen(currentS);
             this.setState({
-              firstLogin: false,
               username: data.username,
             });
           }.bind(this)
@@ -162,7 +152,7 @@ class App extends React.Component {
           function (data) {
             this.setState({
               movies: data,
-              inMatchingSession: true,
+              currentScreen: "SwipeScreen",
             });
           }.bind(this)
         );
@@ -171,9 +161,7 @@ class App extends React.Component {
           "recvRoom",
           function (data) {
             console.log("receive room");
-            //console.log(data);
             this.setState({
-              inRoom: true,
               currentMatchingSessionID: data.info.session_id,
             });
             socket.emit("getSessions", "");
@@ -183,7 +171,6 @@ class App extends React.Component {
         socket.on(
           "recvInvite",
           function (data) {
-            //console.log(data);
             this.setState({ isInvite: true });
             this.createInviteAlert();
             socket.emit("getSessions", "");
@@ -193,7 +180,6 @@ class App extends React.Component {
         socket.on(
           "recvSessions",
           function (data) {
-            //console.log("recv sessions");
             this.setState({
               sessions: data,
             });
@@ -206,19 +192,12 @@ class App extends React.Component {
 
         socket.on(
           "recvMatches",
-          function(data){
+          function (data) {
             // console.log('matches list data coming from socket')
             // console.log(data)
             this.setState({
               currentMatchesList: data.matches,
             });
-          }.bind(this)
-        );
-
-        socket.on(
-          "testrec",
-          function (data) {
-            logger("Test receive: " + data);
           }.bind(this)
         );
       }.bind(this)
@@ -255,23 +234,11 @@ class App extends React.Component {
     }
   }
 
- /**
-  * Notifies the server to provide matches list for session
-  */
-  requestMatches() {
-    socket.emit("showMatches", {session_id: this.state.currentMatchingSessionID});
-    this.setState({
-      inMatchesList: !this.state.inMatchesList
-    });
-  }
-
-  endMatchingSession(liked = [], disliked = []) {
+  saveRatings(liked = [], disliked = [], nextPage = "") {
     //submit the liked and disliked movies to the server
     //wait for response
     //update state
-    this.setState({
-      inMatchingSession: false,
-    });
+
     if (liked.length > 0 || disliked.length > 0) {
       socket.emit("sendRatings", {
         user_id: this.state.uID,
@@ -279,6 +246,16 @@ class App extends React.Component {
         liked: liked,
         disliked: disliked,
       });
+    }
+
+    if (nextPage == "MatchesScreen") {
+      socket.emit("showMatches", {
+        session_id: this.state.currentMatchingSessionID,
+      });
+    }
+
+    if (nextPage != "") {
+      this.updateScreen(nextPage);
     }
   }
 
@@ -298,30 +275,24 @@ class App extends React.Component {
   }
 
   loginSetupComplete(firstname, lastname, username, selectedGenres) {
+    var avatar = this.state.cloudImgUrl;
+    console.log("Image Url" + avatar);
     socket.emit("editUser", {
       firstname: firstname,
       lastname: lastname,
       username: username,
       selectedGenres: selectedGenres,
-    });
-  }
-
-  endRoom() {
-    this.setState({
-      inRoom: false,
+      image: avatar,
     });
   }
 
   loginToApp(token) {
     var tokenDecoded = jwtDecode(token);
-    //console.log(tokenDecoded);
     socket.emit("loginUser", { token: token, tokenDecoded: tokenDecoded });
   }
 
   logoutOfApp() {
-    this.setState({
-      loggedIn: false,
-    });
+    this.updateScreen("LoginScreen");
   }
 
   setMatchingSessionID(ID) {
@@ -347,42 +318,115 @@ class App extends React.Component {
     );
   }
 
-  setMatchesList() {
-    this.setState({inMatchesList: !this.state.inMatchesList});
+  goBack() {
+    this.updateScreen(this.state.previousScreen);
   }
 
+  updateScreen(newScreen) {
+    var oldScreen = this.state.currentScreen;
+    this.setState({
+      currentScreen: newScreen,
+      previousScreen: oldScreen,
+    });
+  }
 
+  openImagePickerAsync = async () => {
+    let permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    //this tells the application to give an alert if someone doesn't allow //permission.  It will return to the previous screen.
+
+    if (permissionResult.granted === false) {
+      alert("Permission to access camera roll is required!");
+      return;
+    }
+
+    //This gets image from phone
+
+    let pickerResult = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [4, 4],
+
+      //We need the image to be base64 in order to be formatted for Cloudinary
+
+      base64: true,
+    });
+
+    //this just returns the user to the previous page if they click "cancel"
+
+    if (pickerResult.cancelled === true) {
+      return;
+    }
+
+    //sets image from imagePicker to SelectedImage.
+    //This is if you are using hooks. The hook for this I have set up as:
+    //[selectedImage, setSelectedImage] = useState("").  If you're using //anclass component you can use setState here.  This file format will be
+    //a file path to where the image is saved.
+
+    // setSelectedImage({ localUri: pickerResult.uri });
+    this.setState({ localImgUrl: pickerResult.uri });
+
+    //***IMPORTANT*** This step is necessary.  It converts image from //file path format that imagePicker creates, into a form that cloudinary //requires.
+
+    let base64Img = `data:image/jpg;base64,${pickerResult.base64}`;
+
+    // Here we need to include your Cloudinary upload preset with can be //found in your Cloudinary dashboard.
+
+    let data = {
+      file: base64Img,
+      upload_preset: "cro6hffr",
+    };
+
+    //sends photo to cloudinary
+    //**I initially tried using an axios request but it did NOT work** I was
+    //not able to get this to work until I changed it to a fetch request.
+
+    fetch(CLOUDINARY_URL, {
+      body: JSON.stringify(data),
+      headers: {
+        "content-type": "application/json",
+      },
+      method: "POST",
+    })
+      .then(async (r) => {
+        let data = await r.json();
+        //Here I'm using another hook to set State for the photo that we get back //from Cloudinary
+        // setPhoto(data.url);
+        //now send it in with the socket
+        this.setState({ cloudImgUrl: data.url });
+        return data.uri;
+      })
+      .catch((err) => console.log(err));
+  };
   render() {
-    if (this.state.loggedIn && !this.state.firstLogin) {
-      if (this.state.inMatchingSession && !this.state.inMatchesList) {
+    {
+      this.state.isInvite && ( //if you have been invited
+        <WebInviteView
+          acceptInvite={this.acceptInvite}
+          rejectInvite={this.rejectInvite}
+        />
+      );
+    }
+
+    switch (this.state.currentScreen) {
+      case "LoginScreen":
         return (
           <PaperProvider theme={DefaultTheme}>
-            <LinearGradient
-              colors={["purple", "mediumpurple"]}
-              style={styles.linearGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
-            <IconButton
-              icon="movie"
-              color="white"
-              size={40}
-              onPress={() =>
-                  this.requestMatches()
-              }
-              style={{marginRight: 150}}
-            />
-            <SwipeScreen
-              data={this.state.movies}
-              requestMovies={this.requestMovies}
-              endMatching={this.endMatchingSession}
-              currentMS={this.state.currentMatchingSessionID}
-              reset={this.state.preferencesRecv}
+            <LoginScreen loginToApp={this.loginToApp} />
+          </PaperProvider>
+        );
+
+      case "SetupScreen":
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <SetupScreen
+              updateAvatar={this.openImagePickerAsync}
+              avatarLocation={this.state.cloudImgUrl}
+              onCompletion={this.loginSetupComplete}
             />
           </PaperProvider>
         );
-      }
-      if (!this.state.inRoom && !this.state.inMatchingSession && !this.state.inMatchesList) {
+
+      case "HomeScreen":
         return (
           <PaperProvider theme={DefaultTheme}>
             <HomeScreen
@@ -391,11 +435,20 @@ class App extends React.Component {
               matchingSessions={this.state.sessions}
               uID={this.state.uID}
               sendInvite={this.sendInvite}
+              updateScreen={this.updateScreen}
+              avatarLocation={this.state.cloudImgUrl}
             />
           </PaperProvider>
         );
-      }
-      if (this.state.inRoom && !this.state.inMatchesList)
+
+      case "AccountScreen":
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <AccountScreen />
+          </PaperProvider>
+        );
+
+      case "SwipeScreen":
         return (
           <PaperProvider theme={DefaultTheme}>
             <LinearGradient
@@ -404,62 +457,32 @@ class App extends React.Component {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             />
-            <IconButton
-              icon="movie"
-              color="white"
-              size={40}
-              onPress={() =>
-                  this.requestMatches()
-              }
-              style={{marginRight: 150}}
-            />
             <SwipeScreen
               data={this.state.movies}
               requestMovies={this.requestMovies}
-              endMatching={this.endMatchingSession}
+              saveRatings={this.saveRatings}
               currentMS={this.state.currentMatchingSessionID}
-              reset={this.state.preferencesRecv}
             />
           </PaperProvider>
         );
-      {
-        this.state.isInvite && ( //if you have been invited
-          <WebInviteView
-            acceptInvite={this.acceptInvite}
-            rejectInvite={this.rejectInvite}
-          />
+
+      case "SessionSettingsScreen":
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <SessionSettingsScreen />
+          </PaperProvider>
         );
-      }
+
+      case "MatchesScreen":
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <MatchesScreen
+              goBack={this.goBack}
+              matches={this.state.currentMatchesList}
+            />
+          </PaperProvider>
+        );
     }
-    if (this.state.loggedIn && this.state.firstLogin && !this.state.inMatchesList) {
-      return (
-        <PaperProvider theme={DefaultTheme}>
-          <SetupScreen onCompletion={this.loginSetupComplete} />
-        </PaperProvider>
-      );
-    }
-    if (this.state.inMatchesList) {
-      return (
-        <PaperProvider theme={DefaultTheme}>
-          <MatchesScreen
-            endMatchesList={this.setMatchesList}
-            matches={this.state.currentMatchesList}
-          />
-        </PaperProvider>
-      );
-    }
-    return (
-      <SafeAreaView style={[styles.mainContainer, { paddingTop: 20 }]}>
-        <LinearGradient
-          // Background Linear Gradient
-          colors={[GradientColour1, GradientColour2]}
-          style={styles.background}
-        />
-        <View>
-          <LoginScreen loginToApp={this.loginToApp} />
-        </View>
-      </SafeAreaView>
-    );
   }
 }
 
