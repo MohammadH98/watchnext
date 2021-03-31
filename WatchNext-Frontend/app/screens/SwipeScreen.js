@@ -18,7 +18,6 @@ function SwipeScreen(props) {
           requestMovies={props.requestMovies}
           saveRatings={props.saveRatings}
           currentMS={props.currentMS}
-          requestMatches={props.requestMatches}
         />
       </View>
     </View>

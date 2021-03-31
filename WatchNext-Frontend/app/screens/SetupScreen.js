@@ -18,6 +18,7 @@ import {
   Avatar,
   Button,
   TextInput,
+  FAB,
 } from "react-native-paper";
 
 function ExportData(data) {
@@ -70,7 +71,12 @@ export default class SetupScreen extends Component {
 
   nextStage = () => {
     if (this.state.stageCompleted) {
-      this.props.onCompletion(this.state.firstName, this.state.lastName, this.state.username, this.state.selectedGenres);
+      this.props.onCompletion(
+        this.state.firstName,
+        this.state.lastName,
+        this.state.username,
+        this.state.selectedGenres
+      );
     } else {
       this.setState({ stageCompleted: !this.state.stageCompleted });
     }
@@ -88,6 +94,16 @@ export default class SetupScreen extends Component {
 
     console.log(newChecked);
     this.setState({ selectedGenres: newChecked });
+  }
+
+  getAvatarUrl() {
+    if (
+      this.props.avatarLocation === undefined ||
+      this.props.avatarLocation === ""
+    ) {
+      return "https://p.kindpng.com/picc/s/22-223910_circle-user-png-icon-transparent-png.png";
+    }
+    return this.props.avatarLocation;
   }
 
   render() {
@@ -145,11 +161,17 @@ export default class SetupScreen extends Component {
             <Subheading style={{ color: "white" }}>
               Upload an Avatar (Optional)
             </Subheading>
-            <IconButton
-              icon="account-circle"
-              color="white"
+            <Avatar.Image
               size={150}
-              onPress={() => console.log("Home Icon Pressed")}
+              source={{
+                uri: this.getAvatarUrl(),
+              }}
+            />
+            <FAB
+              icon="camera"
+              style={styles.avatarButton}
+              color="white"
+              onPress={() => this.props.updateAvatar()}
             />
           </View>
         ) : (
@@ -248,5 +270,11 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     height: 1000,
+  },
+  avatarButton: {
+    backgroundColor: "purple",
+    position: "absolute",
+    right: 100,
+    bottom: 100,
   },
 });

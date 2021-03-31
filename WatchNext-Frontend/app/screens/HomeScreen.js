@@ -21,6 +21,7 @@ import {
   Modal,
   Button,
   TextInput,
+  Appbar,
 } from "react-native-paper";
 
 export default class HomeScreen extends Component {
@@ -35,7 +36,6 @@ export default class HomeScreen extends Component {
       roomName: "New Matching Session",
       addedUsers: [], //add yourself to rooms by default
     };
-
     this.hideModal = this.hideModal.bind(this);
     this.hideQR = this.hideQR.bind(this);
   }
@@ -95,7 +95,15 @@ export default class HomeScreen extends Component {
     this.setState({ qrVisible: false, qrCodeText: "" });
   }
 
+  getAvatarUrl() {
+    if (this.props.avatarLocation === "") {
+      return "https://p.kindpng.com/picc/s/22-223910_circle-user-png-icon-transparent-png.png";
+    }
+    return this.props.avatarLocation;
+  }
+
   render() {
+    console.log(this.props);
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -171,34 +179,23 @@ export default class HomeScreen extends Component {
               />
             </Modal>
           </Portal>
-          <LinearGradient
-            colors={["purple", "mediumpurple"]}
-            style={styles.linearGradient}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
-          >
+          <Appbar.Header>
             <Avatar.Image
-              size={30}
+              size={40}
               source={{
-                uri:
-                  "https://scontent-yyz1-1.xx.fbcdn.net/v/t1.0-9/44680002_954885824711081_5944810765792837632_n.jpg?_nc_cat=111&ccb=1-3&_nc_sid=09cbfe&_nc_ohc=a3bhJJenSFMAX_BxU6x&_nc_ht=scontent-yyz1-1.xx&oh=c6b574bda74f8019eb6fc24ec1479e87&oe=607A29B1",
+                uri: this.getAvatarUrl(),
               }}
             />
-            <Title style={{ flex: 3, color: "white", fontSize: 28 }}>
-              WatchNext
-            </Title>
-            <IconButton
+            <Appbar.Content title="WatchNext" />
+            <Appbar.Action
               icon="account-multiple-plus"
-              color="white"
-              size={35}
               onPress={() => this.showModal()}
-              style={{ flex: 1 }}
             />
-          </LinearGradient>
+          </Appbar.Header>
         </View>
         <View style={styles.content}>
           <ScrollView>
-            <Title style={{ marginLeft: 15, marginTop: 15, fontSize: 24 }}>
+            <Title style={{ marginLeft: 15, fontSize: 24 }}>
               Matching Sessions
             </Title>
             {this.sortSessions(this.props.matchingSessions).map(
@@ -254,7 +251,7 @@ export default class HomeScreen extends Component {
             icon="account"
             color="black"
             size={40}
-            onPress={() => console.log("User Icon Pressed")}
+            onPress={() => this.props.updateScreen("AccountScreen")}
             style={{ flex: 1 }}
           />
         </View>
@@ -268,7 +265,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   top: {
-    flex: 1.15,
+    flex: 1,
   },
   content: {
     flex: 5,

@@ -97,10 +97,6 @@ export default class MatchesScreen extends Component {
   }
 
   render() {
-    console.log("matches screen props");
-    console.log(this.props.matches);
-    console.log("matches screen state");
-    console.log(this.state.matchesList);
     return (
       <View style={styles.mainContainer}>
         <Appbar.Header>
