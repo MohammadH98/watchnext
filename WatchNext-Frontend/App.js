@@ -36,7 +36,7 @@ import * as ImagePicker from "expo-image-picker";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
 // https://api.cloudinary.com/v1_1/hgxqzjwvu
 
-const socket = io("https://3d4a94c71a78.ngrok.io", {
+const socket = io("https://06a896401c7a.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -88,7 +88,7 @@ class App extends React.Component {
     this.state = {
       currentScreen: "LoginScreen",
       previousScreen: "",
-      username: "",
+      user: {},
       uID: "",
       isInvite: false,
       movies: [],
@@ -119,12 +119,23 @@ class App extends React.Component {
       function () {
         socket.on(
           "loginResp",
+          /*KEYS:
+          "likes",
+          "dislikes",
+          "friends_list",
+          "matching_sessions",
+          "genres",
+          "_id",
+          "user_id",
+          "username",
+          "created_on",
+          "__v",*/
           function (data) {
-            console.log("Image: " + data.user.image);
+            //console.log(Object.keys(data.user));
             if (data.success) {
               this.updateScreen(data.first ? "SetupScreen" : "HomeScreen");
               this.setState({
-                username: data.user.username,
+                user: data.user,
                 uID: data.user.user_id,
                 cloudImgUrl: data.user.image,
               });
@@ -142,7 +153,7 @@ class App extends React.Component {
             }
             this.updateScreen(currentS);
             this.setState({
-              username: data.username,
+              user: data,
             });
           }.bind(this)
         );
@@ -180,6 +191,21 @@ class App extends React.Component {
         socket.on(
           "recvSessions",
           function (data) {
+            /*
+            Array [
+              "members",
+              "likes",
+              "dislikes",
+              "watched",
+              "_id",
+              "session_id",
+              "creator_id",
+              "name",
+              "created_on",
+              "__v",
+              "num_matches",
+            ]
+            */
             this.setState({
               sessions: data,
             });
@@ -479,6 +505,7 @@ class App extends React.Component {
               avatarLocation={this.state.cloudImgUrl}
               goBack={this.goBack}
               logout={this.logoutOfApp}
+              user={this.state.user}
             />
           </PaperProvider>
         );

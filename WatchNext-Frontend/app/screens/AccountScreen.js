@@ -41,14 +41,24 @@ function ExportData() {
 export default class HomeScreen extends Component {
   constructor(props) {
     super(props);
+    var name = this.props.user.firstname + " " + this.props.user.lastname;
+    var username = this.props.user.username;
+    if (
+      this.props.user.firstname === undefined ||
+      this.props.user.firstname === ""
+    ) {
+      name = this.props.user.username;
+      username = "";
+    }
     this.state = {
       genres: ExportData(),
-      selectedGenres: [],
+      selectedGenres: this.props.user.genres,
       genrePage: true,
-      name: "Bilal Jaffry",
-      username: "BJ_1998",
+      name: name,
+      username: username,
       editName: false,
       editUsername: false,
+      email: this.props.user.user_id,
     };
   }
 
@@ -111,7 +121,10 @@ export default class HomeScreen extends Component {
             icon="arrow-left"
             color="black"
             size={35}
-            onPress={() => this.props.goBack()}
+            onPress={() => {
+              /*this.props.updateGenres();*/
+              this.props.goBack();
+            }}
           />
           <Title>My Account</Title>
           <LogoutButton logout={this.props.logout} />
@@ -243,7 +256,7 @@ export default class HomeScreen extends Component {
                 <View style={styles.userDetailContainer}>
                   <Caption style={{ fontSize: 14 }}>Email</Caption>
                   <View style={styles.userDetailField}>
-                    <Text style={{ fontSize: 16 }}>bj1998@mcmaster.ca</Text>
+                    <Text style={{ fontSize: 16 }}>{this.state.email}</Text>
                     <Button
                       mode="text"
                       style={{ marginLeft: "auto", opacity: 0 }}

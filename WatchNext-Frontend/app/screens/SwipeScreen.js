@@ -11,25 +11,15 @@ import { LinearGradient } from "expo-linear-gradient";
  */
 function SwipeScreen(props) {
   return (
-    <View style={styles.mainContainer}>
-      <MovieCardStack
-        data={props.data}
-        requestMovies={props.requestMovies}
-        saveRatings={props.saveRatings}
-        currentMS={props.currentMS}
-        goBack={props.goBack}
-        updateScreen={props.updateScreen}
-      />
-    </View>
+    <MovieCardStack
+      data={props.data}
+      requestMovies={props.requestMovies}
+      saveRatings={props.saveRatings}
+      currentMS={props.currentMS}
+      goBack={props.goBack}
+      updateScreen={props.updateScreen}
+    />
   );
 }
-const styles = StyleSheet.create({
-  mainContainer: {
-    display: "flex",
-    alignSelf: "center",
-    justifyContent: "center",
-    textAlign: "center",
-  },
-});
 
 export default SwipeScreen;

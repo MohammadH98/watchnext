@@ -5,7 +5,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
+  TouchableOpacity,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import QRCode from "react-native-qrcode";
@@ -189,12 +189,18 @@ export default class HomeScreen extends Component {
               }}
             />
             <Appbar.Content title="WatchNext" />
-            <Appbar.Action icon="qrcode-scan" onPress={() => this.showQR()} />
             <Appbar.Action
+              size={25}
+              icon="qrcode-scan"
+              onPress={() => this.showQR()}
+            />
+            <Appbar.Action
+              size={30}
               icon="account"
               onPress={() => this.props.updateScreen("AccountScreen")}
             />
             <Appbar.Action
+              size={35}
               icon="account-multiple-plus"
               onPress={() => this.showModal()}
             />
@@ -208,7 +214,7 @@ export default class HomeScreen extends Component {
             {this.sortSessions(this.props.matchingSessions).map(
               (matchingSession) => (
                 <View key={matchingSession.session_id}>
-                  <Pressable
+                  <TouchableOpacity
                     style={styles.matchingSession}
                     onPress={() =>
                       this.props.enterMatching(
@@ -235,7 +241,7 @@ export default class HomeScreen extends Component {
                         this.props.updateScreen("SessionSettingsScreen")
                       }
                     />
-                  </Pressable>
+                  </TouchableOpacity>
                   <Divider />
                 </View>
               )
