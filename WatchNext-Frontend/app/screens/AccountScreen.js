@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { StyleSheet, View, KeyboardAvoidingView, Platform } from "react-native";
+import LogoutButton from "../components/LogoutButton";
 import {
   Text,
   Title,
@@ -88,6 +89,16 @@ export default class HomeScreen extends Component {
     this.setState({ genrePage: false });
   }
 
+  getAvatarUrl() {
+    if (
+      this.props.avatarLocation === undefined ||
+      this.props.avatarLocation === ""
+    ) {
+      return "https://p.kindpng.com/picc/s/22-223910_circle-user-png-icon-transparent-png.png";
+    }
+    return this.props.avatarLocation;
+  }
+
   render() {
     return (
       <KeyboardAvoidingView
@@ -100,30 +111,24 @@ export default class HomeScreen extends Component {
             icon="arrow-left"
             color="black"
             size={35}
-            onPress={() => console.log("Back Button Pressed")}
+            onPress={() => this.props.goBack()}
           />
           <Title>My Account</Title>
-          <IconButton
-            icon="logout"
-            color="red"
-            size={35}
-            onPress={() => console.log("Logout Button Pressed")}
-          />
+          <LogoutButton logout={this.props.logout} />
         </View>
         <View style={styles.overview}>
           <View>
             <Avatar.Image
               size={150}
               source={{
-                uri:
-                  "https://scontent-yyz1-1.xx.fbcdn.net/v/t1.0-9/44680002_954885824711081_5944810765792837632_n.jpg?_nc_cat=111&ccb=1-3&_nc_sid=09cbfe&_nc_ohc=qpcUDcGVykcAX-fJ5Vl&_nc_ht=scontent-yyz1-1.xx&oh=1a3183b173ec701a8b12b4e318d35dcb&oe=607E1E31",
+                uri: this.getAvatarUrl(),
               }}
             />
             <FAB
               icon="camera"
               style={styles.avatarButton}
               color="white"
-              onPress={() => console.log("Avatar Change Button Pressed")}
+              onPress={() => this.props.updateAvatar()}
             />
           </View>
           <Headline style={{ fontWeight: "bold" }}>{this.state.name}</Headline>
@@ -274,23 +279,6 @@ export default class HomeScreen extends Component {
               </View>
             </View>
           )}
-        </View>
-        <View styles={{flex: 1}}>
-          <Divider />
-          <View style={styles.bottomBar}>
-            <IconButton
-              icon="home"
-              color="black"
-              size={40}
-              onPress={() => console.log("Home Icon Pressed")}
-            />
-            <IconButton
-              icon="account"
-              color="purple"
-              size={40}
-              onPress={() => console.log("User Icon Pressed")}
-            />
-          </View>
         </View>
       </KeyboardAvoidingView>
     );

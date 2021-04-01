@@ -66,7 +66,11 @@ export default function LoginButton(props) {
       {name ? ( //this basically means, if the token is decoded correctly and the state was updated on the login, we call the function from app.js, which stops displaying the login button
         <>{props.loginToApp(resultForLogin)}</>
       ) : (
-        <Button disabled={!request} onPress={() => promptAsync({ useProxy })}>
+        <Button
+          mode="contained"
+          disabled={!request}
+          onPress={() => promptAsync({ useProxy })}
+        >
           Login To WatchNext
         </Button>
       )}

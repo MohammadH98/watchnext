@@ -104,6 +104,7 @@ export default class MatchesScreen extends Component {
           <Appbar.Content title="The Capstone Boys" subtitle="Matches List" />
           <Avatar.Image
             size={40}
+            style={{ paddingRight: 50 }}
             source={{
               uri: this.state.sessionAvatar,
             }}

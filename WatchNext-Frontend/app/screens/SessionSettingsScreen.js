@@ -135,7 +135,7 @@ export default class SessionSettingsScreen extends Component {
             icon="arrow-left"
             color="black"
             size={35}
-            onPress={() => console.log("Back Button Pressed")}
+            onPress={() => this.props.goBack()}
           />
           <Title>Matching Session</Title>
           <IconButton
@@ -307,23 +307,6 @@ export default class SessionSettingsScreen extends Component {
               </View>
             </View>
           )}
-        </View>
-        <View styles={{ flex: 1 }}>
-          <Divider />
-          <View style={styles.bottomBar}>
-            <IconButton
-              icon="home"
-              color="purple"
-              size={40}
-              onPress={() => console.log("Home Icon Pressed")}
-            />
-            <IconButton
-              icon="account"
-              color="black"
-              size={40}
-              onPress={() => console.log("User Icon Pressed")}
-            />
-          </View>
         </View>
       </KeyboardAvoidingView>
     );

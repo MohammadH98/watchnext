@@ -19,6 +19,7 @@ import {
   DefaultTheme,
   FAB,
   IconButton,
+  Appbar,
 } from "react-native-paper";
 
 const ImageHeight = 550;
@@ -332,31 +333,25 @@ class MovieCardStack extends React.Component {
     if (this.state.showStack) {
       return (
         <View style={styles.mainContainer}>
-          <IconButton
-            icon="arrow-left"
-            color="white"
-            size={40}
-            onPress={() =>
-              this.props.saveRatings(
-                this.state.likedMovies,
-                this.state.dislikedMovies,
-                "HomeScreen"
-              )
-            }
-          />
-          <IconButton
-            icon="movie"
-            color="white"
-            size={40}
-            onPress={() => {
-              this.props.saveRatings(
-                this.state.likedMovies,
-                this.state.dislikedMovies,
-                "MatchesScreen"
-              );
-            }}
-            style={{ marginRight: 150 }}
-          />
+          <Appbar.Header>
+            <Appbar.BackAction
+              onPress={() => {
+                this.props.saveRatings(
+                  this.state.likedMovies,
+                  this.state.dislikedMovies,
+                  "HomeScreen"
+                );
+              }}
+            />
+            <Appbar.Content
+              title="The Capstone Boys"
+              subtitle="Matching Session"
+            />
+            <Appbar.Action
+              icon="movie"
+              onPress={() => this.props.updateScreen("MatchesScreen")}
+            />
+          </Appbar.Header>
           <CardStack
             style={styles.card}
             ref={(swiper) => {

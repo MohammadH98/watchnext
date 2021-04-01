@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   SafeAreaView,
+  BackHandler,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import io from "socket.io-client";
@@ -28,13 +29,14 @@ import HomeScreen from "./app/screens/HomeScreen";
 import SetupScreen from "./app/screens/SetupScreen";
 import MatchesScreen from "./app/screens/MatchesScreen";
 import AccountScreen from "./app/screens/AccountScreen";
+import SessionSettingsScreen from "./app/screens/SessionSettingsScreen";
 
 //For image uploading
 import * as ImagePicker from "expo-image-picker";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
 // https://api.cloudinary.com/v1_1/hgxqzjwvu
 
-const socket = io("https://1486db6944c9.ngrok.io", {
+const socket = io("https://3d4a94c71a78.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -102,7 +104,7 @@ class App extends React.Component {
     this.requestRoom = this.requestRoom.bind(this);
     this.loginToApp = this.loginToApp.bind(this);
     this.logoutOfApp = this.logoutOfApp.bind(this);
-    this.loginSetupComplete = this.loginSetupComplete.bind(this);
+    this.updateUser = this.updateUser.bind(this);
     this.saveRatings = this.saveRatings.bind(this);
     this.sendInvite = this.sendInvite.bind(this);
     this.setMatchingSessionID = this.setMatchingSessionID.bind(this);
@@ -110,6 +112,7 @@ class App extends React.Component {
     this.updateScreen = this.updateScreen.bind(this);
     this.goBack = this.goBack.bind(this);
     this.openImagePickerAsync = this.openImagePickerAsync.bind(this);
+    this.handleBackButtonClick = this.handleBackButtonClick.bind(this);
 
     socket.on(
       "connect",
@@ -149,8 +152,8 @@ class App extends React.Component {
           function (data) {
             this.setState({
               movies: data,
-              currentScreen: "SwipeScreen",
             });
+            this.updateScreen("SwipeScreen");
           }.bind(this)
         );
 
@@ -199,6 +202,28 @@ class App extends React.Component {
         );
       }.bind(this)
     );
+  }
+
+  componentDidMount() {
+    BackHandler.addEventListener(
+      "hardwareBackPress",
+      this.handleBackButtonClick
+    );
+  }
+
+  componentWillUnmount() {
+    BackHandler.removeEventListener(
+      "hardwareBackPress",
+      this.handleBackButtonClick
+    );
+  }
+
+  handleBackButtonClick() {
+    if (this.state.currentScreen === "HomeScreen") {
+      return true;
+    }
+    this.goBack();
+    return true;
   }
 
   /**
@@ -271,7 +296,7 @@ class App extends React.Component {
     socket.emit("sendInv", { uID: uID, sID: sID });
   }
 
-  loginSetupComplete(firstname, lastname, username, selectedGenres) {
+  updateUser(firstname, lastname, username, selectedGenres) {
     var avatar = this.state.cloudImgUrl;
     // console.log("Image Url" + avatar);
     socket.emit("editUser", {
@@ -316,6 +341,13 @@ class App extends React.Component {
   }
 
   goBack() {
+    console.log("going back from " + this.state.currentScreen);
+    if (
+      this.state.currentScreen === "MatchesScreen" ||
+      this.state.currentScreen === "SwipeScreen"
+    ) {
+      socket.emit("getSessions", "");
+    }
     this.updateScreen(this.state.previousScreen);
   }
 
@@ -394,6 +426,7 @@ class App extends React.Component {
       })
       .catch((err) => console.log(err));
   };
+
   render() {
     {
       this.state.isInvite && ( //if you have been invited
@@ -418,7 +451,7 @@ class App extends React.Component {
             <SetupScreen
               updateAvatar={this.openImagePickerAsync}
               avatarLocation={this.state.cloudImgUrl}
-              onCompletion={this.loginSetupComplete}
+              onCompletion={this.updateUser}
             />
           </PaperProvider>
         );
@@ -441,7 +474,12 @@ class App extends React.Component {
       case "AccountScreen":
         return (
           <PaperProvider theme={DefaultTheme}>
-            <AccountScreen />
+            <AccountScreen
+              updateAvatar={this.openImagePickerAsync}
+              avatarLocation={this.state.cloudImgUrl}
+              goBack={this.goBack}
+              logout={this.logoutOfApp}
+            />
           </PaperProvider>
         );
 
@@ -459,6 +497,8 @@ class App extends React.Component {
               requestMovies={this.requestMovies}
               saveRatings={this.saveRatings}
               currentMS={this.state.currentMatchingSessionID}
+              goBack={this.goBack}
+              updateScreen={this.updateScreen}
             />
           </PaperProvider>
         );
@@ -466,7 +506,7 @@ class App extends React.Component {
       case "SessionSettingsScreen":
         return (
           <PaperProvider theme={DefaultTheme}>
-            <SessionSettingsScreen />
+            <SessionSettingsScreen goBack={this.goBack} />
           </PaperProvider>
         );
 

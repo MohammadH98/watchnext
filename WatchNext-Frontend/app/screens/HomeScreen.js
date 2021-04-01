@@ -5,18 +5,17 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import QRCode from "react-native-qrcode";
 import {
   Text,
   Title,
-  Searchbar,
   Caption,
   IconButton,
   Divider,
   Avatar,
-  FAB,
   Portal,
   Modal,
   Button,
@@ -112,7 +111,7 @@ export default class HomeScreen extends Component {
         style={styles.container}
         enabled={false}
       >
-        <View style={styles.top}>
+        <View>
           <Portal>
             <Modal
               visible={this.state.firstModalVisible}
@@ -135,10 +134,10 @@ export default class HomeScreen extends Component {
               contentContainerStyle={styles.containerStyle}
             >
               <IconButton
-                icon="qrcode-scan"
-                color="white"
+                icon="camera"
+                color="red"
                 size={35}
-                onPress={() => console.log("QR Code Icon Pressed")}
+                onPress={() => console.log("Scan Icon Pressed")}
                 style={{ flex: 1 }}
               />
               <TextInput
@@ -174,7 +173,7 @@ export default class HomeScreen extends Component {
               contentContainerStyle={styles.containerStyle}
             >
               <QRCode
-                value={this.state.qrCodeText}
+                value={this.props.uID}
                 size={500}
                 bgColor="purple"
                 fgColor="white"
@@ -183,27 +182,42 @@ export default class HomeScreen extends Component {
           </Portal>
           <Appbar.Header>
             <Avatar.Image
-              size={40}
+              size={30}
+              style={{ paddingLeft: 5 }}
               source={{
                 uri: this.getAvatarUrl(),
               }}
             />
             <Appbar.Content title="WatchNext" />
+            <Appbar.Action icon="qrcode-scan" onPress={() => this.showQR()} />
+            <Appbar.Action
+              icon="account"
+              onPress={() => this.props.updateScreen("AccountScreen")}
+            />
             <Appbar.Action
               icon="account-multiple-plus"
               onPress={() => this.showModal()}
             />
           </Appbar.Header>
         </View>
-        <View style={styles.content}>
+        <View>
           <ScrollView>
-            <Title style={{ marginLeft: 15, fontSize: 24 }}>
+            <Title style={{ fontSize: 24, padding: 15 }}>
               Matching Sessions
             </Title>
             {this.sortSessions(this.props.matchingSessions).map(
               (matchingSession) => (
                 <View key={matchingSession.session_id}>
-                  <View style={styles.matchingSession}>
+                  <Pressable
+                    style={styles.matchingSession}
+                    onPress={() =>
+                      this.props.enterMatching(
+                        [],
+                        [],
+                        matchingSession.session_id
+                      )
+                    }
+                  >
                     <Avatar.Text size={50} label={matchingSession.un} />
                     <View style={{ paddingLeft: 10 }}>
                       <Text style={{ fontWeight: "bold" }}>
@@ -214,48 +228,19 @@ export default class HomeScreen extends Component {
                       </Caption>
                     </View>
                     <IconButton
-                      icon="information"
-                      color="purple"
-                      size={30}
+                      icon="cog"
+                      size={25}
                       style={{ marginLeft: "auto" }}
                       onPress={() =>
-                        this.props.enterMatching(
-                          [],
-                          [],
-                          matchingSession.session_id
-                        )
+                        this.props.updateScreen("SessionSettingsScreen")
                       }
                     />
-                    <IconButton
-                      icon="qrcode"
-                      color="black"
-                      size={40}
-                      onPress={() => this.showQR(matchingSession.session_id)}
-                      style={{ flex: 1 }}
-                    />
-                  </View>
+                  </Pressable>
                   <Divider />
                 </View>
               )
             )}
           </ScrollView>
-        </View>
-        <Divider />
-        <View style={styles.bottom}>
-          <IconButton
-            icon="home"
-            color="purple"
-            size={40}
-            onPress={() => console.log("Home Icon Pressed")}
-            style={{ flex: 1 }}
-          />
-          <IconButton
-            icon="account"
-            color="black"
-            size={40}
-            onPress={() => this.props.updateScreen("AccountScreen")}
-            style={{ flex: 1 }}
-          />
         </View>
       </KeyboardAvoidingView>
     );
@@ -266,38 +251,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  top: {
-    flex: 1,
-  },
-  content: {
-    flex: 5,
-  },
-  bottom: {
-    flex: 0.6,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-  },
-  linearGradient: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-    paddingTop: 50,
-  },
   matchingSession: {
     alignItems: "center",
     flexDirection: "row",
     padding: 15,
   },
-  fab: {
-    position: "absolute",
-    margin: 16,
-    right: 0,
-    bottom: 0,
-  },
   containerStyle: {
+    //flex: 0.5,
     backgroundColor: "white",
+    justifyContent: "center",
     padding: 20,
   },
 });

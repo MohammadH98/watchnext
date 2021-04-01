@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import MovieCardStack from "../components/MovieCardStack";
-import { IconButton } from "react-native-paper";
+import { IconButton, Appbar } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 
 /**
@@ -12,14 +12,14 @@ import { LinearGradient } from "expo-linear-gradient";
 function SwipeScreen(props) {
   return (
     <View style={styles.mainContainer}>
-      <View>
-        <MovieCardStack
-          data={props.data}
-          requestMovies={props.requestMovies}
-          saveRatings={props.saveRatings}
-          currentMS={props.currentMS}
-        />
-      </View>
+      <MovieCardStack
+        data={props.data}
+        requestMovies={props.requestMovies}
+        saveRatings={props.saveRatings}
+        currentMS={props.currentMS}
+        goBack={props.goBack}
+        updateScreen={props.updateScreen}
+      />
     </View>
   );
 }
@@ -29,7 +29,6 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     justifyContent: "center",
     textAlign: "center",
-    paddingTop: 20,
   },
 });
 
