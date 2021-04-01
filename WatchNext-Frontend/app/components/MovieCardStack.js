@@ -349,7 +349,13 @@ class MovieCardStack extends React.Component {
             />
             <Appbar.Action
               icon="movie"
-              onPress={() => this.props.updateScreen("MatchesScreen")}
+              onPress={() => {
+                this.props.saveRatings(
+                  this.state.likedMovies,
+                  this.state.dislikedMovies,
+                  "MatchesScreen"
+                );
+              }}
             />
           </Appbar.Header>
           <CardStack
