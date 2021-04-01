@@ -41,12 +41,18 @@ function ExportData() {
 export default class HomeScreen extends Component {
   constructor(props) {
     super(props);
-    var name = this.props.user.firstname + " " + this.props.user.lastname;
+    console.log(this.props.user.genres);
+    var fname = this.props.user.firstname;
+    var lname = this.props.user.lastname;
+    if (fname === undefined) {
+      fname = "";
+    }
+    if (lname === undefined) {
+      lname = "";
+    }
+    var name = fname + " " + lname;
     var username = this.props.user.username;
-    if (
-      this.props.user.firstname === undefined ||
-      this.props.user.firstname === ""
-    ) {
+    if (fname === "" && lname === "") {
       name = this.props.user.username;
       username = "";
     }
@@ -71,10 +77,43 @@ export default class HomeScreen extends Component {
   }
 
   editName() {
+    if (!this.state.editName) {
+      console.log("edit name mode enabled");
+    } else {
+      var nameSplit = this.processName(this.state.name);
+      this.props.updateUser(
+        nameSplit[0],
+        nameSplit[1],
+        this.state.username.trim(),
+        this.state.selectedGenres
+      );
+    }
     this.setState({ editName: !this.state.editName });
   }
 
+  processName(fullname) {
+    fullname = fullname.trim();
+    if (!fullname.includes(" ")) {
+      return [fullname, ""];
+    }
+    return [
+      fullname.substr(0, fullname.indexOf(" ")).trim(),
+      fullname.substr(fullname.indexOf(" ") + 1).trim(),
+    ];
+  }
+
   editUsername() {
+    if (!this.state.editUsername) {
+      console.log("edit name mode enabled");
+    } else {
+      var nameSplit = this.processName(this.state.name);
+      this.props.updateUser(
+        nameSplit[0],
+        nameSplit[1],
+        this.state.username.trim(),
+        this.state.selectedGenres
+      );
+    }
     this.setState({ editUsername: !this.state.editUsername });
   }
 
@@ -121,10 +160,7 @@ export default class HomeScreen extends Component {
             icon="arrow-left"
             color="black"
             size={35}
-            onPress={() => {
-              /*this.props.updateGenres();*/
-              this.props.goBack();
-            }}
+            onPress={() => this.props.goBack()}
           />
           <Title>My Account</Title>
           <LogoutButton logout={this.props.logout} />

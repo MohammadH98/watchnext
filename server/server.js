@@ -436,6 +436,26 @@ io.on("connection", function (socket) {
       });
   });
 
+  // Get multiple users. (used to get users in a matching session) users
+  // REQ: {uIDs: [String] }
+  socket.on("getSessionMembers", function (data) {
+    ids = data.uIDs.join(",");
+    // Get user data
+    axios
+      .get(`https://xwatchnextx.herokuapp.com/api/user/${ids}`, {
+        headers: {
+          authorization: `Bearer ${DBTOKEN}`,
+        },
+      })
+      .then((response) => {
+        console.log("get matching session members");
+        socket.emit("recvSessionMembers", response.data.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
   // Delete user account
   // REQ: {pass: "Password of current user" (str)}
   socket.on("delUser", function (data) {

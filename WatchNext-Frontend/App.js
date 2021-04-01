@@ -36,7 +36,7 @@ import * as ImagePicker from "expo-image-picker";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
 // https://api.cloudinary.com/v1_1/hgxqzjwvu
 
-const socket = io("https://06a896401c7a.ngrok.io", {
+const socket = io("https://15215acdb1a3.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -133,7 +133,7 @@ class App extends React.Component {
           function (data) {
             //console.log(Object.keys(data.user));
             if (data.success) {
-              this.updateScreen(data.first ? "SetupScreen" : "HomeScreen");
+              this.updateScreen(!data.first ? "SetupScreen" : "HomeScreen");
               this.setState({
                 user: data.user,
                 uID: data.user.user_id,
@@ -147,13 +147,12 @@ class App extends React.Component {
         socket.on(
           "editResp",
           function (data) {
-            var currentS = this.state.currentScreen;
             if (this.state.currentScreen === "SetupScreen") {
-              currentS = "HomeScreen";
+              this.updateScreen("HomeScreen");
             }
-            this.updateScreen(currentS);
+            console.log(Object.keys(data.data));
             this.setState({
-              user: data,
+              user: data.data,
             });
           }.bind(this)
         );
@@ -324,7 +323,9 @@ class App extends React.Component {
 
   updateUser(firstname, lastname, username, selectedGenres) {
     var avatar = this.state.cloudImgUrl;
-    // console.log("Image Url" + avatar);
+    console.log("firstname: " + firstname);
+    console.log("lastname: " + lastname);
+    console.log("username: " + username);
     socket.emit("editUser", {
       firstname: firstname,
       lastname: lastname,
@@ -502,6 +503,7 @@ class App extends React.Component {
           <PaperProvider theme={DefaultTheme}>
             <AccountScreen
               updateAvatar={this.openImagePickerAsync}
+              updateUser={this.updateUser}
               avatarLocation={this.state.cloudImgUrl}
               goBack={this.goBack}
               logout={this.logoutOfApp}
