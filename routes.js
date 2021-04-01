@@ -104,6 +104,12 @@ router.get('/matching-sessions/user/:id', matchingSessionController.getSessionsO
 //change matching session name
 router.patch('/matching-session/name', matchingSessionController.changeName);
 
+//change matching session genres
+router.patch('/matching-session/genres', matchingSessionController.editGenres);
+
+//change matching session image
+router.patch('/matching-session/image', matchingSessionController.editImage);
+
 //add member to matching session
 router.post('/matching-session/members', matchingSessionController.addMember);
 

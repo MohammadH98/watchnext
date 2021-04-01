@@ -19,7 +19,9 @@ exports.new = function(req, res){
     session_id: req.body.session_id,
     creator_id: req.body.creator_id,
     name: req.body.name,
-    members:[req.body.creator_id]
+    members:[req.body.creator_id],
+    image: req.body.image ? req.body.image: undefined,
+    genres: req.body.genres ? req.body.genres : undefined
   })
 
   //make sure a user with the specified creator_id exists
@@ -156,6 +158,66 @@ exports.changeName = function(req, res){
     session.save().then(session=>{
       res.json({
         message: 'session name updated',
+        data: session
+      });
+    }).catch(err=>{
+      res.status(500).json(err);
+    })
+  }).catch(err=>{
+    res.status(500).json(err)
+  })
+}
+
+//update the genres in a matching session
+exports.editGenres = function(req, res){
+  //validate that request contains all neccesary parts
+  if (!req.body.session_id || !req.body.genres){
+    return res.status(400).json({
+      message: "Please include session_id and genres"
+    })
+  }
+
+  Session.findOne({session_id: req.body.session_id}).then(session=>{
+
+    if (!session)
+      return res.status(404).json({message: 'Unable to find any session with that ID'})
+    else
+      session.genres = req.body.genres;
+
+    //save session and check for errors
+    session.save().then(session=>{
+      res.json({
+        message: 'session genres updated',
+        data: session
+      });
+    }).catch(err=>{
+      res.status(500).json(err);
+    })
+  }).catch(err=>{
+    res.status(500).json(err)
+  })
+}
+
+//update the avatar image of a matching session
+exports.editImage = function(req, res){
+  //validate that request contains all neccesary parts
+  if (!req.body.session_id || !req.body.image){
+    return res.status(400).json({
+      message: "Please include session_id and image"
+    })
+  }
+
+  Session.findOne({session_id: req.body.session_id}).then(session=>{
+
+    if (!session)
+      return res.status(404).json({message: 'Unable to find any session with that ID'})
+    else
+      session.image = req.body.image;
+
+    //save session and check for errors
+    session.save().then(session=>{
+      res.json({
+        message: 'session image updated',
         data: session
       });
     }).catch(err=>{

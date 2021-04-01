@@ -43,6 +43,13 @@ var sessionSchema = mongoose.Schema({
     type: Date,
     required: true,
     default: Date.now
+  },
+  image:{
+    type: String
+  },
+  genres:{
+    type: [String],
+    required: false
   }
 });
 
