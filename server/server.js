@@ -277,6 +277,8 @@ io.on("connection", function (socket) {
           // User exists, assign to user and send to frontend
           SOCKET_LIST[socket.id].uID = data.tokenDecoded.email;
           //console.log(`Socket ${socket.id} logged in with uID ${uobj.uID}`); //this line doesn't work
+          console.log("user");
+          console.log(user);
           socket.emit("loginResp", { success: true, first: false, user: user });
         } else {
           // Make a new DB entry for user, send response to frontend

@@ -349,6 +349,7 @@ class MovieCardStack extends React.Component {
             />
             <Appbar.Action
               icon="movie"
+              size={35}
               onPress={() => {
                 this.props.saveRatings(
                   this.state.likedMovies,
@@ -456,18 +457,16 @@ class MovieCardStack extends React.Component {
 
 const styles = StyleSheet.create({
   mainContainer: {
-    display: "flex",
     flex: 1,
-    alignSelf: "center",
     justifyContent: "center",
-    textAlign: "center",
-    overflow: "hidden",
-    width: ImageWidth,
   },
   card: {
     width: ImageWidth,
     height: ImageHeight,
     borderRadius: 20,
+    alignSelf: "center",
+    textAlign: "center",
+    justifyContent: "center",
   },
   cardModal: {
     width: ImageWidth,
