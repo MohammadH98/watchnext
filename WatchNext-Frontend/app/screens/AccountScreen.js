@@ -80,13 +80,7 @@ export default class HomeScreen extends Component {
     if (!this.state.editName) {
       console.log("edit name mode enabled");
     } else {
-      var nameSplit = this.processName(this.state.name);
-      this.props.updateUser(
-        nameSplit[0],
-        nameSplit[1],
-        this.state.username.trim(),
-        this.state.selectedGenres
-      );
+      this.updateInformation();
     }
     this.setState({ editName: !this.state.editName });
   }
@@ -106,15 +100,19 @@ export default class HomeScreen extends Component {
     if (!this.state.editUsername) {
       console.log("edit name mode enabled");
     } else {
-      var nameSplit = this.processName(this.state.name);
-      this.props.updateUser(
-        nameSplit[0],
-        nameSplit[1],
-        this.state.username.trim(),
-        this.state.selectedGenres
-      );
+      this.updateInformation();
     }
     this.setState({ editUsername: !this.state.editUsername });
+  }
+
+  updateInformation() {
+    var nameSplit = this.processName(this.state.name);
+    this.props.updateUser(
+      nameSplit[0],
+      nameSplit[1],
+      this.state.username.trim(),
+      this.state.selectedGenres
+    );
   }
 
   toggleGenre(genre) {
@@ -231,6 +229,17 @@ export default class HomeScreen extends Component {
                   </Button>
                 ))}
               </View>
+              <Button
+                mode="contained"
+                style={{
+                  backgroundColor: "purple",
+                  borderRadius: 20,
+                  margin: 15,
+                }}
+                onPress={() => this.updateInformation()}
+              >
+                Save
+              </Button>
             </View>
           ) : (
             <View>
