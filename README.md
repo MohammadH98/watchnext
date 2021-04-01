@@ -18,7 +18,3 @@ To start the server, in another terminal window, navigate to the `server` folder
 To start the client, in another terminal window, navigate to the `WatchNext-Frontend` folder of this repo and run `npm install` on the first installation only, then run `updateNodeModules.sh` to update the `node_modules` folder. Lastly, run `npm run web` to begin.
 ## Done!
 You should now be presented with a page with an expo page, complete with a QR code and task report page. You can scan the QR code to run the app on your phone, or select the `Run in web browser` option to look at the application on your browser
-
-## QR CODES
-In order to get QR codes working on the app you must go to the WatchNext-Frontend folder, and find the file in canvas.js file in node_modules. (WatchNext-Frontend/node_module/react-native-qrcode/lib/Canvas.js) and change that file with the Canvas.js file provided in this repo.
-
