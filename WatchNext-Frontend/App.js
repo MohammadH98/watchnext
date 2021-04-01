@@ -133,7 +133,7 @@ class App extends React.Component {
           function (data) {
             //console.log(Object.keys(data.user));
             if (data.success) {
-              this.updateScreen(!data.first ? "SetupScreen" : "HomeScreen");
+              this.updateScreen(data.first ? "SetupScreen" : "HomeScreen");
               this.setState({
                 user: data.user,
                 uID: data.user.user_id,
