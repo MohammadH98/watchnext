@@ -110,6 +110,9 @@ router.patch('/matching-session/genres', matchingSessionController.editGenres);
 //change matching session image
 router.patch('/matching-session/image', matchingSessionController.editImage);
 
+//change matching session members with new provided array
+router.patch('/matching-session/members', matchingSessionController.replaceMembers);
+
 //add member to matching session
 router.post('/matching-session/members', matchingSessionController.addMember);
 

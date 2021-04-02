@@ -228,6 +228,39 @@ exports.editImage = function(req, res){
   })
 }
 
+//replaces the members in a session with the newly provided members array (if creator is not in it, then this will add the creator to it)
+exports.replaceMembers = function(req, res){
+   //validate that request contains all neccesary parts
+   if (!req.body.session_id || !req.body.members){
+    return res.status(400).json({
+      message: "Please include session_id and members"
+    })
+  }
+
+  Session.findOne({session_id: req.body.session_id}).then(session=>{
+    if (!session)
+      return res.status(404).json({message: 'Unable to find any session with that ID'})
+    else if (req.body.members.indexOf(session.creator_id)<0)
+      req.body.members.push(session.creator_id)
+    
+    session.members = req.body.members;
+      
+    //save session and check for errors
+    session.save().then(session=>{
+      res.json({
+        message: 'session members updated',
+        data: session
+      });
+    }).catch(err=>{
+      console.log(err)
+      res.status(500).json(err);
+    })
+  }).catch(err=>{
+    res.status(500).json(err)
+    console.log(err)
+  })
+}
+
 //add member(s) to matching session
 exports.addMember = function(req, res){
 
