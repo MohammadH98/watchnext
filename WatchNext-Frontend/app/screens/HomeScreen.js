@@ -211,6 +211,7 @@ export default class HomeScreen extends Component {
             <Title style={{ fontSize: 24, padding: 15 }}>
               Matching Sessions
             </Title>
+            <Divider />
             {this.sortSessions(this.props.matchingSessions).map(
               (matchingSession) => (
                 <View key={matchingSession.session_id}>

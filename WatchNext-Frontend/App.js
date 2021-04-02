@@ -36,7 +36,7 @@ import * as ImagePicker from "expo-image-picker";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
 // https://api.cloudinary.com/v1_1/hgxqzjwvu
 
-const socket = io("https://906a320299a7.ngrok.io", {
+const socket = io("https://3ec03b5f31d2.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -357,36 +357,31 @@ class App extends React.Component {
   }
 
   updateSession(genres, name, member) {
-    if (name != "" && name != undefined) {
-      socket.emit("editSessionName", {
-        name: name,
-        session_id: this.state.currentMatchingSessionID,
-      });
-    }
-    if (genres != undefined) {
-      socket.emit("editSessionGenres", {
-        genres: genres,
-        session_id: this.state.currentMatchingSessionID,
-      });
-    }
-    if (
-      member != undefined &&
-      member != this.state.currentMatchingSession.creator_id
-    ) {
-      console.log("emitting Delete Session Member");
-      socket.emit("deleteSessionMember", {
-        user_id: member,
-        session_id: this.state.currentMatchingSessionID,
-      });
-    }
-
-    if (
-      member != undefined &&
-      member === this.state.currentMatchingSession["creator_id"]
-    ) {
-      socket.emit("deleteSession", {
-        session_id: this.state.currentMatchingSessionID,
-      });
+    if (member != undefined) {
+      if (member != this.state.currentMatchingSession.creator_id) {
+        socket.emit("deleteSessionMember", {
+          user_id: member,
+          session_id: this.state.currentMatchingSessionID,
+        });
+      } else if (member === this.state.currentMatchingSession["creator_id"]) {
+        socket.emit("deleteSession", {
+          session_id: this.state.currentMatchingSessionID,
+        });
+      }
+    } else {
+      if (name != "" && name != undefined) {
+        socket.emit("editSessionName", {
+          name: name,
+          session_id: this.state.currentMatchingSessionID,
+        });
+      }
+      if (genres != undefined) {
+        console.log("genres being called");
+        socket.emit("editSessionGenres", {
+          genres: genres,
+          session_id: this.state.currentMatchingSessionID,
+        });
+      }
     }
   }
 
