@@ -10,65 +10,14 @@ import {
   Appbar,
   IconButton,
   Surface,
+  Modal,
+  Portal
 } from "react-native-paper";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import { DraxProvider, DraxList } from "react-native-drax";
-
-function ExportData() {
-  return [
-    {
-      name: "Undercover",
-      avatar:
-        "https://occ-0-299-300.1.nflxso.net/dnm/api/v6/evlCitJPPCVCry0BZlEFb5-QjKc/AAAABdak-CDgzOVp4Xs1fZ_TMji6bDhfmNsRjW6EOzD_KcWmWkhrrUkYKmJH4-bHHKhRVk199COlPW20SkN-2FprCBO6MYzUhIdu7DK2TnuCCOH9_6Hzc_-FPDZzYrsbUSLrxG3SsTFS3oci18Q7BV2Nl_mZ-Gdk4c0.jpg",
-      type: "TV Show",
-    },
-    {
-      name: "Surrounded",
-      avatar:
-        "https://occ-0-299-300.1.nflxso.net/dnm/api/v6/evlCitJPPCVCry0BZlEFb5-QjKc/AAAABbcC7qu5uUykxEaKmN9piPpgpitxyqbYAuMueH2zkAe6LQVr68YfKei2HJOYOp_GoLUQFrDOM07HGtUtV4Yo-Npi72TU.jpg",
-      type: "Movie",
-    },
-    {
-      name: "Office Uprising",
-      avatar:
-        "https://occ-0-299-300.1.nflxso.net/dnm/api/v6/evlCitJPPCVCry0BZlEFb5-QjKc/AAAABfIp9txJKP8ujUdMV0BI-GnUwsjJuOmxIFpV7i5FA41MjcOf_aYnGYOUFhlJfs04adJkn2MMOJfaS3cU6bs2Ne0w_NwC.jpg",
-      type: "Movie",
-    },
-    {
-      name: "Breaking Bad",
-      avatar:
-        "https://m.media-amazon.com/images/M/MV5BMjhiMzgxZTctNDc1Ni00OTIxLTlhMTYtZTA3ZWFkODRkNmE2XkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_UY1200_CR116,0,630,1200_AL_.jpg",
-      type: "TV Show",
-    },
-    {
-      name: "Arrested Development",
-      avatar:
-        "https://m.media-amazon.com/images/M/MV5BNTFlYTE2YTItZmQ1NS00ZWQ5LWI3OGUtYTQzNDMyZmEyYTZjXkEyXkFqcGdeQXVyNDg4NjY5OTQ@._V1_.jpg",
-      type: "TV Show",
-    },
-    {
-      name: "American Psycho",
-      avatar:
-        "https://upload.wikimedia.org/wikipedia/en/0/0c/American_Psycho.png",
-      type: "Movie",
-    },
-    {
-      name: "Sense8",
-      avatar:
-        "https://occ-0-300-299.1.nflxso.net/art/e1b1b/a65a2efb404b4f4e793900b43c0d6aab47ae1b1b.jpg",
-      type: "TV Show",
-    },
-    {
-      name: "Snowden",
-      avatar:
-        "https://occ-0-1722-1723.1.nflxso.net/dnm/api/v6/evlCitJPPCVCry0BZlEFb5-QjKc/AAAABfLeGZCFHHW2uLNI_0KJnr3nKUgQtfkVuecFe70Q5FTNJDJ2psI7Z7TC--QztbgWf-gObwRXdwV-CcxCPTaJtvJkrpVt.jpg",
-      type: "Movie",
-    },
-  ];
-}
 
 export default class MatchesScreen extends Component {
   constructor(props) {
@@ -79,7 +28,10 @@ export default class MatchesScreen extends Component {
       sessionID: 999999,
       sessionAvatar:
         "https://banner2.cleanpng.com/20180717/cek/kisspng-computer-icons-desktop-wallpaper-team-concept-5b4e0cd3819810.4507019915318417475308.jpg",
+      modalVisible: false,
+      currentItem: {},
     };
+    this.hideModal = this.hideModal.bind(this);
   }
 
   componentDidUpdate(prevProps) {
@@ -96,9 +48,43 @@ export default class MatchesScreen extends Component {
     this.setState({ matchesList: newList });
   }
 
+  capitalizeType(type) {
+    switch (type) {
+      case "movie":
+        return "Movie";
+      case "tv":
+        return "TV Show";
+      case "documentary":
+        return "Documentary";
+      default:
+        return "Movie";
+    }
+  }
+
+  showModal(item) {
+    this.setState({ currentItem: item, modalVisible: true });
+  }
+
+  hideModal() {
+    this.setState({ modalVisible: false });
+  }
+
+  returnItem(item) {
+    return item;
+  }
+
   render() {
+    var media = this.state.currentItem;
     return (
       <View style={styles.mainContainer}>
+        <Portal>
+          <Modal visible={this.state.modalVisible} onDismiss={this.hideModal} contentContainerStyle={styles.modalStyle}>
+            <Title>{media.title}</Title>
+            <Subheading>{media.year}, {media.duration}</Subheading>
+            <Text>{media.description}</Text>
+            <Text>Genres: </Text>
+          </Modal>
+        </Portal>
         <Appbar.Header>
           <Appbar.BackAction onPress={() => this.props.goBack()} />
           <Appbar.Content title="The Capstone Boys" subtitle="Matches List" />
@@ -111,22 +97,26 @@ export default class MatchesScreen extends Component {
           />
         </Appbar.Header>
         <DraxProvider>
-          <View style={{ marginTop: 10 }}>
+          <View>
             <DraxList
               data={this.state.matchesList}
               renderItemContent={({ item }) => (
                 <Surface style={styles.match}>
                   <Avatar.Image size={50} source={{ uri: item.image }} />
                   <View style={{ paddingLeft: 10 }}>
-                    <Text style={{ fontWeight: "bold" }}>{item.title}</Text>
-                    <Caption>{item.media}</Caption>
+                    <Text style={{ fontWeight: "bold" }}>
+                      {item.title.length < 26
+                        ? item.title
+                        : item.title.slice(0, 25).trim() + "..."}
+                    </Text>
+                    <Caption>{this.capitalizeType(item.media)}</Caption>
                   </View>
                   <IconButton
                     icon="information"
                     color="purple"
                     size={30}
                     style={{ marginLeft: "auto" }}
-                    onPress={() => console.log("Info Button Pressed")}
+                    onPress={() => this.showModal(item)}
                   />
                 </Surface>
               )}
@@ -150,13 +140,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     elevation: 10,
-    marginLeft: 20,
-    marginRight: 20,
-    marginTop: 0,
-    marginBottom: 10,
+    marginLeft: 10,
+    marginRight: 10,
+    marginTop: 5,
+    marginBottom: 5,
     paddingLeft: 10,
     paddingRight: 10,
     paddingBottom: 5,
     paddingTop: 5,
+  },
+  modalStyle: {
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
 });
