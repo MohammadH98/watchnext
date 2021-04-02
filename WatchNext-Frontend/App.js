@@ -36,7 +36,7 @@ import * as ImagePicker from "expo-image-picker";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
 // https://api.cloudinary.com/v1_1/hgxqzjwvu
 
-const socket = io("https://15215acdb1a3.ngrok.io", {
+const socket = io("https://bfedd243fe7e.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -94,6 +94,7 @@ class App extends React.Component {
       movies: [],
       sessions: [],
       currentMatchingSessionID: "",
+      currentMatchingSession: {},
       currentMatchesList: [],
       addedUsers: [],
       localImgUrl: "",
@@ -107,12 +108,14 @@ class App extends React.Component {
     this.updateUser = this.updateUser.bind(this);
     this.saveRatings = this.saveRatings.bind(this);
     this.sendInvite = this.sendInvite.bind(this);
-    this.setMatchingSessionID = this.setMatchingSessionID.bind(this);
+    this.setSessionID = this.setSessionID.bind(this);
 
     this.updateScreen = this.updateScreen.bind(this);
     this.goBack = this.goBack.bind(this);
     this.openImagePickerAsync = this.openImagePickerAsync.bind(this);
     this.handleBackButtonClick = this.handleBackButtonClick.bind(this);
+    this.getUser = this.getUser.bind(this);
+    this.updateSession = this.updateSession.bind(this);
 
     socket.on(
       "connect",
@@ -150,6 +153,7 @@ class App extends React.Component {
             if (this.state.currentScreen === "SetupScreen") {
               this.updateScreen("HomeScreen");
             }
+            console.log(Object.keys(data));
             console.log(Object.keys(data.data));
             this.setState({
               user: data.data,
@@ -212,6 +216,24 @@ class App extends React.Component {
               uIDs: this.state.addedUsers,
               sID: this.state.currentMatchingSessionID,
             });
+          }.bind(this)
+        );
+
+        socket.on(
+          "recvSession",
+          function (data) {
+            console.log("session members data");
+            //console.log(data.session);
+            //console.log(data.users);
+            //in here i will send you back an array containing the user objects for all the members in data.users
+            this.setState({
+              currentMatchingSession: data.session,
+            });
+            this.updateScreen("SessionSettingsScreen");
+            // socket.emit("sendInvite", {
+            //   uIDs: this.state.addedUsers,
+            //   sID: this.state.currentMatchingSessionID,
+            // });
           }.bind(this)
         );
 
@@ -321,11 +343,12 @@ class App extends React.Component {
     socket.emit("sendInv", { uID: uID, sID: sID });
   }
 
+  getUser() {
+    socket.emit("getCurrentUser", "");
+  }
+
   updateUser(firstname, lastname, username, selectedGenres) {
     var avatar = this.state.cloudImgUrl;
-    console.log("firstname: " + firstname);
-    console.log("lastname: " + lastname);
-    console.log("username: " + username);
     socket.emit("editUser", {
       firstname: firstname,
       lastname: lastname,
@@ -333,6 +356,52 @@ class App extends React.Component {
       selectedGenres: selectedGenres,
       image: avatar,
     });
+  }
+
+  updateSession(genres, name, members) {
+    if (
+      name != "" &&
+      name != undefined &&
+      name != this.state.currentMatchingSession.name
+    ) {
+      socket.emit("editSessionName", {
+        name: name,
+        session_id: this.state.currentMatchingSessionID,
+      });
+    }
+    if (
+      genres != undefined &&
+      genres != this.state.currentMatchingSession.genres
+    ) {
+      socket.emit("editSessionGenres", {
+        genres: genres,
+        session_id: this.state.currentMatchingSessionID,
+      });
+    }
+    // if (
+    //   image != "" &&
+    //   image != undefined &&
+    //   image != this.state.currentMatchingSession.image
+    // ) {
+    //   socket.emit("editSessionImage", {
+    //     image: image,
+    //     session_id: this.state.currentMatchingSessionID,
+    //   });
+    // }
+    if (
+      members != [] &&
+      members != undefined &&
+      members != this.state.currentMatchingSession.members
+    ) {
+      socket.emit("editSessionMembers", {
+        members: members,
+        session_id: this.state.currentMatchingSessionID,
+      });
+    }
+  }
+
+  getSession(sID) {
+    socket.emit("getSession", { sID: sID });
   }
 
   loginToApp(token) {
@@ -344,7 +413,8 @@ class App extends React.Component {
     this.updateScreen("LoginScreen");
   }
 
-  setMatchingSessionID(ID) {
+  setSessionID(ID) {
+    socket.emit("getSession", { sID: ID });
     this.setState({
       currentMatchingSessionID: ID,
     });
@@ -494,6 +564,7 @@ class App extends React.Component {
               sendInvite={this.sendInvite}
               updateScreen={this.updateScreen}
               avatarLocation={this.state.cloudImgUrl}
+              setSessionID={this.setSessionID}
             />
           </PaperProvider>
         );
@@ -508,6 +579,7 @@ class App extends React.Component {
               goBack={this.goBack}
               logout={this.logoutOfApp}
               user={this.state.user}
+              getUser={this.getUser}
             />
           </PaperProvider>
         );
@@ -533,9 +605,14 @@ class App extends React.Component {
         );
 
       case "SessionSettingsScreen":
+        //console.log(this.state.currentMatchingSession);
         return (
           <PaperProvider theme={DefaultTheme}>
-            <SessionSettingsScreen goBack={this.goBack} />
+            <SessionSettingsScreen
+              goBack={this.goBack}
+              currentSession={this.state.currentMatchingSession}
+              updateSession={this.updateSession}
+            />
           </PaperProvider>
         );
 

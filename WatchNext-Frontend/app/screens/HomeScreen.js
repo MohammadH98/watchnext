@@ -237,9 +237,9 @@ export default class HomeScreen extends Component {
                       icon="cog"
                       size={25}
                       style={{ marginLeft: "auto" }}
-                      onPress={() =>
-                        this.props.updateScreen("SessionSettingsScreen")
-                      }
+                      onPress={() => {
+                        this.props.setSessionID(matchingSession.session_id);
+                      }}
                     />
                   </TouchableOpacity>
                   <Divider />

@@ -419,17 +419,24 @@ io.on("connection", function (socket) {
 
   // Get specific user data by user ID
   // REQ: {uID: "ID of user" (str)}
-  socket.on("getUser", function (data) {
+  socket.on("getCurrentUser", function () {
     // Get user data
     axios
-      .get(`https://xwatchnextx.herokuapp.com/api/user/${data.uID}`, {
-        headers: {
-          authorization: `Bearer ${DBTOKEN}`,
-        },
-      })
+      .get(
+        `https://xwatchnextx.herokuapp.com/api/user/${
+          SOCKET_LIST[socket.id].uID
+        }`,
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
       .then((response) => {
-        console.log("getSpecificUser request");
-        socket.emit("recvUser", response.data);
+        console.log("get Current user request");
+        // socket.emit("recvUser", response.data);
+        console.log(response.data.data[0]);
+        socket.emit("editResp", { data: response.data.data[0] });
       })
       .catch((err) => {
         console.log(err);
@@ -439,6 +446,8 @@ io.on("connection", function (socket) {
   // Get multiple users. (used to get users in a matching session) users
   // REQ: {uIDs: [String] }
   socket.on("getSessionMembers", function (data) {
+    console.log("data");
+    console.log(data);
     ids = data.uIDs.join(",");
     // Get user data
     axios
@@ -449,7 +458,45 @@ io.on("connection", function (socket) {
       })
       .then((response) => {
         console.log("get matching session members");
-        socket.emit("recvSessionMembers", response.data.data);
+        socket.emit("recvSessionMembers", { users: response.data.data });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
+  // Get Session, will get all the up to date session info, with the users object added as member_profiles
+  //REQ: {sID: [String] }
+  socket.on("getSession", function (data) {
+    axios
+      .get(
+        `https://xwatchnextx.herokuapp.com/api/matching-session/${data.sID}`,
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        // console.log("get matching session members");
+        matching_session_obj = response.data.data[0];
+        members_list = matching_session_obj["members"].join(",");
+        axios
+          .get(`https://xwatchnextx.herokuapp.com/api/user/${members_list}`, {
+            headers: {
+              authorization: `Bearer ${DBTOKEN}`,
+            },
+          })
+          .then((response) => {
+            members = response.data.data;
+            matching_session_obj["members"] = members;
+            console.log("getSession socket response");
+            console.log(matching_session_obj);
+            socket.emit("recvSession", { session: matching_session_obj });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
       })
       .catch((err) => {
         console.log(err);
@@ -517,26 +564,149 @@ io.on("connection", function (socket) {
           console.log(err);
         });
     }
-    // if (data.img) {
-    //   // Update image
-    //   axios
-    //     .get(`https://xwatchnextx.herokuapp.com/api/user/image`, {
-    //       headers: {
-    //         authorization: `Bearer ${DBTOKEN}`,
-    //       },
-    //       data: {
-    //         user_id: SOCKET_LIST[socket.id].uID,
-    //         image: data.img,
-    //       },
-    //     })
-    //     .then((response) => {
-    //       console.log("changeProfileImage request");
-    //       socket.emit("changeResp", response.data);
-    //     })
-    //     .catch((err) => {
-    //       console.log(err);
-    //     });
-    // }
+  });
+
+  // Change user settings (firstname, lastname, username, genres)
+  // REQ: {user: "New username" (str), img: "Base64 encoded image" (str/bit?)}
+  // REQ: {firstname: firstname, lastname: lastname, username: username, selectedGenres: selectedGenres str(array), image: url}
+  socket.on("editSession", function (data) {
+    console.log(data.image);
+    if (data.username.trim()) {
+      // Update username
+      axios
+        .patch(
+          `https://xwatchnextx.herokuapp.com/api/user`,
+          {
+            user_id: SOCKET_LIST[socket.id].uID,
+            username: data.username,
+            firstname: data.firstname,
+            lastname: data.lastname,
+            genres: data.selectedGenres,
+            image: data.image,
+          },
+          {
+            headers: {
+              authorization: `Bearer ${DBTOKEN}`,
+            },
+          }
+        )
+        .then((response) => {
+          console.log("changeUsername request");
+          socket.emit("editResp", response.data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  });
+
+  //REQ: {name: (str), session_id: (str)}
+  socket.on("editSessionName", function (data) {
+    axios
+      .patch(
+        `https://xwatchnextx.herokuapp.com/api/matching-session/name`,
+        {
+          session_id: data.session_id,
+          name: data.name,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        matching_session_obj = response.data.data;
+
+        socket.emit("recvSession", response.data.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
+  //REQ: {image: (str), session_id: (str)}
+  socket.on("editSessionImage", function (data) {
+    axios
+      .patch(
+        `https://xwatchnextx.herokuapp.com/api/user`,
+        {
+          user_id: SOCKET_LIST[socket.id].uID,
+          username: data.username,
+          firstname: data.firstname,
+          lastname: data.lastname,
+          genres: data.selectedGenres,
+          image: data.image,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log("changeUsername request");
+        socket.emit("editResp", response.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
+  //REQ: {genres: ([str]), session_id: (str)}
+  socket.on("editSessionGenres", function (data) {
+    axios
+      .patch(
+        `https://xwatchnextx.herokuapp.com/api/user`,
+        {
+          user_id: SOCKET_LIST[socket.id].uID,
+          username: data.username,
+          firstname: data.firstname,
+          lastname: data.lastname,
+          genres: data.selectedGenres,
+          image: data.image,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log("changeUsername request");
+        socket.emit("editResp", response.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
+  //REQ: {members: ([str]), session_id: (str)}
+  socket.on("editSessionMembers", function (data) {
+    axios
+      .patch(
+        `https://xwatchnextx.herokuapp.com/api/user`,
+        {
+          user_id: SOCKET_LIST[socket.id].uID,
+          username: data.username,
+          firstname: data.firstname,
+          lastname: data.lastname,
+          genres: data.selectedGenres,
+          image: data.image,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log("changeUsername request");
+        socket.emit("editResp", response.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   });
 
   // Set movie rating based on swipe action
