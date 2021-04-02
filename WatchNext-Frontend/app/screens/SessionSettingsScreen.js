@@ -169,15 +169,14 @@ export default class SessionSettingsScreen extends Component {
             <Avatar.Image
               size={150}
               source={{
-                uri:
-                  "https://banner2.cleanpng.com/20180717/cek/kisspng-computer-icons-desktop-wallpaper-team-concept-5b4e0cd3819810.4507019915318417475308.jpg",
+                uri: this.props.currentSession.image,
               }}
             />
             <FAB
               icon="camera"
               style={styles.avatarButton}
               color="white"
-              onPress={() => console.log("Avatar Change Button Pressed")}
+              onPress={() => this.props.updateAvatar()}
             />
           </View>
           <Headline style={{ fontWeight: "bold" }}>{this.state.name}</Headline>

@@ -225,7 +225,12 @@ export default class HomeScreen extends Component {
                       )
                     }
                   >
-                    <Avatar.Text size={50} label={matchingSession.un} />
+                    <Avatar.Image
+                      size={50}
+                      source={{
+                        uri: matchingSession.image,
+                      }}
+                    />
                     <View style={{ paddingLeft: 10 }}>
                       <Text style={{ fontWeight: "bold" }}>
                         {matchingSession.name}
