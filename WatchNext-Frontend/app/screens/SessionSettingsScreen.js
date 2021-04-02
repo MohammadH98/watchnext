@@ -85,6 +85,7 @@ export default class SessionSettingsScreen extends Component {
       name: props.currentSession.name,
       editName: false,
       members: props.currentSession.members,
+      memberToDelete: undefined,
     };
   }
 
@@ -93,16 +94,23 @@ export default class SessionSettingsScreen extends Component {
   }
 
   editName() {
+    if (!this.state.editName) {
+      console.log("edit name mode enabled");
+    } else {
+      this.updateInformation();
+    }
     this.setState({ editName: !this.state.editName });
   }
 
   removeMember(member) {
+    console.log(member);
     var newMembers = this.state.members;
     newMembers.splice(
-      newMembers.findIndex((m) => m.name === member),
+      newMembers.findIndex((m) => m.user_id === member),
       1
     );
     this.setState({ members: newMembers });
+    this.updateInformation(this.props.currentUserID);
   }
 
   toggleGenre(genre) {
@@ -114,7 +122,7 @@ export default class SessionSettingsScreen extends Component {
       newChecked.push(genre);
     }
 
-    console.log(newChecked);
+    //console.log(newChecked);
     this.setState({ selectedGenres: newChecked });
   }
 
@@ -126,11 +134,11 @@ export default class SessionSettingsScreen extends Component {
     this.setState({ genrePage: false });
   }
 
-  updateInformation() {
+  updateInformation(memberToDelete = undefined) {
     this.props.updateSession(
       this.state.selectedGenres,
       this.state.name,
-      this.state.members
+      memberToDelete
     );
   }
 
@@ -286,16 +294,23 @@ export default class SessionSettingsScreen extends Component {
                           size={60}
                           source={{ uri: member.image }}
                         />
-                        <FAB
+                        {/* <FAB
                           icon="close"
                           small
                           style={styles.removeUser}
                           color="white"
                           onPress={() => this.removeMember(member.firstname)}
-                        />
+                        /> */}
                         <Text
                           style={{
-                            fontSize: member.firstname.length >= 7 ? 12 : 14,
+                            fontSize:
+                              member.firstname != undefined
+                                ? member.firstname.length >= 7
+                                  ? 12
+                                  : 14
+                                : member.username.length >= 7
+                                ? 12
+                                : 14,
                           }}
                         >
                           {member.firstname != undefined
@@ -308,30 +323,34 @@ export default class SessionSettingsScreen extends Component {
                 </View>
               </View>
               <View style={styles.bottomBar}>
-                <Button
-                  mode="contained"
-                  icon="account-minus"
-                  style={{
-                    backgroundColor: "purple",
-                    borderRadius: 20,
-                    marginTop: this.state.members.length > 4 ? 15 : 115,
-                  }}
-                  onPress={() => console.log("Leave Session Pressed")}
-                >
-                  Leave Session
-                </Button>
-                <Button
-                  mode="contained"
-                  icon="delete"
-                  style={{
-                    backgroundColor: "red",
-                    borderRadius: 20,
-                    marginTop: this.state.members.length > 4 ? 15 : 115,
-                  }}
-                  onPress={() => console.log("Delete Session Pressed")}
-                >
-                  Delete Session
-                </Button>
+                {this.props.currentUserID !=
+                this.props.currentSession.creator_id ? (
+                  <Button
+                    mode="contained"
+                    icon="account-minus"
+                    style={{
+                      backgroundColor: "purple",
+                      borderRadius: 20,
+                      marginTop: this.state.members.length > 4 ? 15 : 115,
+                    }}
+                    onPress={() => this.removeMember(this.props.currentUserID)}
+                  >
+                    Leave Session
+                  </Button>
+                ) : (
+                  <Button
+                    mode="contained"
+                    icon="delete"
+                    style={{
+                      backgroundColor: "red",
+                      borderRadius: 20,
+                      marginTop: this.state.members.length > 4 ? 15 : 115,
+                    }}
+                    onPress={() => this.removeMember(this.props.currentUserID)}
+                  >
+                    Delete Session
+                  </Button>
+                )}
               </View>
             </View>
           )}

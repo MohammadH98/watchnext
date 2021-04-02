@@ -435,7 +435,7 @@ io.on("connection", function (socket) {
       .then((response) => {
         console.log("get Current user request");
         // socket.emit("recvUser", response.data);
-        console.log(response.data.data[0]);
+        // console.log(response.data.data[0]);
         socket.emit("editResp", { data: response.data.data[0] });
       })
       .catch((err) => {
@@ -446,8 +446,6 @@ io.on("connection", function (socket) {
   // Get multiple users. (used to get users in a matching session) users
   // REQ: {uIDs: [String] }
   socket.on("getSessionMembers", function (data) {
-    console.log("data");
-    console.log(data);
     ids = data.uIDs.join(",");
     // Get user data
     axios
@@ -491,8 +489,11 @@ io.on("connection", function (socket) {
             members = response.data.data;
             matching_session_obj["members"] = members;
             console.log("getSession socket response");
-            console.log(matching_session_obj);
-            socket.emit("recvSession", { session: matching_session_obj });
+            // console.log(matching_session_obj);
+            socket.emit("recvSession", {
+              session: matching_session_obj,
+              getSession: true,
+            });
           })
           .catch((err) => {
             console.log(err);
@@ -536,7 +537,7 @@ io.on("connection", function (socket) {
   // REQ: {user: "New username" (str), img: "Base64 encoded image" (str/bit?)}
   // REQ: {firstname: firstname, lastname: lastname, username: username, selectedGenres: selectedGenres str(array), image: url}
   socket.on("editUser", function (data) {
-    console.log(data.image);
+    // console.log(data.image);
     if (data.username.trim()) {
       // Update username
       axios
@@ -569,7 +570,7 @@ io.on("connection", function (socket) {
   // Change user settings (firstname, lastname, username, genres)
   // REQ: {name: (str), genres: ([str]), session_id: (str), image: (str), members: ([str])}
   socket.on("editSession", function (data) {
-    console.log(data.image);
+    // console.log(data.image);
     if (data.username.trim()) {
       // Update username
       axios
@@ -627,8 +628,11 @@ io.on("connection", function (socket) {
             members = response.data.data;
             matching_session_obj["members"] = members;
             console.log("editSessionName socket response");
-            console.log(matching_session_obj);
-            socket.emit("recvSession", { session: matching_session_obj });
+            // console.log(matching_session_obj);
+            socket.emit("recvSession", {
+              session: matching_session_obj,
+              getSession: false,
+            });
           })
           .catch((err) => {
             console.log(err);
@@ -667,8 +671,11 @@ io.on("connection", function (socket) {
             members = response.data.data;
             matching_session_obj["members"] = members;
             console.log("editSessionImage socket response");
-            console.log(matching_session_obj);
-            socket.emit("recvSession", { session: matching_session_obj });
+            // console.log(matching_session_obj);
+            socket.emit("recvSession", {
+              session: matching_session_obj,
+              getSession: false,
+            });
           })
           .catch((err) => {
             console.log(err);
@@ -707,8 +714,11 @@ io.on("connection", function (socket) {
             members = response.data.data;
             matching_session_obj["members"] = members;
             console.log("editSessionGenres socket response");
-            console.log(matching_session_obj);
-            socket.emit("recvSession", { session: matching_session_obj });
+            // console.log(matching_session_obj);
+            socket.emit("recvSession", {
+              session: matching_session_obj,
+              getSession: false,
+            });
           })
           .catch((err) => {
             console.log(err);
@@ -747,14 +757,75 @@ io.on("connection", function (socket) {
             members = response.data.data;
             matching_session_obj["members"] = members;
             console.log("editSessionMembers socket response");
-            console.log(matching_session_obj);
-            socket.emit("recvSession", { session: matching_session_obj });
+            // console.log(matching_session_obj);
+            socket.emit("recvSession", {
+              session: matching_session_obj,
+              getSession: false,
+            });
           })
           .catch((err) => {
             console.log(err);
           });
       })
       .catch((err) => {
+        console.log(err);
+      });
+  });
+
+  //REQ: {member: (str), session_id: (str)}
+  socket.on("deleteSessionMember", function (data) {
+    var config = {
+      method: "delete",
+      url: "https://xwatchnextx.herokuapp.com/api/matching-session/members",
+      headers: {
+        authorization: `Bearer ${DBTOKEN}`,
+      },
+      data: data,
+    };
+    axios(config)
+      .then((response) => {
+        // console.log("leave response");
+        // console.log(response.data);
+        var config = {
+          method: "delete",
+          url: "https://xwatchnextx.herokuapp.com/api/user/matching-session",
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+          data: data,
+        };
+        axios(config)
+          .then(function (response) {
+            socket.emit("recvDeleteSession", { success: true });
+          })
+          .catch(function (error) {
+            socket.emit("recvDeleteSession", { success: false });
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+        socket.emit("recvDeleteSession", { success: false });
+      });
+  });
+
+  //REQ: {session_id: (str)}
+  socket.on("deleteSession", function (data) {
+    // console.log("deleteSession data");
+    // console.log(data);
+    axios
+      .delete(
+        `https://xwatchnextx.herokuapp.com/api/matching-session/${data.session_id}`,
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        socket.emit("recvDeleteSession", { success: true });
+      })
+      .catch((err) => {
+        socket.emit("recvDeleteSession", { success: false });
         console.log(err);
       });
   });
@@ -1476,39 +1547,41 @@ io.on("connection", function (socket) {
     // Try to add session to user in DB
     console.log("invite data");
     console.log(data);
-    axios
-      .post(
-        `https://xwatchnextx.herokuapp.com/api/matching-session/members`,
-        {
-          user_id: data.uIDs.map((x) => x.toLowerCase()),
-          session_id: data.sID,
-        },
-        {
-          headers: {
-            authorization: `Bearer ${DBTOKEN}`,
+    if (data.uIDs) {
+      axios
+        .post(
+          `https://xwatchnextx.herokuapp.com/api/matching-session/members`,
+          {
+            user_id: data.uIDs.map((x) => x.toLowerCase()),
+            session_id: data.sID,
           },
-        }
-      )
-      .then((response) => {
-        console.log("sendInvite request");
-        console.log(data.uIDs);
-        console.log(data.sID);
-        socket.emit("inviteResp", { success: true });
-        console.log("userFind");
-        for (var i = 0; i < data.uIDs.length; i++) {
-          //
-          uID = data.uIDs[i];
-          usock = SOCKET_LIST[userFind(uID)];
-          if (usock) {
-            // If the user is online, send them a message as well
-            usock.emit("recvInvite", response.data.data);
-            console.log("sent invite");
+          {
+            headers: {
+              authorization: `Bearer ${DBTOKEN}`,
+            },
           }
-        }
-      })
-      .catch((err) => {
-        socket.emit("inviteResp", { success: false });
-      });
+        )
+        .then((response) => {
+          console.log("sendInvite request");
+          console.log(data.uIDs);
+          console.log(data.sID);
+          socket.emit("inviteResp", { success: true });
+          console.log("userFind");
+          for (var i = 0; i < data.uIDs.length; i++) {
+            //
+            uID = data.uIDs[i];
+            usock = SOCKET_LIST[userFind(uID)];
+            if (usock) {
+              // If the user is online, send them a message as well
+              usock.emit("recvInvite", response.data.data);
+              console.log("sent invite");
+            }
+          }
+        })
+        .catch((err) => {
+          socket.emit("inviteResp", { success: false });
+        });
+    }
   });
 
   // When a user disconnects, remove them from the active user list
