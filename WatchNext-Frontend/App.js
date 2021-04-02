@@ -36,7 +36,7 @@ import * as ImagePicker from "expo-image-picker";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
 // https://api.cloudinary.com/v1_1/hgxqzjwvu
 
-const socket = io("https://06a896401c7a.ngrok.io", {
+const socket = io("https://a10e4ded88c8.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -513,12 +513,6 @@ class App extends React.Component {
       case "SwipeScreen":
         return (
           <PaperProvider theme={DefaultTheme}>
-            <LinearGradient
-              colors={["purple", "mediumpurple"]}
-              style={styles.linearGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
             <SwipeScreen
               data={this.state.movies}
               requestMovies={this.requestMovies}

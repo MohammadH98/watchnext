@@ -1,23 +1,28 @@
 import React, { Component } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, Linking } from "react-native";
 import {
   Text,
   Avatar,
   Caption,
   Title,
   Headline,
+  Button,
   Subheading,
   Appbar,
   IconButton,
   Surface,
   Modal,
-  Portal
+  Portal,
 } from "react-native-paper";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import { DraxProvider, DraxList } from "react-native-drax";
+import { MediaTypeOptions } from "expo-image-picker";
+
+const NetflixURL = "https://www.netflix.com/watch/";
+const TrailerURL = "https://www.youtube.com/results?search_query=";
 
 export default class MatchesScreen extends Component {
   constructor(props) {
@@ -75,14 +80,50 @@ export default class MatchesScreen extends Component {
 
   render() {
     var media = this.state.currentItem;
+
+    if (media.genre == undefined) {
+      media.genre = ["G1", "G2"];
+    }
+
+    if (media.meta == undefined) {
+      media.meta = { director: "D1", cast: ["G1", "G2"] };
+    }
+
     return (
       <View style={styles.mainContainer}>
         <Portal>
-          <Modal visible={this.state.modalVisible} onDismiss={this.hideModal} contentContainerStyle={styles.modalStyle}>
-            <Title>{media.title}</Title>
-            <Subheading>{media.year}, {media.duration}</Subheading>
-            <Text>{media.description}</Text>
-            <Text>Genres: </Text>
+          <Modal
+            visible={this.state.modalVisible}
+            onDismiss={this.hideModal}
+            contentContainerStyle={styles.modalStyle}
+          >
+            <Title style={{ textAlign: "center" }}>{media.title}</Title>
+            <Subheading>{media.year}</Subheading>
+            <Subheading>Duration: {media.duration}</Subheading>
+            <Text style={{marginTop: 10}}>{media.description}</Text>
+            {media.meta.director != "" && <Text style={{marginTop: 10}}>Director: {media.meta.director}</Text>}
+            <Text style={{textDecorationLine: "underline", fontWeight: "bold", marginTop: 10}}>Genres</Text>
+            {media.genre.slice(0,4).map((item) => (
+              <Text key={item}>{item}</Text>
+            ))}
+            <Button
+              icon="youtube"
+              mode="contained"
+              style={{ width: wp("55%"), marginTop: 20}}
+              onPress={() =>
+                Linking.openURL(TrailerURL + media.title + "+trailer")
+              }
+            >
+              Watch Trailer
+            </Button>
+            <Button
+              icon="netflix"
+              mode="contained"
+              style={{ width: wp("55%"), marginTop: 10 }}
+              onPress={() => Linking.openURL(NetflixURL + media.id)}
+            >
+              Watch on Netflix
+            </Button>
           </Modal>
         </Portal>
         <Appbar.Header>
@@ -151,8 +192,11 @@ const styles = StyleSheet.create({
   },
   modalStyle: {
     backgroundColor: "white",
-    justifyContent: "center",
+    height: hp("60%"),
+    width: wp("90%"),
+    alignSelf: "center",
     alignItems: "center",
-    padding: 20,
+    justifyContent: "flex-start",
+    padding: 15,
   },
 });
