@@ -41,7 +41,6 @@ function ExportData() {
 export default class HomeScreen extends Component {
   constructor(props) {
     super(props);
-    console.log(this.props.user.genres);
     var fname = this.props.user.firstname;
     var lname = this.props.user.lastname;
     if (fname === undefined) {
@@ -52,10 +51,6 @@ export default class HomeScreen extends Component {
     }
     var name = fname + " " + lname;
     var username = this.props.user.username;
-    if (fname === "" && lname === "") {
-      name = this.props.user.username;
-      username = "";
-    }
     this.state = {
       genres: ExportData(),
       selectedGenres: this.props.user.genres,
@@ -115,6 +110,10 @@ export default class HomeScreen extends Component {
     );
   }
 
+  saveGenres() {
+    updateInformation();
+  }
+
   toggleGenre(genre) {
     var newChecked = this.state.selectedGenres;
 
@@ -158,7 +157,10 @@ export default class HomeScreen extends Component {
             icon="arrow-left"
             color="black"
             size={35}
-            onPress={() => this.props.goBack()}
+            onPress={() => {
+              this.props.getUser();
+              this.props.goBack();
+            }}
           />
           <Title>My Account</Title>
           <LogoutButton logout={this.props.logout} />

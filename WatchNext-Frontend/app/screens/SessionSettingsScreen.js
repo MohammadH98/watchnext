@@ -76,13 +76,15 @@ function ExportData2() {
 export default class SessionSettingsScreen extends Component {
   constructor(props) {
     super(props);
+    //console.log(props.currentSession);
     this.state = {
+      currentSession: props.currentSession,
       genres: ExportData(),
-      selectedGenres: ExportData(),
+      selectedGenres: props.currentSession.genres,
       genrePage: true,
-      name: "The Capstone Boys",
+      name: props.currentSession.name,
       editName: false,
-      members: ExportData2(),
+      members: props.currentSession.members,
     };
   }
 
@@ -122,6 +124,14 @@ export default class SessionSettingsScreen extends Component {
 
   toggleSettingsPage() {
     this.setState({ genrePage: false });
+  }
+
+  updateInformation() {
+    this.props.updateSession(
+      this.state.selectedGenres,
+      this.state.name,
+      this.state.members
+    );
   }
 
   render() {
@@ -215,6 +225,17 @@ export default class SessionSettingsScreen extends Component {
                   </Button>
                 ))}
               </View>
+              <Button
+                mode="contained"
+                style={{
+                  backgroundColor: "purple",
+                  borderRadius: 20,
+                  margin: 15,
+                }}
+                onPress={() => this.updateInformation()}
+              >
+                Save
+              </Button>
             </View>
           ) : (
             <View>
@@ -250,7 +271,11 @@ export default class SessionSettingsScreen extends Component {
                   <View style={styles.userDetailField}>
                     {this.state.members.map((member) => (
                       <View
-                        key={member.name}
+                        key={
+                          member.firstname != undefined
+                            ? member.firstname
+                            : member.username
+                        }
                         style={{
                           alignItems: "center",
                           marginRight: 35,
@@ -259,21 +284,23 @@ export default class SessionSettingsScreen extends Component {
                       >
                         <Avatar.Image
                           size={60}
-                          source={{ uri: member.avatar }}
+                          source={{ uri: member.image }}
                         />
                         <FAB
                           icon="close"
                           small
                           style={styles.removeUser}
                           color="white"
-                          onPress={() => this.removeMember(member.name)}
+                          onPress={() => this.removeMember(member.firstname)}
                         />
                         <Text
                           style={{
-                            fontSize: member.name.length >= 7 ? 12 : 14,
+                            fontSize: member.firstname.length >= 7 ? 12 : 14,
                           }}
                         >
-                          {member.name}
+                          {member.firstname != undefined
+                            ? member.firstname
+                            : member.username}
                         </Text>
                       </View>
                     ))}
