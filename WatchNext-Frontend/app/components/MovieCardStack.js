@@ -5,7 +5,6 @@ import {
   View,
   StyleSheet,
   Alert,
-  Text,
   Image,
   TouchableOpacity,
   Linking,
@@ -15,12 +14,20 @@ import {
 import { DateTime } from "luxon";
 import {
   Provider as PaperProvider,
-  Button,
   DefaultTheme,
   FAB,
   IconButton,
   Appbar,
+  ActivityIndicator,
+  Title,
+  Subheading,
+  Text,
+  Button
 } from "react-native-paper";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
 
 const ImageHeight = 550;
 const ImageWidth = 367;
@@ -101,29 +108,39 @@ class CardInterior extends React.Component {
   }
 
   render() {
-    var movie = this.state.movie;
+    var media = this.state.movie;
     {
       if (this.state.showCardBacks) {
         return (
-          <View style={styles.cardModal}>
-            <Text style={styles.headingText}>{movie.title}</Text>
-            <Text style={styles.descriptionText}>{movie.description}</Text>
-            <Text style={styles.descriptionText}>
-              {" "}
-              {"Duration: " + movie.duration}
-            </Text>
-            {movie.meta.director != "" && movie.meta.director != undefined ? (
-              <Text style={styles.descriptionText}>
-                {"Director: " + movie.meta.director}
-              </Text>
-            ) : (
-              <Text></Text>
-            )}
+          <View
+            style={styles.modalStyle}
+          >
+            <Title style={{ textAlign: "center" }}>{media.title}</Title>
+            <Subheading>{media.year}</Subheading>
+            <Subheading>Duration: {media.duration}</Subheading>
+            <Text style={{marginTop: 10}}>{media.description}</Text>
+            {media.meta.director != "" && <Text style={{marginTop: 10}}>Director: {media.meta.director}</Text>}
+            <Text style={{textDecorationLine: "underline", fontWeight: "bold", marginTop: 10}}>Genres</Text>
+            {media.genre.slice(0,4).map((item) => (
+              <Text key={item}>{item}</Text>
+            ))}
             <Button
+              icon="youtube"
               mode="contained"
-              onPress={() => Linking.openURL(NetflixURL + movie.id)}
+              style={{ width: wp("55%"), marginTop: 20}}
+              onPress={() =>
+                Linking.openURL(TrailerURL + media.title + "+trailer")
+              }
             >
-              Watch On Netflix
+              Watch Trailer
+            </Button>
+            <Button
+              icon="netflix"
+              mode="contained"
+              style={{ width: wp("55%"), marginTop: 10 }}
+              onPress={() => Linking.openURL(NetflixURL + media.id)}
+            >
+              Watch on Netflix
             </Button>
           </View>
         );
@@ -132,9 +149,9 @@ class CardInterior extends React.Component {
           <View>
             <Image //some kind of error with this
               source={{
-                uri: movie.image,
-                width: ImageWidth,
-                height: ImageHeight,
+                uri: media.image,
+                width: wp("90%"),
+                height: hp("65%"),
               }}
             />
           </View>
@@ -333,32 +350,34 @@ class MovieCardStack extends React.Component {
     if (this.state.showStack) {
       return (
         <View style={styles.mainContainer}>
-          <Appbar.Header>
-            <Appbar.BackAction
-              onPress={() => {
-                this.props.saveRatings(
-                  this.state.likedMovies,
-                  this.state.dislikedMovies,
-                  "HomeScreen"
-                );
-              }}
-            />
-            <Appbar.Content
-              title="The Capstone Boys"
-              subtitle="Matching Session"
-            />
-            <Appbar.Action
-              icon="movie"
-              size={35}
-              onPress={() => {
-                this.props.saveRatings(
-                  this.state.likedMovies,
-                  this.state.dislikedMovies,
-                  "MatchesScreen"
-                );
-              }}
-            />
-          </Appbar.Header>
+          <View style={{ paddingBottom: 25 }}>
+            <Appbar.Header>
+              <Appbar.BackAction
+                onPress={() => {
+                  this.props.saveRatings(
+                    this.state.likedMovies,
+                    this.state.dislikedMovies,
+                    "HomeScreen"
+                  );
+                }}
+              />
+              <Appbar.Content
+                title="The Capstone Boys"
+                subtitle="Matching Session"
+              />
+              <Appbar.Action
+                icon="movie"
+                size={35}
+                onPress={() => {
+                  this.props.saveRatings(
+                    this.state.likedMovies,
+                    this.state.dislikedMovies,
+                    "MatchesScreen"
+                  );
+                }}
+              />
+            </Appbar.Header>
+          </View>
           <CardStack
             style={styles.card}
             ref={(swiper) => {
@@ -428,21 +447,27 @@ class MovieCardStack extends React.Component {
                 />
               </TouchableOpacity>
             </View>
-            {this.state.showCardBacks ? (
-              <Button
-                onPress={() => this.handleMovieDetails()}
-                mode="contained"
-              >
-                Hide Movie Details
-              </Button>
-            ) : (
-              <Button
-                onPress={() => this.handleMovieDetails()}
-                mode="contained"
-              >
-                Show Movie Details
-              </Button>
-            )}
+            <View style={{ marginTop: 25 }}>
+              {this.state.showCardBacks ? (
+                <Button
+                  onPress={() => this.handleMovieDetails()}
+                  icon="eye-off"
+                  mode="contained"
+                  style={{ width: wp("60%") }}
+                >
+                  Hide Movie Details
+                </Button>
+              ) : (
+                <Button
+                  onPress={() => this.handleMovieDetails()}
+                  mode="contained"
+                  icon="eye"
+                  style={{ width: wp("60%") }}
+                >
+                  Show Movie Details
+                </Button>
+              )}
+            </View>
           </View>
         </View>
       );
@@ -458,22 +483,20 @@ class MovieCardStack extends React.Component {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
-    justifyContent: "center",
   },
   card: {
-    width: ImageWidth,
-    height: ImageHeight,
-    borderRadius: 20,
+    width: wp("90%"),
+    height: hp("65%"),
     alignSelf: "center",
     textAlign: "center",
     justifyContent: "center",
   },
   cardModal: {
-    width: ImageWidth,
-    height: ImageHeight,
+    width: wp("90%"),
+    height: hp("65%"),
     backgroundColor: "#ccc",
-    borderRadius: 5,
     alignItems: "center",
+    alignSelf: "center",
     textAlign: "center",
     shadowColor: "#000",
     shadowOffset: {
@@ -484,16 +507,14 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   footer: {
-    flex: 1,
+    marginTop: 25,
     justifyContent: "center",
     alignItems: "center",
   },
   buttonContainer: {
-    width: 220,
+    width: wp("60%"),
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: -45,
-    marginBottom: 10,
   },
   button: {
     shadowColor: "rgba(0,0,0,0.3)",
@@ -512,6 +533,7 @@ const styles = StyleSheet.create({
     borderWidth: 6,
     borderColor: "rgb(246,190,66)",
     borderRadius: 55,
+    alignSelf: "center",
   },
   green: {
     width: 75,
@@ -535,6 +557,16 @@ const styles = StyleSheet.create({
   descriptionText: {
     fontSize: 20,
     padding: 5,
+  },
+  modalStyle: {
+    backgroundColor: "white",
+    height: hp("60%"),
+    width: wp("90%"),
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    padding: 15,
+    backgroundColor: "lightgrey"
   },
 });
 
