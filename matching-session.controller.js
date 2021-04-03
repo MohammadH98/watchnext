@@ -311,11 +311,12 @@ exports.addMember = function(req, res){
       Session.findOne({session_id: req.body.session_id}).then(session=>{
         if (!session)
           return res.status(404).json({message: 'Unable to find any session with that ID'})
+        members_to_add = req.body.user_id.filter(user=>{return session.members.indexOf(user)<0}) 
         if (session.members.indexOf(req.body.user_id)>=0)
           return res.status(409).json({message: 'A user with that ID already appears in the session member list'})
   
         var new_members_arr = session.members.slice()
-        new_members_arr = new_members_arr.concat(req.body.user_id)
+        new_members_arr = new_members_arr.concat(members_to_add)
         session.members = new_members_arr;
   
         //save session and check for errors
@@ -358,7 +359,7 @@ exports.addMember = function(req, res){
 
 }
 
-//remove member from matching session
+//remove member from matching session and also remove all their likes and dislikes
 exports.removeMember = function(req, res){
 
   //validate that request contains all neccesary parts
@@ -378,6 +379,10 @@ exports.removeMember = function(req, res){
       return res.status(404).json({message: 'There is no member in the session with that user id'})
 
     session.members.splice(sessionIndex, 1)
+
+    //remove likes and dislikes of user from session 
+    session.likes = session.likes.filter(like=>{return like.user_id !== req.body.user_id})
+    session.dislikes = session.dislikes.filter(dislike=>{return dislike.user_id !== req.body.user_id})
 
     //save user and check for errors
     session.save().then(session=>{
