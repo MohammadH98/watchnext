@@ -419,17 +419,85 @@ io.on("connection", function (socket) {
 
   // Get specific user data by user ID
   // REQ: {uID: "ID of user" (str)}
-  socket.on("getUser", function (data) {
+  socket.on("getCurrentUser", function () {
     // Get user data
     axios
-      .get(`https://xwatchnextx.herokuapp.com/api/user/${data.uID}`, {
+      .get(
+        `https://xwatchnextx.herokuapp.com/api/user/${
+          SOCKET_LIST[socket.id].uID
+        }`,
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log("get Current user request");
+        // socket.emit("recvUser", response.data);
+        // console.log(response.data.data[0]);
+        socket.emit("editResp", { data: response.data.data[0] });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
+  // Get multiple users. (used to get users in a matching session) users
+  // REQ: {uIDs: [String] }
+  socket.on("getSessionMembers", function (data) {
+    ids = data.uIDs.join(",");
+    // Get user data
+    axios
+      .get(`https://xwatchnextx.herokuapp.com/api/user/${ids}`, {
         headers: {
           authorization: `Bearer ${DBTOKEN}`,
         },
       })
       .then((response) => {
-        console.log("getSpecificUser request");
-        socket.emit("recvUser", response.data);
+        console.log("get matching session members");
+        socket.emit("recvSessionMembers", { users: response.data.data });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
+  // Get Session, will get all the up to date session info, with the users object added as member_profiles
+  //REQ: {sID: [String] }
+  socket.on("getSession", function (data) {
+    axios
+      .get(
+        `https://xwatchnextx.herokuapp.com/api/matching-session/${data.sID}`,
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        // console.log("get matching session members");
+        matching_session_obj = response.data.data[0];
+        members_list = matching_session_obj["members"].join(",");
+        axios
+          .get(`https://xwatchnextx.herokuapp.com/api/user/${members_list}`, {
+            headers: {
+              authorization: `Bearer ${DBTOKEN}`,
+            },
+          })
+          .then((response) => {
+            members = response.data.data;
+            matching_session_obj["members"] = members;
+            console.log("getSession socket response");
+            // console.log(matching_session_obj);
+            socket.emit("recvSession", {
+              session: matching_session_obj,
+              getSession: true,
+            });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
       })
       .catch((err) => {
         console.log(err);
@@ -469,7 +537,7 @@ io.on("connection", function (socket) {
   // REQ: {user: "New username" (str), img: "Base64 encoded image" (str/bit?)}
   // REQ: {firstname: firstname, lastname: lastname, username: username, selectedGenres: selectedGenres str(array), image: url}
   socket.on("editUser", function (data) {
-    console.log(data.image);
+    // console.log(data.image);
     if (data.username.trim()) {
       // Update username
       axios
@@ -497,30 +565,274 @@ io.on("connection", function (socket) {
           console.log(err);
         });
     }
-    // if (data.img) {
-    //   // Update image
-    //   axios
-    //     .get(`https://xwatchnextx.herokuapp.com/api/user/image`, {
-    //       headers: {
-    //         authorization: `Bearer ${DBTOKEN}`,
-    //       },
-    //       data: {
-    //         user_id: SOCKET_LIST[socket.id].uID,
-    //         image: data.img,
-    //       },
-    //     })
-    //     .then((response) => {
-    //       console.log("changeProfileImage request");
-    //       socket.emit("changeResp", response.data);
-    //     })
-    //     .catch((err) => {
-    //       console.log(err);
-    //     });
-    // }
+  });
+
+  // Change user settings (firstname, lastname, username, genres)
+  // REQ: {name: (str), genres: ([str]), session_id: (str), image: (str), members: ([str])}
+  socket.on("editSession", function (data) {
+    // console.log(data.image);
+    if (data.username.trim()) {
+      // Update username
+      axios
+        .patch(
+          `https://xwatchnextx.herokuapp.com/api/user`,
+          {
+            user_id: SOCKET_LIST[socket.id].uID,
+            username: data.username,
+            firstname: data.firstname,
+            lastname: data.lastname,
+            genres: data.selectedGenres,
+            image: data.image,
+          },
+          {
+            headers: {
+              authorization: `Bearer ${DBTOKEN}`,
+            },
+          }
+        )
+        .then((response) => {
+          console.log("changeUsername request");
+          socket.emit("editResp", response.data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  });
+
+  //REQ: {name: (str), session_id: (str)}
+  socket.on("editSessionName", function (data) {
+    axios
+      .patch(
+        `https://xwatchnextx.herokuapp.com/api/matching-session/name`,
+        {
+          session_id: data.session_id,
+          name: data.name,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        matching_session_obj = response.data.data;
+        members_list = matching_session_obj["members"].join(",");
+        axios
+          .get(`https://xwatchnextx.herokuapp.com/api/user/${members_list}`, {
+            headers: {
+              authorization: `Bearer ${DBTOKEN}`,
+            },
+          })
+          .then((response) => {
+            members = response.data.data;
+            matching_session_obj["members"] = members;
+            console.log("editSessionName socket response");
+            // console.log(matching_session_obj);
+            socket.emit("recvSession", {
+              session: matching_session_obj,
+              getSession: false,
+            });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
+  //REQ: {image: (str), session_id: (str)}
+  socket.on("editSessionImage", function (data) {
+    axios
+      .patch(
+        `https://xwatchnextx.herokuapp.com/api/matching-session/image`,
+        {
+          session_id: data.session_id,
+          image: data.image,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        matching_session_obj = response.data.data;
+        members_list = matching_session_obj["members"].join(",");
+        axios
+          .get(`https://xwatchnextx.herokuapp.com/api/user/${members_list}`, {
+            headers: {
+              authorization: `Bearer ${DBTOKEN}`,
+            },
+          })
+          .then((response) => {
+            members = response.data.data;
+            matching_session_obj["members"] = members;
+            console.log("editSessionImage socket response");
+            // console.log(matching_session_obj);
+            socket.emit("recvSession", {
+              session: matching_session_obj,
+              getSession: false,
+            });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
+  //REQ: {genres: ([str]), session_id: (str)}
+  socket.on("editSessionGenres", function (data) {
+    axios
+      .patch(
+        `https://xwatchnextx.herokuapp.com/api/matching-session/genres`,
+        {
+          session_id: data.session_id,
+          genres: data.genres,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        matching_session_obj = response.data.data;
+        members_list = matching_session_obj["members"].join(",");
+        axios
+          .get(`https://xwatchnextx.herokuapp.com/api/user/${members_list}`, {
+            headers: {
+              authorization: `Bearer ${DBTOKEN}`,
+            },
+          })
+          .then((response) => {
+            members = response.data.data;
+            matching_session_obj["members"] = members;
+            console.log("editSessionGenres socket response");
+            // console.log(matching_session_obj);
+            socket.emit("recvSession", {
+              session: matching_session_obj,
+              getSession: false,
+            });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
+  //REQ: {members: ([str]), session_id: (str)}
+  socket.on("editSessionMembers", function (data) {
+    axios
+      .patch(
+        `https://xwatchnextx.herokuapp.com/api/matching-session/members`,
+        {
+          session_id: data.session_id,
+          members: data.members,
+        },
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        matching_session_obj = response.data.data;
+        members_list = matching_session_obj["members"].join(",");
+        axios
+          .get(`https://xwatchnextx.herokuapp.com/api/user/${members_list}`, {
+            headers: {
+              authorization: `Bearer ${DBTOKEN}`,
+            },
+          })
+          .then((response) => {
+            members = response.data.data;
+            matching_session_obj["members"] = members;
+            console.log("editSessionMembers socket response");
+            // console.log(matching_session_obj);
+            socket.emit("recvSession", {
+              session: matching_session_obj,
+              getSession: false,
+            });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
+  //REQ: {member: (str), session_id: (str)}
+  socket.on("deleteSessionMember", function (data) {
+    var config = {
+      method: "delete",
+      url: "https://xwatchnextx.herokuapp.com/api/matching-session/members",
+      headers: {
+        authorization: `Bearer ${DBTOKEN}`,
+      },
+      data: data,
+    };
+    axios(config)
+      .then((response) => {
+        // console.log("leave response");
+        // console.log(response.data);
+        var config = {
+          method: "delete",
+          url: "https://xwatchnextx.herokuapp.com/api/user/matching-session",
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+          data: data,
+        };
+        axios(config)
+          .then(function (response) {
+            socket.emit("recvDeleteSession", { success: true });
+          })
+          .catch(function (error) {
+            socket.emit("recvDeleteSession", { success: false });
+          });
+      })
+      .catch((err) => {
+        console.log(err);
+        socket.emit("recvDeleteSession", { success: false });
+      });
+  });
+
+  //REQ: {session_id: (str)}
+  socket.on("deleteSession", function (data) {
+    // console.log("deleteSession data");
+    // console.log(data);
+    axios
+      .delete(
+        `https://xwatchnextx.herokuapp.com/api/matching-session/${data.session_id}`,
+        {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        }
+      )
+      .then((response) => {
+        socket.emit("recvDeleteSession", { success: true });
+      })
+      .catch((err) => {
+        socket.emit("recvDeleteSession", { success: false });
+        console.log(err);
+      });
   });
 
   // Set movie rating based on swipe action
   //REQ: {mID: "Movie ID" (str), like: "Was the movie liked?" (bool), add: "Add or remove the movie" (bool)}
+  //socket not in use
   socket.on("rateMovie", function (data) {
     // Add or remove?
     if (data.add) {
@@ -860,6 +1172,7 @@ io.on("connection", function (socket) {
 
   //Add likes or dislikes to a matching session and a user
   //REQ: {user_id: , session_id: , liked: [...,[movie_id, time]] ,  disliked: [...,[movie_id, time]]}
+  //socket in use
   socket.on("sendRatings", function (data) {
     //user id, movieid, time
     console.log("data sent back from frontend");
@@ -909,6 +1222,7 @@ io.on("connection", function (socket) {
 
   // Add/remove likes/dislikes from session
   // REQ: {sID: "ID of matching session" (str), mID: "ID of movie" (str), add: "Add/remove movie" (bool), like: "Like/dislike move" (bool)}
+  // not in use and doesn't work
   socket.on("rateSession", function (data) {
     if (add) {
       if (like) {
@@ -980,13 +1294,8 @@ io.on("connection", function (socket) {
   //REQ: {sid: "id of matching session" (str)} * may not be required because can get from socket?
   socket.on("showMatches", function (data) {
     // matches logic goes here
-    // get id for all the matches
-    // do api call to get the movies based on all the id's
-    console.log("session id from front end");
-    console.log(data.session_id);
     // console.log("session id from backend")
     // console.log(SOCKET_LIST[socket.id].sID)//not working gotta ask jack
-
     axios
       .get(
         `https://xwatchnextx.herokuapp.com/api/matching-session/${data.session_id}`,
@@ -1036,7 +1345,6 @@ io.on("connection", function (socket) {
           //go through all the movies and create an object that increments the count of likes by one if it finds a match, and also adds the name of the user that liked it to the users list
 
           //get all the movie titles that appear in likes, and filter down so no duplicates
-          //can check if the array has that movie first then if not add it to there
           let movies_with_dup = matching_session_obj["likes"].map((movie) => {
             return movie.movie_id;
           });
@@ -1045,9 +1353,7 @@ io.on("connection", function (socket) {
           });
 
           //create movies array that contains the movie id, count, user.
-          //every time a user
           var matches_tracker_obj = {};
-          // let matches_tracker_obj_arr = movies.map(movieid =>{matches_tracker_obj.movieid = {count: 0, users: []}; return {movie_id: movieid, num_likes: 0, users: []}})
           movies.forEach((movieid) => {
             matches_tracker_obj[movieid] = { count: 0, users: [] };
           });
@@ -1061,7 +1367,7 @@ io.on("connection", function (socket) {
           });
 
           var matches_list = [];
-          //filter the movies array so that only movie objects with count >=2 is still there
+          //filter the movies array so that only movie objects with count >=num_for_majority are still there
           for (key in matches_tracker_obj) {
             if (matches_tracker_obj[key].count >= num_for_majority) {
               matches_list.push(key);
@@ -1106,6 +1412,7 @@ io.on("connection", function (socket) {
   // Add/remove from watch next/watched/etc.
   // REQ: {sid: "ID of matching session" (str), mid: "ID of movie" (str), watched: "Add/Remove movie watched" (bool), watchnext: "Add/Remove movie watch next" (bool) }
   // TODO: Ask mo why there isn't a delete for watchnext
+  // Not in use
   socket.on("editMovieList", function (data) {
     if (watched) {
       axios
@@ -1240,56 +1547,42 @@ io.on("connection", function (socket) {
     // Try to add session to user in DB
     console.log("invite data");
     console.log(data);
-    axios
-      .post(
-        `https://xwatchnextx.herokuapp.com/api/matching-session/members`,
-        {
-          user_id: data.uIDs.map((x) => x.toLowerCase()),
-          session_id: data.sID,
-        },
-        {
-          headers: {
-            authorization: `Bearer ${DBTOKEN}`,
+    if (data.uIDs) {
+      axios
+        .post(
+          `https://xwatchnextx.herokuapp.com/api/matching-session/members`,
+          {
+            user_id: data.uIDs.map((x) => x.toLowerCase()),
+            session_id: data.sID,
           },
-        }
-      )
-      .then((response) => {
-        console.log("sendInvite request");
-        console.log(data.uIDs);
-        console.log(data.sID);
-        socket.emit("inviteResp", { success: true });
-        console.log("userFind");
-        for (var i = 0; i < data.uIDs.length; i++) {
-          //
-          uID = data.uIDs[i];
-          usock = SOCKET_LIST[userFind(uID)];
-          if (usock) {
-            // If the user is online, send them a message as well
-            usock.emit("recvInvite", response.data.data);
-            console.log("sent invite");
+          {
+            headers: {
+              authorization: `Bearer ${DBTOKEN}`,
+            },
           }
-        }
-      })
-      .catch((err) => {
-        socket.emit("inviteResp", { success: false });
-      });
-  });
-
-  /*socket.on("sendInvite", function (data) {
-    // Make sure user is found
-    if (userFind(data.uID)) {
-      // Send an invite to the user
-      SOCKET_LIST[userFind(data.uID)].emit("recvInvite", {
-        sID: SOCKET_LIST[socket.id].sID,
-        user: SOCKET_LIST[socket.id].uID,
-      });
-      // Let the original socket know the invite was successful
-      socket.emit("inviteResp", { success: true });
-    } else {
-      // User not found return error
-      socket.emit("inviteResp", { success: false });
+        )
+        .then((response) => {
+          console.log("sendInvite request");
+          console.log(data.uIDs);
+          console.log(data.sID);
+          socket.emit("inviteResp", { success: true });
+          console.log("userFind");
+          for (var i = 0; i < data.uIDs.length; i++) {
+            //
+            uID = data.uIDs[i];
+            usock = SOCKET_LIST[userFind(uID)];
+            if (usock) {
+              // If the user is online, send them a message as well
+              usock.emit("recvInvite", response.data.data);
+              console.log("sent invite");
+            }
+          }
+        })
+        .catch((err) => {
+          socket.emit("inviteResp", { success: false });
+        });
     }
-  });*/
+  });
 
   // When a user disconnects, remove them from the active user list
   socket.on("disconnect", function () {

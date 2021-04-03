@@ -36,7 +36,7 @@ import * as ImagePicker from "expo-image-picker";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
 // https://api.cloudinary.com/v1_1/hgxqzjwvu
 
-const socket = io("https://a10e4ded88c8.ngrok.io", {
+const socket = io("https://3ec03b5f31d2.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -94,10 +94,12 @@ class App extends React.Component {
       movies: [],
       sessions: [],
       currentMatchingSessionID: "",
+      currentMatchingSession: {},
       currentMatchesList: [],
       addedUsers: [],
       localImgUrl: "",
       cloudImgUrl: "",
+      currentMatchingSessionImage: "",
     };
 
     this.requestMovies = this.requestMovies.bind(this);
@@ -107,12 +109,14 @@ class App extends React.Component {
     this.updateUser = this.updateUser.bind(this);
     this.saveRatings = this.saveRatings.bind(this);
     this.sendInvite = this.sendInvite.bind(this);
-    this.setMatchingSessionID = this.setMatchingSessionID.bind(this);
+    this.setSessionID = this.setSessionID.bind(this);
 
     this.updateScreen = this.updateScreen.bind(this);
     this.goBack = this.goBack.bind(this);
     this.openImagePickerAsync = this.openImagePickerAsync.bind(this);
     this.handleBackButtonClick = this.handleBackButtonClick.bind(this);
+    this.getUser = this.getUser.bind(this);
+    this.updateSession = this.updateSession.bind(this);
 
     socket.on(
       "connect",
@@ -147,13 +151,13 @@ class App extends React.Component {
         socket.on(
           "editResp",
           function (data) {
-            var currentS = this.state.currentScreen;
             if (this.state.currentScreen === "SetupScreen") {
-              currentS = "HomeScreen";
+              this.updateScreen("HomeScreen");
             }
-            this.updateScreen(currentS);
+            console.log(Object.keys(data));
+            console.log(Object.keys(data.data));
             this.setState({
-              user: data,
+              user: data.data,
             });
           }.bind(this)
         );
@@ -189,30 +193,46 @@ class App extends React.Component {
         );
 
         socket.on(
+          "recvDeleteSession",
+          function (data) {
+            console.log("recv delete session response");
+            this.goBack();
+          }.bind(this)
+        );
+
+        socket.on(
           "recvSessions",
           function (data) {
-            /*
-            Array [
-              "members",
-              "likes",
-              "dislikes",
-              "watched",
-              "_id",
-              "session_id",
-              "creator_id",
-              "name",
-              "created_on",
-              "__v",
-              "num_matches",
-            ]
-            */
             this.setState({
               sessions: data,
             });
+            //if the user is creating a session then:
             socket.emit("sendInvite", {
               uIDs: this.state.addedUsers,
               sID: this.state.currentMatchingSessionID,
             });
+            this.setState({ addedUsers: [] });
+          }.bind(this)
+        );
+
+        socket.on(
+          "recvSession",
+          function (data) {
+            console.log("session members data");
+            console.log(data.getSession);
+            //in here i will send you back an array containing the user objects for all the members in data.users
+            this.setState({
+              currentMatchingSession: data.session,
+            });
+
+            if (
+              this.state.currentScreen != "SessionSettingsScreen" &&
+              data.getSession
+            ) {
+              this.updateScreen("SessionSettingsScreen");
+            } else {
+              socket.emit("");
+            }
           }.bind(this)
         );
 
@@ -322,9 +342,12 @@ class App extends React.Component {
     socket.emit("sendInv", { uID: uID, sID: sID });
   }
 
+  getUser() {
+    socket.emit("getCurrentUser", "");
+  }
+
   updateUser(firstname, lastname, username, selectedGenres) {
     var avatar = this.state.cloudImgUrl;
-    // console.log("Image Url" + avatar);
     socket.emit("editUser", {
       firstname: firstname,
       lastname: lastname,
@@ -332,6 +355,39 @@ class App extends React.Component {
       selectedGenres: selectedGenres,
       image: avatar,
     });
+  }
+
+  updateSession(genres, name, member) {
+    if (member != undefined) {
+      if (member != this.state.currentMatchingSession.creator_id) {
+        socket.emit("deleteSessionMember", {
+          user_id: member,
+          session_id: this.state.currentMatchingSessionID,
+        });
+      } else if (member === this.state.currentMatchingSession["creator_id"]) {
+        socket.emit("deleteSession", {
+          session_id: this.state.currentMatchingSessionID,
+        });
+      }
+    } else {
+      if (name != "" && name != undefined) {
+        socket.emit("editSessionName", {
+          name: name,
+          session_id: this.state.currentMatchingSessionID,
+        });
+      }
+      if (genres != undefined) {
+        console.log("genres being called");
+        socket.emit("editSessionGenres", {
+          genres: genres,
+          session_id: this.state.currentMatchingSessionID,
+        });
+      }
+    }
+  }
+
+  getSession(sID) {
+    socket.emit("getSession", { sID: sID });
   }
 
   loginToApp(token) {
@@ -343,7 +399,8 @@ class App extends React.Component {
     this.updateScreen("LoginScreen");
   }
 
-  setMatchingSessionID(ID) {
+  setSessionID(ID) {
+    socket.emit("getSession", { sID: ID });
     this.setState({
       currentMatchingSessionID: ID,
     });
@@ -368,9 +425,11 @@ class App extends React.Component {
 
   goBack() {
     console.log("going back from " + this.state.currentScreen);
+    console.log("going back to " + this.state.previousScreen);
     if (
       this.state.currentScreen === "MatchesScreen" ||
-      this.state.currentScreen === "SwipeScreen"
+      this.state.currentScreen === "SwipeScreen" ||
+      this.state.currentScreen === "SessionSettingsScreen"
     ) {
       socket.emit("getSessions", "");
     }
@@ -453,6 +512,78 @@ class App extends React.Component {
       .catch((err) => console.log(err));
   };
 
+  openSessionImagePickerAsync = async () => {
+    let permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    //this tells the application to give an alert if someone doesn't allow //permission.  It will return to the previous screen.
+
+    if (permissionResult.granted === false) {
+      alert("Permission to access camera roll is required!");
+      return;
+    }
+
+    //This gets image from phone
+
+    let pickerResult = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [4, 4],
+
+      //We need the image to be base64 in order to be formatted for Cloudinary
+
+      base64: true,
+    });
+
+    //this just returns the user to the previous page if they click "cancel"
+
+    if (pickerResult.cancelled === true) {
+      return;
+    }
+
+    //sets image from imagePicker to SelectedImage.
+    //This is if you are using hooks. The hook for this I have set up as:
+    //[selectedImage, setSelectedImage] = useState("").  If you're using //anclass component you can use setState here.  This file format will be
+    //a file path to where the image is saved.
+
+    // setSelectedImage({ localUri: pickerResult.uri });
+    //this.setState({ localImgUrl: pickerResult.uri });
+    this.setState({ currentMatchingSessionImage: pickerResult.uri });
+
+    //***IMPORTANT*** This step is necessary.  It converts image from //file path format that imagePicker creates, into a form that cloudinary //requires.
+
+    let base64Img = `data:image/jpg;base64,${pickerResult.base64}`;
+
+    // Here we need to include your Cloudinary upload preset with can be //found in your Cloudinary dashboard.
+
+    let data = {
+      file: base64Img,
+      upload_preset: "cro6hffr",
+    };
+
+    //sends photo to cloudinary
+    //**I initially tried using an axios request but it did NOT work** I was
+    //not able to get this to work until I changed it to a fetch request.
+
+    fetch(CLOUDINARY_URL, {
+      body: JSON.stringify(data),
+      headers: {
+        "content-type": "application/json",
+      },
+      method: "POST",
+    })
+      .then(async (r) => {
+        let data = await r.json();
+        //Here I'm using another hook to set State for the photo that we get back //from Cloudinary
+        // setPhoto(data.url);
+        //now send it in with the socket
+        socket.emit("editSessionImage", {
+          image: data.url,
+          session_id: this.state.currentMatchingSessionID,
+        });
+        return data.uri;
+      })
+      .catch((err) => console.log(err));
+  };
+
   render() {
     {
       this.state.isInvite && ( //if you have been invited
@@ -493,6 +624,7 @@ class App extends React.Component {
               sendInvite={this.sendInvite}
               updateScreen={this.updateScreen}
               avatarLocation={this.state.cloudImgUrl}
+              setSessionID={this.setSessionID}
             />
           </PaperProvider>
         );
@@ -502,10 +634,12 @@ class App extends React.Component {
           <PaperProvider theme={DefaultTheme}>
             <AccountScreen
               updateAvatar={this.openImagePickerAsync}
+              updateUser={this.updateUser}
               avatarLocation={this.state.cloudImgUrl}
               goBack={this.goBack}
               logout={this.logoutOfApp}
               user={this.state.user}
+              getUser={this.getUser}
             />
           </PaperProvider>
         );
@@ -525,9 +659,16 @@ class App extends React.Component {
         );
 
       case "SessionSettingsScreen":
+        //console.log(this.state.currentMatchingSession);
         return (
           <PaperProvider theme={DefaultTheme}>
-            <SessionSettingsScreen goBack={this.goBack} />
+            <SessionSettingsScreen
+              goBack={this.goBack}
+              currentSession={this.state.currentMatchingSession}
+              updateSession={this.updateSession}
+              updateAvatar={this.openSessionImagePickerAsync}
+              currentUserID={this.state.user.user_id}
+            />
           </PaperProvider>
         );
 

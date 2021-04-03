@@ -211,6 +211,7 @@ export default class HomeScreen extends Component {
             <Title style={{ fontSize: 24, padding: 15 }}>
               Matching Sessions
             </Title>
+            <Divider />
             {this.sortSessions(this.props.matchingSessions).map(
               (matchingSession) => (
                 <View key={matchingSession.session_id}>
@@ -224,7 +225,12 @@ export default class HomeScreen extends Component {
                       )
                     }
                   >
-                    <Avatar.Text size={50} label={matchingSession.un} />
+                    <Avatar.Image
+                      size={50}
+                      source={{
+                        uri: matchingSession.image,
+                      }}
+                    />
                     <View style={{ paddingLeft: 10 }}>
                       <Text style={{ fontWeight: "bold" }}>
                         {matchingSession.name}
@@ -237,9 +243,9 @@ export default class HomeScreen extends Component {
                       icon="cog"
                       size={25}
                       style={{ marginLeft: "auto" }}
-                      onPress={() =>
-                        this.props.updateScreen("SessionSettingsScreen")
-                      }
+                      onPress={() => {
+                        this.props.setSessionID(matchingSession.session_id);
+                      }}
                     />
                   </TouchableOpacity>
                   <Divider />

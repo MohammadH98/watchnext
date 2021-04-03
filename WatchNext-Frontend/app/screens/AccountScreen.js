@@ -41,15 +41,16 @@ function ExportData() {
 export default class HomeScreen extends Component {
   constructor(props) {
     super(props);
-    var name = this.props.user.firstname + " " + this.props.user.lastname;
-    var username = this.props.user.username;
-    if (
-      this.props.user.firstname === undefined ||
-      this.props.user.firstname === ""
-    ) {
-      name = this.props.user.username;
-      username = "";
+    var fname = this.props.user.firstname;
+    var lname = this.props.user.lastname;
+    if (fname === undefined) {
+      fname = "";
     }
+    if (lname === undefined) {
+      lname = "";
+    }
+    var name = fname + " " + lname;
+    var username = this.props.user.username;
     this.state = {
       genres: ExportData(),
       selectedGenres: this.props.user.genres,
@@ -71,11 +72,46 @@ export default class HomeScreen extends Component {
   }
 
   editName() {
+    if (!this.state.editName) {
+      console.log("edit name mode enabled");
+    } else {
+      this.updateInformation();
+    }
     this.setState({ editName: !this.state.editName });
   }
 
+  processName(fullname) {
+    fullname = fullname.trim();
+    if (!fullname.includes(" ")) {
+      return [fullname, ""];
+    }
+    return [
+      fullname.substr(0, fullname.indexOf(" ")).trim(),
+      fullname.substr(fullname.indexOf(" ") + 1).trim(),
+    ];
+  }
+
   editUsername() {
+    if (!this.state.editUsername) {
+      console.log("edit name mode enabled");
+    } else {
+      this.updateInformation();
+    }
     this.setState({ editUsername: !this.state.editUsername });
+  }
+
+  updateInformation() {
+    var nameSplit = this.processName(this.state.name);
+    this.props.updateUser(
+      nameSplit[0],
+      nameSplit[1],
+      this.state.username.trim(),
+      this.state.selectedGenres
+    );
+  }
+
+  saveGenres() {
+    updateInformation();
   }
 
   toggleGenre(genre) {
@@ -122,7 +158,7 @@ export default class HomeScreen extends Component {
             color="black"
             size={35}
             onPress={() => {
-              /*this.props.updateGenres();*/
+              this.props.getUser();
               this.props.goBack();
             }}
           />
@@ -195,6 +231,17 @@ export default class HomeScreen extends Component {
                   </Button>
                 ))}
               </View>
+              <Button
+                mode="contained"
+                style={{
+                  backgroundColor: "purple",
+                  borderRadius: 20,
+                  margin: 15,
+                }}
+                onPress={() => this.updateInformation()}
+              >
+                Save
+              </Button>
             </View>
           ) : (
             <View>
