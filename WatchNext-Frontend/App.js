@@ -647,12 +647,6 @@ class App extends React.Component {
       case "SwipeScreen":
         return (
           <PaperProvider theme={DefaultTheme}>
-            <LinearGradient
-              colors={["purple", "mediumpurple"]}
-              style={styles.linearGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
             <SwipeScreen
               data={this.state.movies}
               requestMovies={this.requestMovies}

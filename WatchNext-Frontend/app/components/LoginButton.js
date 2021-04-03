@@ -67,7 +67,7 @@ export default function LoginButton(props) {
         <>{props.loginToApp(resultForLogin)}</>
       ) : (
         <Button
-          mode="contained"
+          mode="text"
           disabled={!request}
           onPress={() => promptAsync({ useProxy })}
         >
