@@ -32,6 +32,7 @@ import {
 const ImageHeight = 550;
 const ImageWidth = 367;
 const NetflixURL = "https://www.netflix.com/watch/";
+const TrailerURL = "https://www.youtube.com/results?search_query=";
 const LikeButtonSize = 62;
 
 /**
