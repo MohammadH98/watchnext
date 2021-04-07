@@ -72,9 +72,7 @@ export default class HomeScreen extends Component {
   }
 
   editName() {
-    if (!this.state.editName) {
-      console.log("edit name mode enabled");
-    } else {
+    if (this.state.editName) {
       this.updateInformation();
     }
     this.setState({ editName: !this.state.editName });
@@ -122,8 +120,6 @@ export default class HomeScreen extends Component {
     } else {
       newChecked.push(genre);
     }
-
-    console.log(newChecked);
     this.setState({ selectedGenres: newChecked });
   }
 

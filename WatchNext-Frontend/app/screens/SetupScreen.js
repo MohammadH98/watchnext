@@ -80,7 +80,6 @@ export default class SetupScreen extends Component {
     } else {
       this.setState({ stageCompleted: !this.state.stageCompleted });
     }
-    console.log(this.state.stageCompleted);
   };
 
   toggleGenre(genre) {
@@ -91,8 +90,6 @@ export default class SetupScreen extends Component {
     } else {
       newChecked.push(genre);
     }
-
-    console.log(newChecked);
     this.setState({ selectedGenres: newChecked });
   }
 

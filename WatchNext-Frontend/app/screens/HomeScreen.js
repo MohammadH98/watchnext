@@ -39,14 +39,6 @@ export default class HomeScreen extends Component {
     this.hideQR = this.hideQR.bind(this);
   }
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.text !== this.props.text) {
-      this.setState({
-        matchingSessions: sortSessions(this.props.matchingSessions),
-      });
-    }
-  }
-
   setSearchQuery(searchQuery) {
     this.setState({ searchQuery: searchQuery });
   }
@@ -61,6 +53,11 @@ export default class HomeScreen extends Component {
 
   hideModal() {
     this.setState({ firstModalVisible: false, secondModalVisible: false });
+  }
+
+  resetModal() {
+    this.hideModal();
+    this.setSearchQuery("");
   }
 
   nextModal() {
@@ -133,13 +130,12 @@ export default class HomeScreen extends Component {
               onDismiss={this.hideModal}
               contentContainerStyle={styles.containerStyle}
             >
-              <IconButton
+              {/* <IconButton
                 icon="camera"
                 color="red"
                 size={35}
                 onPress={() => console.log("Scan Icon Pressed")}
-                style={{ flex: 1 }}
-              />
+              /> */}
               <TextInput
                 label="Friend's Username"
                 placeholder="Add Users..."
@@ -155,12 +151,13 @@ export default class HomeScreen extends Component {
               <Divider />
               <Button
                 mode="contained"
-                onPress={() =>
+                onPress={() => {
                   this.props.requestRoom(
                     this.state.roomName,
                     this.state.addedUsers
-                  )
-                }
+                  );
+                  this.resetModal();
+                }}
               >
                 Submit Matching Session
               </Button>

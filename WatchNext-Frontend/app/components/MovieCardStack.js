@@ -22,7 +22,7 @@ import {
   Title,
   Subheading,
   Text,
-  Button
+  Button,
 } from "react-native-paper";
 import {
   widthPercentageToDP as wp,
@@ -34,16 +34,6 @@ const ImageWidth = 367;
 const NetflixURL = "https://www.netflix.com/watch/";
 const TrailerURL = "https://www.youtube.com/results?search_query=";
 const LikeButtonSize = 62;
-
-/**
- * Better version of console.log, prevents console.log statements from making it to prod
- * @param {*} message what to log
- */
-function logger(message) {
-  if (true) {
-    console.log(message);
-  } //change for debugging
-}
 
 /**
  * Formats the movie data provided from the server into an array to make it simpler to render
@@ -113,22 +103,32 @@ class CardInterior extends React.Component {
     {
       if (this.state.showCardBacks) {
         return (
-          <View
-            style={styles.modalStyle}
-          >
+          <View style={styles.modalStyle}>
             <Title style={{ textAlign: "center" }}>{media.title}</Title>
             <Subheading>{media.year}</Subheading>
             <Subheading>Duration: {media.duration}</Subheading>
-            <Text style={{marginTop: 10}}>{media.description}</Text>
-            {media.meta.director != "" && <Text style={{marginTop: 10}}>Director: {media.meta.director}</Text>}
-            <Text style={{textDecorationLine: "underline", fontWeight: "bold", marginTop: 10}}>Genres</Text>
-            {media.genre.slice(0,4).map((item) => (
+            <Text style={{ marginTop: 10 }}>{media.description}</Text>
+            {media.meta.director != "" && (
+              <Text style={{ marginTop: 10 }}>
+                Director: {media.meta.director}
+              </Text>
+            )}
+            <Text
+              style={{
+                textDecorationLine: "underline",
+                fontWeight: "bold",
+                marginTop: 10,
+              }}
+            >
+              Genres
+            </Text>
+            {media.genre.slice(0, 4).map((item) => (
               <Text key={item}>{item}</Text>
             ))}
             <Button
               icon="youtube"
               mode="contained"
-              style={{ width: wp("55%"), marginTop: 20}}
+              style={{ width: wp("55%"), marginTop: 20 }}
               onPress={() =>
                 Linking.openURL(TrailerURL + media.title + "+trailer")
               }
@@ -567,7 +567,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
     padding: 15,
-    backgroundColor: "lightgrey"
+    backgroundColor: "lightgrey",
   },
 });
 

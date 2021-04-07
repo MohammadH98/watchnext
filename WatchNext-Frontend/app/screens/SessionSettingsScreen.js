@@ -77,7 +77,6 @@ function ExportData2() {
 export default class SessionSettingsScreen extends Component {
   constructor(props) {
     super(props);
-    //console.log(props.currentSession);
     this.state = {
       currentSession: props.currentSession,
       genres: ExportData(),
@@ -111,16 +110,13 @@ export default class SessionSettingsScreen extends Component {
   }
 
   editName() {
-    if (!this.state.editName) {
-      console.log("edit name mode enabled");
-    } else {
+    if (this.state.editName) {
       this.updateInformation();
     }
     this.setState({ editName: !this.state.editName });
   }
 
   removeMember(member) {
-    console.log(member);
     var newMembers = this.state.members;
     newMembers.splice(
       newMembers.findIndex((m) => m.user_id === member),
@@ -138,8 +134,6 @@ export default class SessionSettingsScreen extends Component {
     } else {
       newChecked.push(genre);
     }
-
-    //console.log(newChecked);
     this.setState({ selectedGenres: newChecked });
   }
 
@@ -160,7 +154,6 @@ export default class SessionSettingsScreen extends Component {
   }
 
   showModal() {
-    console.log("add user button");
     this.setState({ modalVisible: true });
   }
 
@@ -206,8 +199,7 @@ export default class SessionSettingsScreen extends Component {
               icon="camera"
               color="red"
               size={35}
-              onPress={() => console.log("Scan Icon Pressed")}
-              style={{ flex: 1 }}
+              onPress={() => this.props.updateScreen("QRScanner")}
             />
             <TextInput
               label="Friend's Username"
