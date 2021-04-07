@@ -63,6 +63,11 @@ export default class HomeScreen extends Component {
     this.setState({ firstModalVisible: false, secondModalVisible: false });
   }
 
+  resetModal() {
+    this.hideModal();
+    this.setSearchQuery("");
+  }
+
   nextModal() {
     this.setState({ firstModalVisible: false, secondModalVisible: true });
   }
@@ -154,12 +159,13 @@ export default class HomeScreen extends Component {
               <Divider />
               <Button
                 mode="contained"
-                onPress={() =>
+                onPress={() => {
                   this.props.requestRoom(
                     this.state.roomName,
                     this.state.addedUsers
-                  )
-                }
+                  );
+                  this.resetModal();
+                }}
               >
                 Submit Matching Session
               </Button>

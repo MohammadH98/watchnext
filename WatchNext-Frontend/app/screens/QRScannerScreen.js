@@ -3,7 +3,7 @@ import { Text, View, StyleSheet, Button, Alert } from "react-native";
 import { BarCodeScanner } from "expo-barcode-scanner";
 
 export default function QRScannerScreen(props) {
-  const [hasPermission, setHasPermission] = useState("granted"); //hilarious
+  const [hasPermission, setHasPermission] = useState(null); //hilarious
   const [scanned, setScanned] = useState(false);
 
   useEffect(() => {
