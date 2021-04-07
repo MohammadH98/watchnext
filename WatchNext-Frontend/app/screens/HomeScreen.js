@@ -133,13 +133,12 @@ export default class HomeScreen extends Component {
               onDismiss={this.hideModal}
               contentContainerStyle={styles.containerStyle}
             >
-              <IconButton
+              {/* <IconButton
                 icon="camera"
                 color="red"
                 size={35}
                 onPress={() => console.log("Scan Icon Pressed")}
-                style={{ flex: 1 }}
-              />
+              /> */}
               <TextInput
                 label="Friend's Username"
                 placeholder="Add Users..."

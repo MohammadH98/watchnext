@@ -30,6 +30,7 @@ import SetupScreen from "./app/screens/SetupScreen";
 import MatchesScreen from "./app/screens/MatchesScreen";
 import AccountScreen from "./app/screens/AccountScreen";
 import SessionSettingsScreen from "./app/screens/SessionSettingsScreen";
+import QRScannerScreen from "./app/screens/QRScannerScreen";
 
 //For image uploading
 import * as ImagePicker from "expo-image-picker";
@@ -42,16 +43,6 @@ const socket = io("https://f91f99964e1e.ngrok.io", {
 
 const GradientColour1 = "mediumpurple";
 const GradientColour2 = "purple";
-
-/**
- * Better version of console.log, prevents console.log statements from making it to prod
- * @param {*} message what to log
- */
-function logger(message) {
-  if (false) {
-    console.log(message);
-  } //change for debugging
-}
 
 /**
  * A component that renders the invitation handler if the OS is web
@@ -135,7 +126,6 @@ class App extends React.Component {
           "created_on",
           "__v",*/
           function (data) {
-            //console.log(Object.keys(data.user));
             if (data.success) {
               this.updateScreen(data.first ? "SetupScreen" : "HomeScreen");
               this.setState({
@@ -154,8 +144,6 @@ class App extends React.Component {
             if (this.state.currentScreen === "SetupScreen") {
               this.updateScreen("HomeScreen");
             }
-            console.log(Object.keys(data));
-            console.log(Object.keys(data.data));
             this.setState({
               user: data.data,
             });
@@ -175,7 +163,6 @@ class App extends React.Component {
         socket.on(
           "recvRoom",
           function (data) {
-            console.log("receive room");
             this.setState({
               currentMatchingSessionID: data.info.session_id,
             });
@@ -195,7 +182,6 @@ class App extends React.Component {
         socket.on(
           "recvDeleteSession",
           function (data) {
-            console.log("recv delete session response");
             this.goBack();
           }.bind(this)
         );
@@ -218,7 +204,6 @@ class App extends React.Component {
         socket.on(
           "recvSession",
           function (data) {
-            console.log(data.getSession);
             //in here i will send you back an array containing the user objects for all the members in data.users
             this.setState({
               currentMatchingSession: data.session,
@@ -229,7 +214,6 @@ class App extends React.Component {
               data.getSession &&
               !data.dont_update
             ) {
-              console.log("sending you back :)");
               this.updateScreen("SessionSettingsScreen");
             } else {
               socket.emit("");
@@ -240,8 +224,6 @@ class App extends React.Component {
         socket.on(
           "recvMatches",
           function (data) {
-            // console.log('matches list data coming from socket')
-            // console.log(data)
             this.setState({
               currentMatchesList: data.matches,
             });
@@ -256,7 +238,6 @@ class App extends React.Component {
               this.state.currentMatchingSessionID &&
               this.state.currentScreen === "SessionSettingsScreen"
             ) {
-              console.log(this.state.currentMatchingSessionID);
               socket.emit("getSession", {
                 sID: this.state.currentMatchingSessionID,
                 dont_update: true,
@@ -354,9 +335,6 @@ class App extends React.Component {
   }
 
   addUsersToRoom(session_id, addedUsers) {
-    console.log("adding users");
-    console.log(addedUsers);
-    console.log(session_id);
     socket.emit("sendInvite", {
       uIDs: addedUsers,
       sID: session_id,
@@ -405,7 +383,6 @@ class App extends React.Component {
         });
       }
       if (genres != undefined) {
-        console.log("genres being called");
         socket.emit("editSessionGenres", {
           genres: genres,
           session_id: this.state.currentMatchingSessionID,
@@ -457,11 +434,19 @@ class App extends React.Component {
     if (
       this.state.currentScreen === "MatchesScreen" ||
       this.state.currentScreen === "SwipeScreen" ||
-      this.state.currentScreen === "SessionSettingsScreen"
+      this.state.currentScreen === "SessionSettingsScreen" ||
+      this.state.currentScreen === "QRScanner"
     ) {
       socket.emit("getSessions", "");
     }
-    this.updateScreen(this.state.previousScreen);
+    if (
+      this.state.currentScreen === "SessionSettingsScreen" &&
+      this.state.previousScreen === "QRScanner"
+    ) {
+      this.updateScreen("HomeScreen");
+    } else {
+      this.updateScreen(this.state.previousScreen);
+    }
   }
 
   updateScreen(newScreen) {
@@ -687,7 +672,6 @@ class App extends React.Component {
         );
 
       case "SessionSettingsScreen":
-        //console.log(this.state.currentMatchingSession);
         return (
           <PaperProvider theme={DefaultTheme}>
             <SessionSettingsScreen
@@ -697,6 +681,7 @@ class App extends React.Component {
               updateAvatar={this.openSessionImagePickerAsync}
               currentUserID={this.state.user.user_id}
               addUsersToRoom={this.addUsersToRoom}
+              updateScreen={this.updateScreen}
             />
           </PaperProvider>
         );
@@ -707,6 +692,16 @@ class App extends React.Component {
             <MatchesScreen
               goBack={this.goBack}
               matches={this.state.currentMatchesList}
+            />
+          </PaperProvider>
+        );
+
+      case "QRScanner":
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <QRScannerScreen
+              addUsersToRoom={this.addUsersToRoom}
+              currentSID={this.state.currentMatchingSession.session_id}
             />
           </PaperProvider>
         );
