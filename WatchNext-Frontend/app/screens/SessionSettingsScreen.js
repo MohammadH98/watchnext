@@ -12,7 +12,8 @@ import {
   Subheading,
   Headline,
   TextInput,
-  Appbar,
+  Portal,
+  Modal,
 } from "react-native-paper";
 
 function ExportData() {
@@ -86,7 +87,23 @@ export default class SessionSettingsScreen extends Component {
       editName: false,
       members: props.currentSession.members,
       memberToDelete: undefined,
+      addedUsers: [],
+      modalVisible: false,
     };
+
+    this.hideModal = this.hideModal.bind(this);
+  }
+
+  static getDerivedStateFromProps(props, current_state) {
+    if (current_state.currentSession !== props.currentSession) {
+      return {
+        currentSession: props.currentSession,
+        selectedGenres: props.currentSession.genres,
+        name: props.currentSession.name,
+        members: props.currentSession.members,
+      };
+    }
+    return null;
   }
 
   setName(name) {
@@ -142,6 +159,36 @@ export default class SessionSettingsScreen extends Component {
     );
   }
 
+  showModal() {
+    console.log("add user button");
+    this.setState({ modalVisible: true });
+  }
+
+  hideModal() {
+    this.setState({ modalVisible: false });
+  }
+
+  resetModal() {
+    this.hideModal();
+    this.setState({ searchQuery: "" });
+  }
+
+  setSearchQuery(searchQuery) {
+    this.setState({ searchQuery: searchQuery });
+  }
+
+  onChangeSearch(query) {
+    this.setSearchQuery(query);
+  }
+
+  addUser(name) {
+    newNames = this.state.addedUsers;
+    newNames.push(name.toLowerCase());
+    this.setState({
+      addedUsers: newNames,
+    });
+  }
+
   render() {
     return (
       <KeyboardAvoidingView
@@ -149,6 +196,46 @@ export default class SessionSettingsScreen extends Component {
         style={styles.mainContainer}
         enabled={false}
       >
+        <Portal>
+          <Modal
+            visible={this.state.modalVisible}
+            onDismiss={this.hideModal}
+            contentContainerStyle={styles.containerStyle}
+          >
+            <IconButton
+              icon="camera"
+              color="red"
+              size={35}
+              onPress={() => console.log("Scan Icon Pressed")}
+              style={{ flex: 1 }}
+            />
+            <TextInput
+              label="Friend's Username"
+              placeholder="Add Users..."
+              onChangeText={(text) => this.onChangeSearch(text)}
+              value={this.state.searchQuery}
+            />
+            <Button
+              mode="contained"
+              onPress={() => this.addUser(this.state.searchQuery)}
+            >
+              Add User
+            </Button>
+            <Divider />
+            <Button
+              mode="contained"
+              onPress={() => {
+                this.props.addUsersToRoom(
+                  this.state.currentSession.session_id,
+                  this.state.addedUsers
+                );
+                this.resetModal();
+              }}
+            >
+              Submit Matching Session
+            </Button>
+          </Modal>
+        </Portal>
         <View style={styles.topBar}>
           <IconButton
             icon="arrow-left"
@@ -161,7 +248,7 @@ export default class SessionSettingsScreen extends Component {
             icon="account-plus"
             color="black"
             size={35}
-            onPress={() => console.log("Add Member Button Pressed")}
+            onPress={() => this.showModal()}
           />
         </View>
         <View style={styles.overview}>
@@ -362,6 +449,12 @@ export default class SessionSettingsScreen extends Component {
 const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
+  },
+  containerStyle: {
+    //flex: 0.5,
+    backgroundColor: "white",
+    justifyContent: "center",
+    padding: 20,
   },
   topBar: {
     flex: 1,
