@@ -39,14 +39,6 @@ export default class HomeScreen extends Component {
     this.hideQR = this.hideQR.bind(this);
   }
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.text !== this.props.text) {
-      this.setState({
-        matchingSessions: sortSessions(this.props.matchingSessions),
-      });
-    }
-  }
-
   setSearchQuery(searchQuery) {
     this.setState({ searchQuery: searchQuery });
   }

@@ -151,6 +151,15 @@ class App extends React.Component {
         );
 
         socket.on(
+          "sendRatingsResponse",
+          function (data) {
+            if (this.state && this.state.currentScreen === "HomeScreen") {
+              socket.emit("getSessions", "");
+            }
+          }.bind(this)
+        );
+
+        socket.on(
           "recvMedia",
           function (data) {
             this.setState({
