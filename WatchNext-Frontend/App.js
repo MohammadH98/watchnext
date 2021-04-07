@@ -36,7 +36,7 @@ import * as ImagePicker from "expo-image-picker";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
 // https://api.cloudinary.com/v1_1/hgxqzjwvu
 
-const socket = io("https://3ec03b5f31d2.ngrok.io", {
+const socket = io("https://f91f99964e1e.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -218,7 +218,6 @@ class App extends React.Component {
         socket.on(
           "recvSession",
           function (data) {
-            console.log("session members data");
             console.log(data.getSession);
             //in here i will send you back an array containing the user objects for all the members in data.users
             this.setState({
@@ -227,8 +226,10 @@ class App extends React.Component {
 
             if (
               this.state.currentScreen != "SessionSettingsScreen" &&
-              data.getSession
+              data.getSession &&
+              !data.dont_update
             ) {
+              console.log("sending you back :)");
               this.updateScreen("SessionSettingsScreen");
             } else {
               socket.emit("");
@@ -244,6 +245,23 @@ class App extends React.Component {
             this.setState({
               currentMatchesList: data.matches,
             });
+          }.bind(this)
+        );
+
+        socket.on(
+          "inviteResp",
+          function (data) {
+            if (
+              this.state &&
+              this.state.currentMatchingSessionID &&
+              this.state.currentScreen === "SessionSettingsScreen"
+            ) {
+              console.log(this.state.currentMatchingSessionID);
+              socket.emit("getSession", {
+                sID: this.state.currentMatchingSessionID,
+                dont_update: true,
+              });
+            }
           }.bind(this)
         );
       }.bind(this)
@@ -333,6 +351,16 @@ class App extends React.Component {
   requestRoom(roomName, addedUsers) {
     this.setState({ addedUsers: addedUsers });
     socket.emit("getRoom", { name: roomName });
+  }
+
+  addUsersToRoom(session_id, addedUsers) {
+    console.log("adding users");
+    console.log(addedUsers);
+    console.log(session_id);
+    socket.emit("sendInvite", {
+      uIDs: addedUsers,
+      sID: session_id,
+    });
   }
 
   /**
@@ -668,6 +696,7 @@ class App extends React.Component {
               updateSession={this.updateSession}
               updateAvatar={this.openSessionImagePickerAsync}
               currentUserID={this.state.user.user_id}
+              addUsersToRoom={this.addUsersToRoom}
             />
           </PaperProvider>
         );
@@ -679,6 +708,13 @@ class App extends React.Component {
               goBack={this.goBack}
               matches={this.state.currentMatchesList}
             />
+          </PaperProvider>
+        );
+
+      default:
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <Text>Screen Not Found</Text>
           </PaperProvider>
         );
     }

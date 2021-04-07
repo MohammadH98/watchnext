@@ -490,9 +490,11 @@ io.on("connection", function (socket) {
             matching_session_obj["members"] = members;
             console.log("getSession socket response");
             // console.log(matching_session_obj);
+            var dU = data.dont_update === undefined ? false : true;
             socket.emit("recvSession", {
               session: matching_session_obj,
               getSession: true,
+              dont_update: dU,
             });
           })
           .catch((err) => {
