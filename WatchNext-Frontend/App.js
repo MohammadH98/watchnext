@@ -37,7 +37,7 @@ import * as ImagePicker from "expo-image-picker";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
 // https://api.cloudinary.com/v1_1/hgxqzjwvu
 
-const socket = io("https://f91f99964e1e.ngrok.io", {
+const socket = io("https://2c312938c8f1.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -643,6 +643,7 @@ class App extends React.Component {
               requestRoom={this.requestRoom}
               matchingSessions={this.state.sessions}
               uID={this.state.uID}
+              username={this.state.user.username}
               sendInvite={this.sendInvite}
               updateScreen={this.updateScreen}
               avatarLocation={this.state.cloudImgUrl}

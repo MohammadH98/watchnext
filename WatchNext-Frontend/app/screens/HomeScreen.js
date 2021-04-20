@@ -6,9 +6,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
+  Image,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import QRCode from "react-native-qrcode";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import QRCode from "react-native-qrcode-svg";
 import {
   Text,
   Title,
@@ -21,6 +25,10 @@ import {
   Button,
   TextInput,
   Appbar,
+  Headline,
+  Chip,
+  Subheading,
+  FAB
 } from "react-native-paper";
 
 export default class HomeScreen extends Component {
@@ -33,7 +41,8 @@ export default class HomeScreen extends Component {
       qrVisible: false,
       qrCodeText: "",
       roomName: "New Matching Session",
-      addedUsers: [], //add yourself to rooms by default
+      addedUsers: [this.props.username], //add yourself to rooms by default
+      addedUserNames: [this.props.username]
     };
     this.hideModal = this.hideModal.bind(this);
     this.hideQR = this.hideQR.bind(this);
@@ -52,7 +61,7 @@ export default class HomeScreen extends Component {
   }
 
   hideModal() {
-    this.setState({ firstModalVisible: false, secondModalVisible: false });
+    this.setState({ firstModalVisible: false, secondModalVisible: false, addedUsers: [this.props.username], addedUserNames: [this.props.username]});
   }
 
   resetModal() {
@@ -61,6 +70,7 @@ export default class HomeScreen extends Component {
   }
 
   nextModal() {
+    this.setDefaultName(this.state.addedUserNames);
     this.setState({ firstModalVisible: false, secondModalVisible: true });
   }
 
@@ -68,9 +78,40 @@ export default class HomeScreen extends Component {
     this.setState({ roomName: roomName });
   }
 
+  setDefaultName(users) {
+    defaultName = "";
+    if (users.length == 1) {
+      defaultName = users[0];
+    }
+    else if (users.length <= 3) {
+      for (var i = 0; i < users.length; i++) {
+        defaultName += users[i] + ", ";
+      }
+      defaultName = defaultName.substring(0, defaultName.length - 2);
+    }
+    else {
+      for (var i = 0; i < 3; i++) {
+        defaultName += users[i] + ", ";
+      }
+      defaultName += "+" + (users.length - 3);
+    }
+    this.setState({ roomName: defaultName });
+  }
+
   addUser(name) {
     newNames = this.state.addedUsers;
+    newUserNames = this.state.addedUserNames;
     newNames.push(name.toLowerCase());
+    newUserNames.push(name.split("@")[0]);
+    this.setState({
+      addedUsers: newNames,
+      addedUserNames: newUserNames
+    });
+  }
+
+  deleteUser(name) {
+    newNames = this.state.addedUsers;
+    newNames.splice(newNames.indexOf(name), 1);
     this.setState({
       addedUsers: newNames,
     });
@@ -113,14 +154,38 @@ export default class HomeScreen extends Component {
             <Modal
               visible={this.state.firstModalVisible}
               onDismiss={this.hideModal}
-              contentContainerStyle={styles.containerStyle}
+              contentContainerStyle={styles.modalStyle}
             >
-              <TextInput
-                label="Room Name"
-                mode="flat"
-                value={this.state.roomName}
-                onChangeText={(text) => this.setRoomName(text)}
-              />
+              <View style={{flexDirection: "row"}}>
+                <TextInput
+                  label="Add Friends"
+                  placeholder="Add Users By Email..."
+                  style={{width: "75%"}}
+                  onChangeText={(text) => this.onChangeSearch(text)}
+                  value={this.state.searchQuery}
+                />
+                <IconButton
+                  icon="plus-circle"
+                  color="#6200ee"
+                  size={35}
+                  onPress={() => this.addUser(this.state.searchQuery)}
+                />
+              </View>
+              <View style={{width: wp("80%"), flexDirection: "row", justifyContent: "space-between"}}>
+                <Caption>Members</Caption>
+                <Caption>{this.state.addedUsers.length}/8</Caption>
+              </View>
+              {this.state.addedUsers.map(
+                (user) => (
+                  <View key={user}>
+                    {user == this.props.username ? 
+                    <Chip style={{width: wp("50%")}} avatar={<Image source={{ uri: "https://p.kindpng.com/picc/s/22-223910_circle-user-png-icon-transparent-png.png" }} />}>{user}</Chip>
+                    :
+                    <Chip style={{width: wp("50%")}} onClose={() => this.deleteUser(user)} avatar={<Image source={{ uri: "https://p.kindpng.com/picc/s/22-223910_circle-user-png-icon-transparent-png.png" }} />}>{user}</Chip>
+                    }
+                  </View>
+                )
+              )}
               <Button mode="contained" onPress={() => this.nextModal()}>
                 Next Step
               </Button>
@@ -128,27 +193,29 @@ export default class HomeScreen extends Component {
             <Modal
               visible={this.state.secondModalVisible}
               onDismiss={this.hideModal}
-              contentContainerStyle={styles.containerStyle}
+              contentContainerStyle={styles.modalStyle}
             >
-              {/* <IconButton
-                icon="camera"
-                color="red"
-                size={35}
-                onPress={() => console.log("Scan Icon Pressed")}
-              /> */}
-              <TextInput
-                label="Friend's Username"
-                placeholder="Add Users..."
-                onChangeText={(text) => this.onChangeSearch(text)}
-                value={this.state.searchQuery}
+              <Subheading>Upload a Group Picture</Subheading>
+              <Avatar.Image
+                size={150}
+                source={{
+                  uri: "https://p.kindpng.com/picc/s/22-223910_circle-user-png-icon-transparent-png.png",
+                }}
               />
-              <Button
-                mode="contained"
-                onPress={() => this.addUser(this.state.searchQuery)}
-              >
-                Add User
-              </Button>
-              <Divider />
+              <FAB
+                icon="camera"
+                style={styles.avatarButton}
+                color="white"
+                onPress={() => console.log("Avatar Change")}
+              />
+              <TextInput
+                label="Session Name"
+                placeholder="New Matching Session"
+                mode="flat"
+                style={{width: "75%"}}
+                value={this.state.roomName}
+                onChangeText={(text) => this.setRoomName(text)}
+              />
               <Button
                 mode="contained"
                 onPress={() => {
@@ -159,32 +226,30 @@ export default class HomeScreen extends Component {
                   this.resetModal();
                 }}
               >
-                Submit Matching Session
+                Create Matching Session
               </Button>
             </Modal>
-          </Portal>
-          <Portal>
             <Modal
               visible={this.state.qrVisible}
               onDismiss={this.hideQR}
               contentContainerStyle={styles.containerStyle}
             >
+              <Headline style={{textAlign: "center" }}>{this.props.username}'s Invite Code</Headline>
               <QRCode
                 value={this.props.uID}
-                size={500}
-                bgColor="purple"
-                fgColor="white"
+                size={250}
+                color="#6200ee"
               />
             </Modal>
           </Portal>
           <Appbar.Header>
-            <Avatar.Image
+            {/* <Avatar.Image
               size={30}
               style={{ paddingLeft: 5 }}
               source={{
                 uri: this.getAvatarUrl(),
               }}
-            />
+            /> */}
             <Appbar.Content title="WatchNext" />
             <Appbar.Action
               size={25}
@@ -205,7 +270,7 @@ export default class HomeScreen extends Component {
         </View>
         <View>
           <ScrollView>
-            <Title style={{ fontSize: 24, padding: 15 }}>
+            <Title style={{ fontSize: 22, padding: 15 }}>
               Matching Sessions
             </Title>
             <Divider />
@@ -265,10 +330,31 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     padding: 15,
   },
-  containerStyle: {
-    //flex: 0.5,
+  modalStyle: {
     backgroundColor: "white",
-    justifyContent: "center",
-    padding: 20,
+    height: hp("75%"),
+    width: wp("90%"),
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 15,
+  },
+  containerStyle: {
+    backgroundColor: "white",
+    height: hp("50%"),
+    width: wp("80%"),
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "space-evenly",
+    paddingLeft: 25,
+    paddingRight: 25,
+    paddingTop: 10,
+    paddingBottom: 15,
+  },
+  avatarButton: {
+    backgroundColor: "#6200ee",
+    position: "absolute",
+    right: 0,
+    bottom: 0,
   },
 });

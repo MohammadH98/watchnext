@@ -107,7 +107,7 @@ class CardInterior extends React.Component {
             <Title style={{ textAlign: "center" }}>{media.title}</Title>
             <Subheading>{media.year}</Subheading>
             <Subheading>Duration: {media.duration}</Subheading>
-            <Text style={{ marginTop: 10 }}>{media.description}</Text>
+            <Text style={{ marginTop: 10, textAlign: "center" }}>{media.description}</Text>
             {media.meta.director != "" && (
               <Text style={{ marginTop: 10 }}>
                 Director: {media.meta.director}

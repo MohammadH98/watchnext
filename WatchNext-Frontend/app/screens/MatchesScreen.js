@@ -100,7 +100,7 @@ export default class MatchesScreen extends Component {
             <Title style={{ textAlign: "center" }}>{media.title}</Title>
             <Subheading>{media.year}</Subheading>
             <Subheading>Duration: {media.duration}</Subheading>
-            <Text style={{marginTop: 10}}>{media.description}</Text>
+            <Text style={{marginTop: 10, textAlign: "center"}}>{media.description}</Text>
             {media.meta.director != "" && <Text style={{marginTop: 10}}>Director: {media.meta.director}</Text>}
             <Text style={{textDecorationLine: "underline", fontWeight: "bold", marginTop: 10}}>Genres</Text>
             {media.genre.slice(0,4).map((item) => (
@@ -154,7 +154,7 @@ export default class MatchesScreen extends Component {
                   </View>
                   <IconButton
                     icon="information"
-                    color="purple"
+                    color="#6200ee"
                     size={30}
                     style={{ marginLeft: "auto" }}
                     onPress={() => this.showModal(item)}
