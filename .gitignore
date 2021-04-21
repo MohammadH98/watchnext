@@ -119,6 +119,3 @@ ngrok.exe
 
 .env
 server/ngrok
-
-!WatchNext-Frontend/node_modules/react-native-card-stack-swiper/CardStack.js
-!WatchNext-Frontend/node_modules/react-native-qrcode/lib/Canvas.js
