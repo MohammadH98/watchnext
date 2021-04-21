@@ -165,20 +165,6 @@ function getNewDBToken() {
     });
 }
 
-// Message the recommender to send info and/or get recommendations
-function sendRecommender(socket) {
-  // Get the user object
-  uobj = SOCKET_LIST[socket.id];
-  // Create recommender object
-  reccobj = { uID: uobj.ID, liked: [] };
-  // Loop through user liked movies and add to the liked list
-  for (mov in uobj.liked) {
-    reccobj.liked.push({ mID: mov.ID, tts: mov.tts });
-  }
-  // Format: {uID: "User ID" (str), liked: [{mID: "Movie ID" (str), tts: "Time to swipe"},...]}
-  axios.port("URL", reccobj);
-}
-
 function doesUserExist(uID) {
   return new Promise((resolve, reject) => {
     axios
@@ -239,7 +225,68 @@ function createNewUser(uID) {
   });
 }
 
-function recvRecommender(sID) {}
+function recvRecommender(sID) {
+    // Get all sockets in a room
+    var socks = io.sockets.clients(sID)
+    reccMovies = {}
+    // Loop through for each user
+    for (socket in socks){
+        // Get user data
+        var uID = SOCKET_LIST[socket.id].uID
+        var movies = []
+        var likes = []
+        var dislikes = []
+        // Get user data
+        axios
+            .get(`https://xwatchnextx.herokuapp.com/api/user/${uID}`, {
+                headers: {
+                authorization: `Bearer ${DBTOKEN}`,
+                },
+            })
+            .then((response) => {
+                console.log(response.data)
+                // Get likes and dislikes
+                likes = response.data.likes
+                dislikes = response.data.dislikes
+            })
+            .catch((err) => {
+                console.log("Recommender database request error");
+            });
+
+        // Sort the likes and dislikes into a single array
+        likes = likes.forEach(x => x["liked"] = true)
+        dislikes = dislikes.forEach(x => x["liked"] = false)
+        // Add to main movie list
+        movies = likes
+        movies.push(...dislikes)
+        // Form leaner object
+        // id: Movie ID
+        // genre: List of genres
+        // liked: Boolean if movie was liked or disliked
+        // tts: Time to swipe in ms
+        movies = movies.map(x => x = {"id": x["id"], "genre": x["genre"], "liked": x["liked"], "tts": x["time"]})
+        // Call recommender
+        // TODO: Switch to non-local endpoint
+        axios 
+            .get(`https:/localhost:80/recommendations/${uID}`, {
+            data: {
+                movies: movies,
+                n: 10
+            },
+            })
+            .then((response) => {
+                // Add response to movies
+                console.log(response.ids)
+                reccMovies.push(response.ids)
+            })
+            .catch((err) => {
+                console.log("Recommendation receiving error");
+            });
+    }
+
+    // Return the list of movies
+    return reccMovies
+}
 
 /*
     Main socket activity
@@ -371,6 +418,34 @@ io.on("connection", function (socket) {
         console.log(err);
       });
   });
+
+  // Get a movie recommendation for a session
+  // REQ: {sID: [String] }
+  socket.on("getReccMovie", function (data) {
+    // Get movie recommendations for the given session
+    ids = recvRecommender(data.sID)
+    // Give an error if IDs are null
+    if (ids == null){
+        socket.emit("recvMedia", { movieResults: null });
+    } else {
+        // Do a DB call to get movie information and send it over
+        axios
+        .get(`https://xwatchnextx.herokuapp.com/api/movies/${ids.toString()}`, {
+          headers: {
+            authorization: `Bearer ${DBTOKEN}`,
+          },
+        })
+        .then((response) => {
+          console.log("getSpecificMedia request");
+          socket.emit("recvMedia", { movieResults: response.data.data });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+
+
+  })
 
   // Create new user
   // REQ: {email: "Email of user" (str), user: "Username" (str), pass: "Password" (str), age: Age (int)}
@@ -1602,10 +1677,49 @@ io.on("connection", function (socket) {
 getNewDBToken();
 
 cron.schedule("* */12 * * *", () => {
-  getNewDBToken();
+  getNewDBToken()
 });
 
 // Start the local server
 server.listen(2000, () => {
   console.log("Server start on 2000");
 });
+
+// Little test segment
+setTimeout(() => {
+    a = null
+
+    axios
+    .get("https://xwatchnextx.herokuapp.com/api/movies/random", {
+    headers: {
+        authorization: `Bearer ${DBTOKEN}`,
+    },
+    })
+    .then((response) => {
+        //console.log("getRandomMedia request");
+        //console.log(response.data.data);
+        a = response.data.data
+        a.forEach(x => x["rating"] = true)
+        a.forEach(x => x["time"] = 2504)
+        a = a.map(x => x = {"id": x["id"], "genre": x["genre"], "liked": x["rating"], "tts": x["time"]})
+        console.log(a)
+        axios 
+        .get(`https:/localhost:80/recommendations/${uID}`, {
+            data: {
+                movies: a,
+                n: 10
+            },
+            })
+            .then((response) => {
+                // Add response to movies
+                console.log(response)
+            })
+            .catch((err) => {
+                console.log("Recommendation receiving error");
+        });
+    })
+    .catch((err) => {
+    console.log(err);
+    });
+
+}, 1000);
