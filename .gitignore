@@ -60,7 +60,6 @@ local.properties
 
 # Node
 node_modules
-!WatchNext-Frontend/node_modules/react-native-card-stack-swiper/CardStack.js
 *.log
 .nvm
 /bots/node_modules/
@@ -120,3 +119,5 @@ ngrok.exe
 
 .env
 server/ngrok
+
+!WatchNext-Frontend/node_modules/react-native-card-stack-swiper/*
