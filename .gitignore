@@ -120,4 +120,4 @@ ngrok.exe
 .env
 server/ngrok
 
-!WatchNext-Frontend/node_modules/react-native-card-stack-swiper/*
+!WatchNext-Frontend/node_modules/react-native-card-stack-swiper/CardStack.js
