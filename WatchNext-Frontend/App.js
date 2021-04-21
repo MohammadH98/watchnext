@@ -34,6 +34,7 @@ import QRScannerScreen from "./app/screens/QRScannerScreen";
 
 //For image uploading
 import * as ImagePicker from "expo-image-picker";
+import LoadingScreen from "./app/screens/LoadingScreen";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
 // https://api.cloudinary.com/v1_1/hgxqzjwvu
 
@@ -299,6 +300,7 @@ class App extends React.Component {
     this.setState({
       currentMatchingSessionID: sessionID,
     });
+    this.updateScreen("Loading");
     socket.emit("getRandomMovies", "");
     if (liked.length > 0 || disliked.length > 0) {
       socket.emit("sendRatings", {
@@ -406,6 +408,7 @@ class App extends React.Component {
 
   loginToApp(token) {
     var tokenDecoded = jwtDecode(token);
+    this.updateScreen("Loading");
     socket.emit("loginUser", { token: token, tokenDecoded: tokenDecoded });
   }
 
@@ -459,7 +462,11 @@ class App extends React.Component {
   }
 
   updateScreen(newScreen) {
-    var oldScreen = this.state.currentScreen;
+    if (this.state.currentScreen != "Loading") {
+      var oldScreen = this.state.currentScreen;
+    } else {
+      var oldScreen = this.state.previousScreen;
+    }
     this.setState({
       currentScreen: newScreen,
       previousScreen: oldScreen,
@@ -712,6 +719,13 @@ class App extends React.Component {
               addUsersToRoom={this.addUsersToRoom}
               currentSID={this.state.currentMatchingSession.session_id}
             />
+          </PaperProvider>
+        );
+
+      case "Loading":
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <LoadingScreen />
           </PaperProvider>
         );
 
