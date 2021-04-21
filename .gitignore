@@ -59,8 +59,8 @@ local.properties
 /android/
 
 # Node
-!WatchNext-Frontend/node_modules/react-native-card-stack-swiper/CardStack.js
 node_modules
+!WatchNext-Frontend/node_modules/react-native-card-stack-swiper/CardStack.js
 *.log
 .nvm
 /bots/node_modules/
