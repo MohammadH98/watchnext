@@ -82,3 +82,6 @@ buck-out/
 web-build/
 
 # @end expo-cli
+
+!node_modules/react-native-card-stack-swiper/CardStack.js
+!node_modules/react-native-qrcode/lib/Canvas.js
