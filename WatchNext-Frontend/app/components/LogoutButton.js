@@ -70,8 +70,18 @@ export default function LogoutButton(props) {
           size={35}
           disabled={!request}
           onPress={() => {
-            props.logout();
-            promptAsync({ useProxy });
+            Alert.alert("Are You Sure", "Are you sure you want to logout?", [
+              {
+                text: "Cancel",
+              },
+              {
+                text: "Logout",
+                onPress: () => {
+                  this.props.logout();
+                  promptAsync({ useProxy });
+                },
+              },
+            ]);
           }}
         />
       )}
