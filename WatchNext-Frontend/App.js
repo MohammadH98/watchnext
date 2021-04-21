@@ -37,7 +37,7 @@ import * as ImagePicker from "expo-image-picker";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
 // https://api.cloudinary.com/v1_1/hgxqzjwvu
 
-const socket = io("https://f91f99964e1e.ngrok.io", {
+const socket = io("https://6621b9549d03.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -127,7 +127,9 @@ class App extends React.Component {
           "__v",*/
           function (data) {
             if (data.success) {
-              this.updateScreen(data.first ? "SetupScreen" : "HomeScreen");
+              this.updateScreen(
+                /*data.first*/ true ? "SetupScreen" : "HomeScreen"
+              );
               this.setState({
                 user: data.user,
                 uID: data.user.user_id,

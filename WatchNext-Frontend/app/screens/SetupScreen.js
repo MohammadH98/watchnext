@@ -10,7 +10,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import {
   Text,
   Title,
-  Searchbar,
+  List,
   Subheading,
   Headline,
   IconButton,
@@ -54,27 +54,100 @@ export default class SetupScreen extends Component {
       stageCompleted: false,
       genres: ExportData(props.data),
       selectedGenres: [],
+      formError: false,
+      errorMessages: [],
     };
   }
 
+  validateFormEntry(formEntry, formEntryName) {
+    var valid = true;
+    var errorMessages = this.state.errorMessages;
+
+    function validateLengthLong(testString) {
+      return testString.length <= 16;
+    }
+
+    function validateLengthShort(testString) {
+      return testString.length > 0;
+    }
+
+    function validateSpecial(testString) {
+      if (testString.length === 0) {
+        return true;
+      }
+      var rg = /^[a-zA-Z]+$/;
+      return testString.match(rg);
+    }
+
+    [valid, errorMessages] = this.validator(
+      validateLengthLong,
+      formEntry,
+      formEntryName + " is too long, the maximum is 16 characters",
+      errorMessages
+    );
+
+    [valid, errorMessages] = this.validator(
+      validateLengthShort,
+      formEntry,
+      formEntryName + " must be completed",
+      errorMessages
+    );
+
+    [valid, errorMessages] = this.validator(
+      validateSpecial,
+      formEntry,
+      formEntryName + " can only contain letters",
+      errorMessages
+    );
+
+    if (!valid) {
+      this.setState({ formError: true, errorMessages: errorMessages });
+    } else {
+      this.setState({
+        formError: errorMessages.length != 0,
+        errorMessages: errorMessages,
+      });
+    }
+  }
+
+  validator(validationFunction, formEntry, errorMessage, errorMessages) {
+    var valid = true;
+    if (!validationFunction(formEntry)) {
+      valid = false;
+      if (errorMessages.indexOf(errorMessage) === -1) {
+        errorMessages.push(errorMessage);
+      }
+    } else {
+      errorMessages.forEach(function (error, index) {
+        if (error === errorMessage) {
+          errorMessages.splice(index, 1);
+        }
+      });
+    }
+    return [valid, errorMessages];
+  }
+
   setFirstName(firstName) {
+    this.validateFormEntry(firstName, "First name");
     this.setState({ firstName: firstName });
   }
 
   setLastName(lastName) {
+    this.validateFormEntry(lastName, "Last name");
     this.setState({ lastName: lastName });
   }
 
   setUsername(username) {
+    this.validateFormEntry(username, "Username");
     this.setState({ username: username });
   }
 
   nextStage = () => {
     if (this.state.stageCompleted) {
       this.props.onCompletion(
-        this.state.firstName,
-        this.state.lastName,
-        this.state.username,
+        this.state.firstName.trim(),
+        this.state.lastName.trim(),
+        this.state.username.trim(),
         this.state.selectedGenres
       );
     } else {
@@ -139,6 +212,18 @@ export default class SetupScreen extends Component {
               onChangeText={(text) => this.setUsername(text)}
               style={{ width: "75%", marginTop: 10 }}
             />
+            {this.state.formError ? (
+              <List.Section>
+                <List.Subheader style={{ color: "white", fontSize: 12 }}>
+                  There are some errors in the form:
+                </List.Subheader>
+                {this.state.errorMessages.map((errorMessage) => (
+                  <Text>{errorMessage}</Text>
+                ))}
+              </List.Section>
+            ) : (
+              <View />
+            )}
           </View>
         ) : (
           <View style={styles.top2}>
