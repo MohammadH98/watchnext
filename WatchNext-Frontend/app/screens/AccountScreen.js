@@ -1,5 +1,11 @@
 import React, { Component } from "react";
-import { StyleSheet, View, KeyboardAvoidingView, Platform } from "react-native";
+import {
+  StyleSheet,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+} from "react-native";
 import LogoutButton from "../components/LogoutButton";
 import {
   Text,
@@ -13,6 +19,7 @@ import {
   Subheading,
   Headline,
   TextInput,
+  HelperText,
 } from "react-native-paper";
 
 function ExportData() {
@@ -60,14 +67,122 @@ export default class HomeScreen extends Component {
       editName: false,
       editUsername: false,
       email: this.props.user.user_id,
+      formError: false,
+      errorMessagesFirst: [],
+      errorMessagesLast: [],
+      errorMessagesUser: [],
     };
   }
 
+  validateFormEntry(formEntry, formEntryName) {
+    var valid = true;
+    if (formEntryName == "First name") {
+      var errorMessages = this.state.errorMessagesFirst;
+    } else if (formEntryName == "Last name") {
+      var errorMessages = this.state.errorMessagesLast;
+    } else if (formEntryName == "Username") {
+      var errorMessages = this.state.errorMessagesUser;
+    }
+
+    function validateLengthLong(testString) {
+      return testString.length <= 16;
+    }
+
+    function validateLengthShort(testString) {
+      return testString.length > 0;
+    }
+
+    function validateSpecial(testString) {
+      if (testString.length === 0) {
+        //don't want 2 error messages if it is an empty string
+        return true;
+      }
+      var rg = /^[a-zA-Z]+$/;
+      return testString.match(rg);
+    }
+
+    [valid, errorMessages] = this.validator(
+      validateLengthLong,
+      formEntry,
+      formEntryName + " is too long, the maximum is 16 characters",
+      errorMessages
+    );
+
+    [valid, errorMessages] = this.validator(
+      validateLengthShort,
+      formEntry,
+      formEntryName + " must be completed",
+      errorMessages
+    );
+
+    if (formEntryName != "Username") {
+      [valid, errorMessages] = this.validator(
+        validateSpecial,
+        formEntry,
+        formEntryName + " can only contain letters",
+        errorMessages
+      );
+    }
+
+    if (!valid) {
+      if (formEntryName == "First name") {
+        this.setState({ formError: true, errorMessagesFirst: errorMessages });
+      } else if (formEntryName == "Last name") {
+        this.setState({ formError: true, errorMessagesLast: errorMessages });
+      } else if (formEntryName == "Username") {
+        this.setState({ formError: true, errorMessagesUser: errorMessages });
+      }
+    } else {
+      var formHasError =
+        errorMessages.length != 0 ||
+        this.state.errorMessagesFirst.length != 0 ||
+        this.state.errorMessagesLast.length != 0 ||
+        this.state.errorMessagesUser.length != 0;
+      if (formEntryName == "First name") {
+        this.setState({
+          formError: formHasError,
+          errorMessagesFirst: errorMessages,
+        });
+      } else if (formEntryName == "Last name") {
+        this.setState({
+          formError: formHasError,
+          errorMessagesLast: errorMessages,
+        });
+      } else if (formEntryName == "Username") {
+        this.setState({
+          formError: formHasError,
+          errorMessagesUser: errorMessages,
+        });
+      }
+    }
+  }
+
+  validator(validationFunction, formEntry, errorMessage, errorMessages) {
+    var valid = true;
+    if (!validationFunction(formEntry)) {
+      valid = false;
+      if (errorMessages.indexOf(errorMessage) === -1) {
+        errorMessages.push(errorMessage);
+      }
+    } else {
+      errorMessages.forEach(function (error, index) {
+        if (error === errorMessage) {
+          errorMessages.splice(index, 1);
+        }
+      });
+    }
+    return [valid, errorMessages];
+  }
+
   setName(name) {
+    var nameSplit = this.processName(name);
+    this.validateFormEntry(nameSplit[0], "First name");
+    this.validateFormEntry(nameSplit[1], "Last name");
     this.setState({ name: name });
   }
 
   setUsername(username) {
+    this.validateFormEntry(username, "Username");
     this.setState({ username: username });
   }
 
@@ -78,14 +193,14 @@ export default class HomeScreen extends Component {
     this.setState({ editName: !this.state.editName });
   }
 
-  processName(fullname) {
-    fullname = fullname.trim();
-    if (!fullname.includes(" ")) {
-      return [fullname, ""];
+  processName(fullName) {
+    fullName = fullName.trim();
+    if (!fullName.includes(" ")) {
+      return [fullName, ""];
     }
     return [
-      fullname.substr(0, fullname.indexOf(" ")).trim(),
-      fullname.substr(fullname.indexOf(" ") + 1).trim(),
+      fullName.substr(0, fullName.indexOf(" ")).trim(),
+      fullName.substr(fullName.indexOf(" ") + 1).trim(),
     ];
   }
 
@@ -99,13 +214,20 @@ export default class HomeScreen extends Component {
   }
 
   updateInformation() {
-    var nameSplit = this.processName(this.state.name);
-    this.props.updateUser(
-      nameSplit[0],
-      nameSplit[1],
-      this.state.username.trim(),
-      this.state.selectedGenres
-    );
+    if (this.state.formError) {
+      Alert.alert(
+        "",
+        "You must fix your details before you can finish updating your account"
+      );
+    } else {
+      var nameSplit = this.processName(this.state.name);
+      this.props.updateUser(
+        nameSplit[0],
+        nameSplit[1],
+        this.state.username.trim(),
+        this.state.selectedGenres
+      );
+    }
   }
 
   saveGenres() {
@@ -268,6 +390,24 @@ export default class HomeScreen extends Component {
                     </Button>
                   </View>
                 </View>
+                {this.state.errorMessagesFirst.map((errorMessage) => (
+                  <HelperText
+                    key={errorMessage}
+                    type="error"
+                    visible={this.state.errorMessagesFirst.length > 0}
+                  >
+                    {errorMessage}
+                  </HelperText>
+                ))}
+                {this.state.errorMessagesLast.map((errorMessage) => (
+                  <HelperText
+                    key={errorMessage}
+                    type="error"
+                    visible={this.state.errorMessagesLast.length > 0}
+                  >
+                    {errorMessage}
+                  </HelperText>
+                ))}
                 <View style={styles.userDetailContainer}>
                   {!this.state.editUsername && (
                     <Caption style={{ fontSize: 14 }}>Username</Caption>
@@ -296,6 +436,15 @@ export default class HomeScreen extends Component {
                     </Button>
                   </View>
                 </View>
+                {this.state.errorMessagesUser.map((errorMessage) => (
+                  <HelperText
+                    key={errorMessage}
+                    type="error"
+                    visible={this.state.errorMessagesUser.length > 0}
+                  >
+                    {errorMessage}
+                  </HelperText>
+                ))}
                 <View style={styles.userDetailContainer}>
                   <Caption style={{ fontSize: 14 }}>Email</Caption>
                   <View style={styles.userDetailField}>
