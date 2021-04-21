@@ -128,7 +128,6 @@ export default class SetupScreen extends Component {
         this.state.errorMessagesLast.length != 0 ||
         this.state.errorMessagesUser.length != 0;
 
-      console.log(formHasError);
       if (formEntryName == "First name") {
         this.setState({
           formError: formHasError,

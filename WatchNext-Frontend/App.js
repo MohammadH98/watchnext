@@ -127,9 +127,7 @@ class App extends React.Component {
           "__v",*/
           function (data) {
             if (data.success) {
-              this.updateScreen(
-                /*data.first*/ true ? "SetupScreen" : "HomeScreen"
-              );
+              this.updateScreen(data.first ? "SetupScreen" : "HomeScreen");
               this.setState({
                 user: data.user,
                 uID: data.user.user_id,
