@@ -217,7 +217,7 @@ export default class HomeScreen extends Component {
     if (this.state.formError) {
       Alert.alert(
         "",
-        "You must fix your details before you can finish creating your account"
+        "You must fix your details before you can finish updating your account"
       );
     } else {
       var nameSplit = this.processName(this.state.name);
@@ -392,6 +392,7 @@ export default class HomeScreen extends Component {
                 </View>
                 {this.state.errorMessagesFirst.map((errorMessage) => (
                   <HelperText
+                    key={errorMessage}
                     type="error"
                     visible={this.state.errorMessagesFirst.length > 0}
                   >
@@ -400,6 +401,7 @@ export default class HomeScreen extends Component {
                 ))}
                 {this.state.errorMessagesLast.map((errorMessage) => (
                   <HelperText
+                    key={errorMessage}
                     type="error"
                     visible={this.state.errorMessagesLast.length > 0}
                   >
@@ -436,6 +438,7 @@ export default class HomeScreen extends Component {
                 </View>
                 {this.state.errorMessagesUser.map((errorMessage) => (
                   <HelperText
+                    key={errorMessage}
                     type="error"
                     visible={this.state.errorMessagesUser.length > 0}
                   >

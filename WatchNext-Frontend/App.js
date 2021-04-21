@@ -37,7 +37,7 @@ import * as ImagePicker from "expo-image-picker";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
 // https://api.cloudinary.com/v1_1/hgxqzjwvu
 
-const socket = io("https://6621b9549d03.ngrok.io", {
+const socket = io("https://27d855f0b218.ngrok.io", {
   transports: ["websocket"],
 });
 

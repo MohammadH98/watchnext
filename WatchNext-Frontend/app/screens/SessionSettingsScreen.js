@@ -1,5 +1,11 @@
 import React, { Component } from "react";
-import { StyleSheet, View, KeyboardAvoidingView, Platform } from "react-native";
+import {
+  StyleSheet,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+} from "react-native";
 import {
   Text,
   Title,
@@ -14,6 +20,7 @@ import {
   TextInput,
   Portal,
   Modal,
+  HelperText,
 } from "react-native-paper";
 
 function ExportData() {
@@ -88,6 +95,8 @@ export default class SessionSettingsScreen extends Component {
       memberToDelete: undefined,
       addedUsers: [],
       modalVisible: false,
+      formError: false,
+      errorMessagesRoom: [],
     };
 
     this.hideModal = this.hideModal.bind(this);
@@ -105,7 +114,62 @@ export default class SessionSettingsScreen extends Component {
     return null;
   }
 
+  validateFormEntry(formEntry) {
+    var valid = true;
+    var errorMessages = this.state.errorMessagesRoom;
+
+    function validateLengthLong(testString) {
+      return testString.length <= 32;
+    }
+
+    function validateLengthShort(testString) {
+      return testString.length > 0;
+    }
+
+    [valid, errorMessages] = this.validator(
+      validateLengthLong,
+      formEntry,
+      "Room name is too long, the maximum is 32 characters",
+      errorMessages
+    );
+
+    [valid, errorMessages] = this.validator(
+      validateLengthShort,
+      formEntry,
+      "Room name must be completed",
+      errorMessages
+    );
+
+    if (!valid) {
+      this.setState({ formError: true, errorMessagesRoom: errorMessages });
+    } else {
+      var formHasError = errorMessages.length != 0;
+      this.setState({
+        formError: formHasError,
+        errorMessagesRoom: errorMessages,
+      });
+    }
+  }
+
+  validator(validationFunction, formEntry, errorMessage, errorMessages) {
+    var valid = true;
+    if (!validationFunction(formEntry)) {
+      valid = false;
+      if (errorMessages.indexOf(errorMessage) === -1) {
+        errorMessages.push(errorMessage);
+      }
+    } else {
+      errorMessages.forEach(function (error, index) {
+        if (error === errorMessage) {
+          errorMessages.splice(index, 1);
+        }
+      });
+    }
+    return [valid, errorMessages];
+  }
+
   setName(name) {
+    this.validateFormEntry(name);
     this.setState({ name: name });
   }
 
@@ -146,11 +210,18 @@ export default class SessionSettingsScreen extends Component {
   }
 
   updateInformation(memberToDelete = undefined) {
-    this.props.updateSession(
-      this.state.selectedGenres,
-      this.state.name,
-      memberToDelete
-    );
+    if (this.state.formError) {
+      Alert.alert(
+        "",
+        "You must fix the errors before you can finish updating your room"
+      );
+    } else {
+      this.props.updateSession(
+        this.state.selectedGenres,
+        this.state.name,
+        memberToDelete
+      );
+    }
   }
 
   showModal() {
@@ -352,6 +423,15 @@ export default class SessionSettingsScreen extends Component {
                     </Button>
                   </View>
                 </View>
+                {this.state.errorMessagesRoom.map((errorMessage) => (
+                  <HelperText
+                    key={errorMessage}
+                    type="error"
+                    visible={this.state.errorMessagesRoom.length > 0}
+                  >
+                    {errorMessage}
+                  </HelperText>
+                ))}
                 <View style={styles.userDetailContainer}>
                   <Caption style={{ fontSize: 14 }}>Members</Caption>
                   <View style={styles.userDetailField}>

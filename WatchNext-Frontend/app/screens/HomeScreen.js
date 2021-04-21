@@ -6,6 +6,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import QRCode from "react-native-qrcode";
@@ -21,6 +22,7 @@ import {
   Button,
   TextInput,
   Appbar,
+  HelperText,
 } from "react-native-paper";
 
 export default class HomeScreen extends Component {
@@ -34,9 +36,65 @@ export default class HomeScreen extends Component {
       qrCodeText: "",
       roomName: "New Matching Session",
       addedUsers: [], //add yourself to rooms by default
+      formError: false,
+      errorMessagesRoom: [],
     };
     this.hideModal = this.hideModal.bind(this);
     this.hideQR = this.hideQR.bind(this);
+  }
+
+  validateFormEntry(formEntry) {
+    var valid = true;
+    var errorMessages = this.state.errorMessagesRoom;
+
+    function validateLengthLong(testString) {
+      return testString.length <= 32;
+    }
+
+    function validateLengthShort(testString) {
+      return testString.length > 0;
+    }
+
+    [valid, errorMessages] = this.validator(
+      validateLengthLong,
+      formEntry,
+      "Room name is too long, the maximum is 32 characters",
+      errorMessages
+    );
+
+    [valid, errorMessages] = this.validator(
+      validateLengthShort,
+      formEntry,
+      "Room name must be completed",
+      errorMessages
+    );
+
+    if (!valid) {
+      this.setState({ formError: true, errorMessagesRoom: errorMessages });
+    } else {
+      var formHasError = errorMessages.length != 0;
+      this.setState({
+        formError: formHasError,
+        errorMessagesRoom: errorMessages,
+      });
+    }
+  }
+
+  validator(validationFunction, formEntry, errorMessage, errorMessages) {
+    var valid = true;
+    if (!validationFunction(formEntry)) {
+      valid = false;
+      if (errorMessages.indexOf(errorMessage) === -1) {
+        errorMessages.push(errorMessage);
+      }
+    } else {
+      errorMessages.forEach(function (error, index) {
+        if (error === errorMessage) {
+          errorMessages.splice(index, 1);
+        }
+      });
+    }
+    return [valid, errorMessages];
   }
 
   setSearchQuery(searchQuery) {
@@ -61,10 +119,18 @@ export default class HomeScreen extends Component {
   }
 
   nextModal() {
-    this.setState({ firstModalVisible: false, secondModalVisible: true });
+    if (this.state.formError) {
+      Alert.alert(
+        "",
+        "You must fix the errors before you can finish creating your room"
+      );
+    } else {
+      this.setState({ firstModalVisible: false, secondModalVisible: true });
+    }
   }
 
   setRoomName(roomName) {
+    this.validateFormEntry(roomName);
     this.setState({ roomName: roomName });
   }
 
@@ -121,6 +187,15 @@ export default class HomeScreen extends Component {
                 value={this.state.roomName}
                 onChangeText={(text) => this.setRoomName(text)}
               />
+              {this.state.errorMessagesRoom.map((errorMessage) => (
+                <HelperText
+                  key={errorMessage}
+                  type="error"
+                  visible={this.state.errorMessagesRoom.length > 0}
+                >
+                  {errorMessage}
+                </HelperText>
+              ))}
               <Button mode="contained" onPress={() => this.nextModal()}>
                 Next Step
               </Button>

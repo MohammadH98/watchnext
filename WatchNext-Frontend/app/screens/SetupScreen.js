@@ -246,6 +246,7 @@ export default class SetupScreen extends Component {
             />
             {this.state.errorMessagesFirst.map((errorMessage) => (
               <HelperText
+                key={errorMessage}
                 type="error"
                 visible={this.state.errorMessagesFirst.length > 0}
               >
@@ -260,6 +261,7 @@ export default class SetupScreen extends Component {
             />
             {this.state.errorMessagesLast.map((errorMessage) => (
               <HelperText
+                key={errorMessage}
                 type="error"
                 visible={this.state.errorMessagesLast.length > 0}
               >
@@ -274,6 +276,7 @@ export default class SetupScreen extends Component {
             />
             {this.state.errorMessagesUser.map((errorMessage) => (
               <HelperText
+                key={errorMessage}
                 type="error"
                 visible={this.state.errorMessagesUser.length > 0}
               >
