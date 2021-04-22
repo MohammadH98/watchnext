@@ -347,7 +347,7 @@ export default class HomeScreen extends Component {
       !(this.props.localAvatar != undefined && this.props.localAvatar != "") &&
       !(this.props.cloudAvatar != undefined && this.props.cloudAvatar != "")
     ) {
-      return "https://p.kindpng.com/picc/s/22-223910_circle-user-png-icon-transparent-png.png";
+      return "https://mpng.subpng.com/20180717/cek/kisspng-computer-icons-desktop-wallpaper-team-concept-5b4e0cd3819810.4507019915318417475308.jpg";
     }
     if (this.props.cloudAvatar != undefined && this.props.cloudAvatar != "") {
       return this.props.cloudAvatar;
