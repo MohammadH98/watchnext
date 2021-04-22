@@ -365,12 +365,12 @@ export default class SetupScreen extends Component {
                   width: "40%",
                   backgroundColor: this.state.selectedGenres.includes(genre)
                     ? "white"
-                    : "purple",
+                    : "#6200ee",
                   margin: 10,
                 }}
                 labelStyle={{
                   color: this.state.selectedGenres.includes(genre)
-                    ? "purple"
+                    ? "#6200ee"
                     : "white",
                 }}
                 onPress={() => this.toggleGenre(genre)}
@@ -384,7 +384,7 @@ export default class SetupScreen extends Component {
           <View style={styles.bottom}>
             <Button
               style={{ width: "50%", backgroundColor: "white" }}
-              labelStyle={{ color: "purple" }}
+              labelStyle={{ color: "#6200ee" }}
               mode="contained"
               onPress={this.nextStage}
             >
@@ -395,7 +395,7 @@ export default class SetupScreen extends Component {
           <View style={styles.bottom2}>
             <Button
               style={{ width: "75%", backgroundColor: "white" }}
-              labelStyle={{ color: "purple" }}
+              labelStyle={{ color: "#6200ee" }}
               mode="contained"
               onPress={this.nextStage}
             >
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
     height: 1000,
   },
   avatarButton: {
-    backgroundColor: "purple",
+    backgroundColor: "#6200ee",
     position: "absolute",
     right: 100,
     bottom: 100,

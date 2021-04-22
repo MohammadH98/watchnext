@@ -686,6 +686,8 @@ class App extends React.Component {
               requestRoom={this.requestRoom}
               matchingSessions={this.state.sessions}
               uID={this.state.uID}
+              user={this.state.user}
+              avatarLocation={this.state.cloudImgUrl}
               sendInvite={this.sendInvite}
               updateScreen={this.updateScreen}
               avatarLocation={this.state.cloudImgUrl}

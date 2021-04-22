@@ -6,10 +6,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
+  Image,
   Alert,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import QRCode from "react-native-qrcode";
+import {
+  widthPercentageToDP as wp,
+  heightPercentageToDP as hp,
+} from "react-native-responsive-screen";
+import QRCode from "react-native-qrcode-svg";
 import {
   Text,
   Title,
@@ -22,6 +26,11 @@ import {
   Button,
   TextInput,
   Appbar,
+  Headline,
+  Chip,
+  Subheading,
+  FAB,
+  Snackbar,
   HelperText,
 } from "react-native-paper";
 
@@ -35,7 +44,18 @@ export default class HomeScreen extends Component {
       qrVisible: false,
       qrCodeText: "",
       roomName: "New Matching Session",
-      addedUsers: [], //add yourself to rooms by default
+      addedUsers: [
+        "User Slot Available",
+        "User Slot Available",
+        "User Slot Available",
+        "User Slot Available",
+        "User Slot Available",
+        "User Slot Available",
+        "User Slot Available",
+        "User Slot Available",
+      ], //add yourself to rooms by default
+      addedUserNames: [],
+      emailsToAdd: [],
       formError: false,
       initialFlag: true,
       errorMessagesRoom: [],
@@ -182,7 +202,20 @@ export default class HomeScreen extends Component {
   }
 
   showModal() {
-    this.setState({ firstModalVisible: true });
+    this.setState({
+      firstModalVisible: true,
+      addedUsers: [
+        this.props.uID.split("@")[0],
+        "User Slot Available",
+        "User Slot Available",
+        "User Slot Available",
+        "User Slot Available",
+        "User Slot Available",
+        "User Slot Available",
+        "User Slot Available",
+      ],
+      addedUserNames: [this.props.uID.split("@")[0]],
+    });
   }
 
   hideModal() {
@@ -199,6 +232,7 @@ export default class HomeScreen extends Component {
   }
 
   nextModal() {
+    this.setDefaultName(this.state.addedUserNames);
     if (this.state.formError) {
       Alert.alert(
         "",
@@ -209,17 +243,82 @@ export default class HomeScreen extends Component {
     }
   }
 
+  goBack() {
+    this.setState({ firstModalVisible: true, secondModalVisible: false });
+  }
+
   setRoomName(roomName) {
     this.validateFormEntry(roomName, "Room");
     this.setState({ roomName: roomName });
   }
 
+  setDefaultName(users) {
+    let defaultName = "";
+    if (users.length == 1) {
+      defaultName = users[0];
+    } else if (users.length <= 3) {
+      for (var i = 0; i < users.length; i++) {
+        defaultName += users[i] + ", ";
+      }
+      defaultName = defaultName.substring(0, defaultName.length - 2);
+    } else {
+      for (var i = 0; i < 3; i++) {
+        defaultName += users[i] + ", ";
+      }
+      defaultName += "+" + (users.length - 3);
+    }
+    this.setState({ roomName: defaultName });
+  }
+
   addUser(name) {
-    var newNames = this.state.addedUsers;
-    newNames.push(name.toLowerCase());
+    let newNames = this.state.addedUsers;
+    let newEmailsToAdd = this.state.emailsToAdd;
+    let newUserNames = this.state.addedUserNames;
+
+    for (var i = 0; i < newNames.length; i++) {
+      if (newNames[i].includes("User Slot")) {
+        newNames[i] = name.split("@")[0];
+        newUserNames.push(name.split("@")[0]);
+        newEmailsToAdd.push(name.toLowerCase());
+        break;
+      } else if (newNames[i] == name) {
+        return <Snackbar>User already added!</Snackbar>;
+      }
+    }
+
     this.setState({
       addedUsers: newNames,
+      addedUserNames: newUserNames,
+      emailsToAdd: newEmailsToAdd,
+      searchQuery: "",
     });
+  }
+
+  deleteUser(name) {
+    let newNames = this.state.addedUsers;
+    let newEmailsToAdd = this.state.emailsToAdd;
+    let newUserNames = this.state.addedUserNames;
+
+    newNames.splice(newNames.indexOf(name), 1);
+    newNames.push("User Slot Available");
+    newEmailsToAdd.splice(newEmailsToAdd.indexOf(name.toLowerCase()), 1);
+    newUserNames.splice(newUserNames.indexOf(name.split("@")[0]), 1);
+    
+    this.setState({
+      addedUsers: newNames,
+      emailsToAdd: newEmailsToAdd,
+      addedUserNames: newUserNames,
+    });
+  }
+
+  getAvatarUrl() {
+    if (
+      this.props.avatarLocation === undefined ||
+      this.props.avatarLocation === ""
+    ) {
+      return "https://p.kindpng.com/picc/s/22-223910_circle-user-png-icon-transparent-png.png";
+    }
+    return this.props.avatarLocation;
   }
 
   sortSessions(sessions) {
@@ -259,11 +358,134 @@ export default class HomeScreen extends Component {
             <Modal
               visible={this.state.firstModalVisible}
               onDismiss={this.hideModal}
-              contentContainerStyle={styles.containerStyle}
+              contentContainerStyle={styles.modalStyle}
             >
+              <Title>Create Matching Session</Title>
+              <View style={{ flexDirection: "row" }}>
+                <TextInput
+                  label="Add Friends"
+                  placeholder="Add Users By Email..."
+                  style={{ width: "85%" }}
+                  onChangeText={(text) => this.onChangeSearch(text)}
+                  value={this.state.searchQuery}
+                />
+                <IconButton
+                  icon="plus-circle"
+                  color="#6200ee"
+                  size={35}
+                  onPress={() => this.addUser(this.state.searchQuery)}
+                  disabled={this.state.errorMessagesUser.length > 0 || this.state.initialFlag}
+                />
+              </View>
+              {this.state.errorMessagesUser.map((errorMessage) => (
+                <HelperText
+                  key={errorMessage}
+                  type="error"
+                  visible={this.state.errorMessagesUser.length > 0}
+                >
+                  {errorMessage}
+                </HelperText>
+              ))}
+              <View
+                style={{
+                  width: wp("80%"),
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Caption>Members</Caption>
+                {this.state.addedUserNames.length == 8 ? (
+                  <Caption style={{ color: "red" }}>
+                    {this.state.addedUserNames.length}/8
+                  </Caption>
+                ) : (
+                  <Caption>{this.state.addedUserNames.length}/8</Caption>
+                )}
+              </View>
+              {this.state.addedUsers.map((user, index) => (
+                <View key={index}>
+                  {user == this.props.uID.split("@")[0] ? (
+                    <Chip
+                      style={{ width: wp("60%") }}
+                      avatar={
+                        <Image
+                          source={{
+                            uri:
+                              "https://p.kindpng.com/picc/s/22-223910_circle-user-png-icon-transparent-png.png",
+                          }}
+                        />
+                      }
+                    >
+                      {user}
+                    </Chip>
+                  ) : user.includes("Slot") ? (
+                    <Chip
+                      style={{ width: wp("60%") }}
+                      disabled
+                      avatar={
+                        <Image
+                          source={{
+                            uri:
+                              "https://p.kindpng.com/picc/s/22-223910_circle-user-png-icon-transparent-png.png",
+                          }}
+                        />
+                      }
+                    >
+                      {user}
+                    </Chip>
+                  ) : (
+                    <Chip
+                      style={{ width: wp("60%") }}
+                      onClose={() => this.deleteUser(user)}
+                      avatar={
+                        <Image
+                          source={{
+                            uri:
+                              "https://p.kindpng.com/picc/s/22-223910_circle-user-png-icon-transparent-png.png",
+                          }}
+                        />
+                      }
+                    >
+                      {user}
+                    </Chip>
+                  )}
+                </View>
+              <Button mode="contained" onPress={() => this.nextModal()}>
+                Next Step
+              </Button>
+            </Modal>
+            <Modal
+              visible={this.state.secondModalVisible}
+              onDismiss={this.hideModal}
+              contentContainerStyle={styles.modalStyle}
+            >
+              <View style={{ flexDirection: "row" }}>
+                <IconButton
+                  icon="arrow-left-circle"
+                  color="#6200ee"
+                  size={40}
+                  onPress={() => this.goBack()}
+                />
+              </View>
+              <Subheading>Upload a Group Picture</Subheading>
+              <Avatar.Image
+                size={150}
+                source={{
+                  uri:
+                    "https://p.kindpng.com/picc/s/22-223910_circle-user-png-icon-transparent-png.png",
+                }}
+              />
+              <FAB
+                icon="camera"
+                style={styles.avatarButton}
+                color="white"
+                onPress={() => console.log("Avatar Change")}
+              />
               <TextInput
-                label="Room Name"
+                label="Session Name"
+                placeholder="New Matching Session"
                 mode="flat"
+                style={{ width: "75%" }}
                 value={this.state.roomName}
                 onChangeText={(text) => this.setRoomName(text)}
               />
@@ -276,87 +498,37 @@ export default class HomeScreen extends Component {
                   {errorMessage}
                 </HelperText>
               ))}
-              <Button mode="contained" onPress={() => this.nextModal()}>
-                Next Step
-              </Button>
-            </Modal>
-            <Modal
-              visible={this.state.secondModalVisible}
-              onDismiss={this.hideModal}
-              contentContainerStyle={styles.containerStyle}
-            >
-              {/* <IconButton
-                icon="camera"
-                color="red"
-                size={35}
-                onPress={() => console.log("Scan Icon Pressed")}
-              /> */}
-              <TextInput
-                label="Friend's Username"
-                placeholder="Add Users..."
-                onChangeText={(text) => this.onChangeSearch(text)}
-                value={this.state.searchQuery}
-              />
-              {this.state.errorMessagesUser.map((errorMessage) => (
-                <HelperText
-                  key={errorMessage}
-                  type="error"
-                  visible={this.state.errorMessagesUser.length > 0}
-                >
-                  {errorMessage}
-                </HelperText>
-              ))}
-              <Button
-                mode="contained"
-                onPress={() => this.addUser(this.state.searchQuery)}
-                disabled={
-                  this.state.errorMessagesUser.length > 0 ||
-                  this.state.initialFlag
-                }
-              >
-                Add User
-              </Button>
               <Divider />
               <Button
                 mode="contained"
+
                 onPress={() => {
                   this.props.requestRoom(
                     this.state.roomName,
-                    this.state.addedUsers
+                    this.state.emailsToAdd
                   );
                   this.resetModal();
                 }}
               >
-                Submit Matching Session
+                Create Matching Session
               </Button>
             </Modal>
-          </Portal>
-          <Portal>
             <Modal
               visible={this.state.qrVisible}
               onDismiss={this.hideQR}
               contentContainerStyle={styles.containerStyle}
             >
-              <QRCode
-                value={this.props.uID}
-                size={500}
-                bgColor="purple"
-                fgColor="white"
-              />
+              <Headline style={{ textAlign: "center" }}>
+                {this.props.user.username}'s Invite Code
+              </Headline>
+              <QRCode value={this.props.uID} size={250} color="#6200ee" />
             </Modal>
           </Portal>
           <Appbar.Header>
-            <Avatar.Image
-              size={30}
-              style={{ paddingLeft: 5 }}
-              source={{
-                uri: this.getAvatarUrl(),
-              }}
-            />
             <Appbar.Content title="WatchNext" />
             <Appbar.Action
-              size={25}
-              icon="qrcode-scan"
+              size={30}
+              icon="qrcode"
               onPress={() => this.showQR()}
             />
             <Appbar.Action
@@ -371,54 +543,46 @@ export default class HomeScreen extends Component {
             />
           </Appbar.Header>
         </View>
-        <View>
-          <ScrollView>
-            <Title style={{ fontSize: 24, padding: 15 }}>
-              Matching Sessions
-            </Title>
-            <Divider />
-            {this.sortSessions(this.props.matchingSessions).map(
-              (matchingSession) => (
-                <View key={matchingSession.session_id}>
-                  <TouchableOpacity
-                    style={styles.matchingSession}
-                    onPress={() =>
-                      this.props.enterMatching(
-                        [],
-                        [],
-                        matchingSession.session_id
-                      )
-                    }
-                  >
-                    <Avatar.Image
-                      size={50}
-                      source={{
-                        uri: matchingSession.image,
-                      }}
-                    />
-                    <View style={{ paddingLeft: 10 }}>
-                      <Text style={{ fontWeight: "bold" }}>
-                        {matchingSession.name}
-                      </Text>
-                      <Caption>
-                        {matchingSession.num_matches} total matches
-                      </Caption>
-                    </View>
-                    <IconButton
-                      icon="cog"
-                      size={25}
-                      style={{ marginLeft: "auto" }}
-                      onPress={() => {
-                        this.props.setSessionID(matchingSession.session_id);
-                      }}
-                    />
-                  </TouchableOpacity>
-                  <Divider />
-                </View>
-              )
-            )}
-          </ScrollView>
-        </View>
+        <Title style={{ fontSize: 22, padding: 15 }}>Matching Sessions</Title>
+        <Divider />
+        <ScrollView>
+          {this.sortSessions(this.props.matchingSessions).map(
+            (matchingSession) => (
+              <View key={matchingSession.session_id}>
+                <TouchableOpacity
+                  style={styles.matchingSession}
+                  onPress={() =>
+                    this.props.enterMatching([], [], matchingSession.session_id)
+                  }
+                >
+                  <Avatar.Image
+                    size={50}
+                    source={{
+                      uri: matchingSession.image,
+                    }}
+                  />
+                  <View style={{ paddingLeft: 10 }}>
+                    <Text style={{ fontWeight: "bold" }}>
+                      {matchingSession.name}
+                    </Text>
+                    <Caption>
+                      {matchingSession.num_matches} total matches
+                    </Caption>
+                  </View>
+                  <IconButton
+                    icon="cog"
+                    size={25}
+                    style={{ marginLeft: "auto" }}
+                    onPress={() => {
+                      this.props.setSessionID(matchingSession.session_id);
+                    }}
+                  />
+                </TouchableOpacity>
+                <Divider />
+              </View>
+            )
+          )}
+        </ScrollView>
       </KeyboardAvoidingView>
     );
   }
@@ -433,10 +597,40 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     padding: 15,
   },
-  containerStyle: {
-    //flex: 0.5,
+  modalStyle: {
     backgroundColor: "white",
-    justifyContent: "center",
-    padding: 20,
+    height: hp("80%"),
+    width: wp("95%"),
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 15,
+  },
+  modal2Style: {
+    backgroundColor: "white",
+    height: hp("80%"),
+    width: wp("95%"),
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    padding: 15,
+  },
+  containerStyle: {
+    backgroundColor: "white",
+    height: hp("50%"),
+    width: wp("80%"),
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "space-evenly",
+    paddingLeft: 25,
+    paddingRight: 25,
+    paddingTop: 10,
+    paddingBottom: 15,
+  },
+  avatarButton: {
+    backgroundColor: "#6200ee",
+    position: "absolute",
+    right: 0,
+    bottom: 0,
   },
 });

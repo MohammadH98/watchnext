@@ -345,14 +345,14 @@ export default class HomeScreen extends Component {
           <View style={styles.pageSelectionButtons}>
             <Button
               mode="text"
-              labelStyle={{ color: this.state.genrePage ? "purple" : "black" }}
+              labelStyle={{ color: this.state.genrePage ? "#6200ee" : "black" }}
               onPress={() => this.toggleGenrePage()}
             >
               Genres
             </Button>
             <Button
               mode="text"
-              labelStyle={{ color: this.state.genrePage ? "black" : "purple" }}
+              labelStyle={{ color: this.state.genrePage ? "black" : "#6200ee" }}
               onPress={() => this.toggleSettingsPage()}
             >
               Settings
@@ -371,7 +371,7 @@ export default class HomeScreen extends Component {
                     style={{
                       width: "30%",
                       backgroundColor: this.state.selectedGenres.includes(genre)
-                        ? "purple"
+                        ? "#6200ee"
                         : "lightgrey",
                       margin: 3,
                       marginBottom: 10,
@@ -392,7 +392,7 @@ export default class HomeScreen extends Component {
               <Button
                 mode="contained"
                 style={{
-                  backgroundColor: "purple",
+                  backgroundColor: "#6200ee",
                   borderRadius: 20,
                   margin: 15,
                 }}
@@ -423,7 +423,7 @@ export default class HomeScreen extends Component {
                     <Button
                       mode="text"
                       style={{ marginLeft: "auto", marginRight: 10 }}
-                      labelStyle={{ color: "purple" }}
+                      labelStyle={{ color: "#6200ee" }}
                       onPress={() => this.editName()}
                     >
                       {!this.state.editName ? "Edit" : "Save"}
@@ -469,7 +469,7 @@ export default class HomeScreen extends Component {
                     <Button
                       mode="text"
                       style={{ marginLeft: "auto", marginRight: 10 }}
-                      labelStyle={{ color: "purple" }}
+                      labelStyle={{ color: "#6200ee" }}
                       onPress={() => this.editUsername()}
                     >
                       {!this.state.editUsername ? "Edit" : "Save"}
@@ -492,7 +492,7 @@ export default class HomeScreen extends Component {
                     <Button
                       mode="text"
                       style={{ marginLeft: "auto", opacity: 0 }}
-                      labelStyle={{ color: "purple" }}
+                      labelStyle={{ color: "#6200ee" }}
                       onPress={() => console.log("Edit Email Pressed")}
                     >
                       Edit
@@ -505,7 +505,7 @@ export default class HomeScreen extends Component {
                   mode="contained"
                   icon="lock"
                   style={{
-                    backgroundColor: "purple",
+                    backgroundColor: "#6200ee",
                     borderRadius: 20,
                     marginTop: this.state.editUsername ? 75 : 53,
                   }}
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   avatarButton: {
-    backgroundColor: "purple",
+    backgroundColor: "#6200ee",
     position: "absolute",
     top: 50,
     left: 120,
