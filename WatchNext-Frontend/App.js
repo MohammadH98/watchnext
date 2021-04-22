@@ -38,7 +38,7 @@ import LoadingScreen from "./app/screens/LoadingScreen";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
 // https://api.cloudinary.com/v1_1/hgxqzjwvu
 
-const socket = io("https://27d855f0b218.ngrok.io", {
+const socket = io("https://332c5965b970.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -89,6 +89,8 @@ class App extends React.Component {
       currentMatchingSession: {},
       currentMatchesList: [],
       addedUsers: [],
+      allUsernames: [],
+      allEmails: [],
       localImgUrl: "",
       cloudImgUrl: "",
       currentMatchingSessionImage: "",
@@ -109,6 +111,8 @@ class App extends React.Component {
     this.handleBackButtonClick = this.handleBackButtonClick.bind(this);
     this.getUser = this.getUser.bind(this);
     this.updateSession = this.updateSession.bind(this);
+    this.getAllUsernames = this.getAllUsernames.bind(this);
+    this.getAllEmails = this.getAllEmails.bind(this);
 
     socket.on(
       "connect",
@@ -255,6 +259,22 @@ class App extends React.Component {
             }
           }.bind(this)
         );
+
+        socket.on(
+          "recvAllUsernames",
+          function (data) {
+            console.log(data);
+            this.setState({ allUsernames: data.usernames });
+          }.bind(this)
+        );
+
+        socket.on(
+          "recvAllEmails",
+          function (data) {
+            console.log(data);
+            this.setState({ allEmails: data.emails });
+          }.bind(this)
+        );
       }.bind(this)
     );
   }
@@ -361,6 +381,14 @@ class App extends React.Component {
 
   getUser() {
     socket.emit("getCurrentUser", "");
+  }
+
+  getAllUsernames() {
+    socket.emit("getAllUsernames", "");
+  }
+
+  getAllEmails() {
+    socket.emit("getAllEmails", "");
   }
 
   updateUser(firstname, lastname, username, selectedGenres) {
@@ -637,6 +665,8 @@ class App extends React.Component {
             <SetupScreen
               updateAvatar={this.openImagePickerAsync}
               avatarLocation={this.state.cloudImgUrl}
+              getAllUsernames={this.getAllUsernames}
+              allUsernames={this.state.allUsernames}
               onCompletion={this.updateUser}
             />
           </PaperProvider>
@@ -654,6 +684,8 @@ class App extends React.Component {
               updateScreen={this.updateScreen}
               avatarLocation={this.state.cloudImgUrl}
               setSessionID={this.setSessionID}
+              getAllEmails={this.getAllEmails}
+              allEmails={this.state.allEmails}
             />
           </PaperProvider>
         );
@@ -669,6 +701,8 @@ class App extends React.Component {
               logout={this.logoutOfApp}
               user={this.state.user}
               getUser={this.getUser}
+              getAllUsernames={this.getAllUsernames}
+              allUsernames={this.state.allUsernames}
             />
           </PaperProvider>
         );

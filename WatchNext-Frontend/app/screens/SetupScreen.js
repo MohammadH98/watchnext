@@ -57,10 +57,11 @@ export default class SetupScreen extends Component {
       genres: ExportData(props.data),
       selectedGenres: [],
       formError: true,
-      errorMessagesFirst: ["First name must be completed"],
-      errorMessagesLast: ["Last name must be completed"],
-      errorMessagesUser: ["Username must be completed"],
+      errorMessagesFirst: ["First name is not long enough"],
+      errorMessagesLast: ["Last name is not long enough"],
+      errorMessagesUser: ["Username is not long enough"],
     };
+    this.props.getAllUsernames();
   }
 
   validateFormEntry(formEntry, formEntryName) {
@@ -78,7 +79,7 @@ export default class SetupScreen extends Component {
     }
 
     function validateLengthShort(testString) {
-      return testString.length > 0;
+      return testString.length > 3;
     }
 
     function validateSpecial(testString) {
@@ -88,6 +89,12 @@ export default class SetupScreen extends Component {
       }
       var rg = /^[a-zA-Z]+$/;
       return testString.match(rg);
+    }
+
+    function validateExistingUsername(testString, testArray) {
+      return !testArray
+        .map((name) => name.toLowerCase())
+        .includes(testString.toLowerCase());
     }
 
     [valid, errorMessages] = this.validator(
@@ -100,7 +107,7 @@ export default class SetupScreen extends Component {
     [valid, errorMessages] = this.validator(
       validateLengthShort,
       formEntry,
-      formEntryName + " must be completed",
+      formEntryName + " is not long enough",
       errorMessages
     );
 
@@ -110,6 +117,16 @@ export default class SetupScreen extends Component {
         formEntry,
         formEntryName + " can only contain letters",
         errorMessages
+      );
+    }
+
+    if (formEntryName === "Username") {
+      [valid, errorMessages] = this.validatorArray(
+        validateExistingUsername,
+        formEntry,
+        formEntryName + " is already taken, please try another",
+        errorMessages,
+        this.props.allUsernames
       );
     }
 
@@ -150,6 +167,29 @@ export default class SetupScreen extends Component {
   validator(validationFunction, formEntry, errorMessage, errorMessages) {
     var valid = true;
     if (!validationFunction(formEntry)) {
+      valid = false;
+      if (errorMessages.indexOf(errorMessage) === -1) {
+        errorMessages.push(errorMessage);
+      }
+    } else {
+      errorMessages.forEach(function (error, index) {
+        if (error === errorMessage) {
+          errorMessages.splice(index, 1);
+        }
+      });
+    }
+    return [valid, errorMessages];
+  }
+
+  validatorArray(
+    validationFunction,
+    formEntry,
+    errorMessage,
+    errorMessages,
+    arrayToCompare
+  ) {
+    var valid = true;
+    if (!validationFunction(formEntry, arrayToCompare)) {
       valid = false;
       if (errorMessages.indexOf(errorMessage) === -1) {
         errorMessages.push(errorMessage);

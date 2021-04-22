@@ -41,6 +41,7 @@ export default class HomeScreen extends Component {
     };
     this.hideModal = this.hideModal.bind(this);
     this.hideQR = this.hideQR.bind(this);
+    this.props.getAllEmails();
   }
 
   validateFormEntry(formEntry) {
@@ -102,6 +103,7 @@ export default class HomeScreen extends Component {
   }
 
   onChangeSearch(query) {
+    this.validateFormEntry(query, "Username");
     this.setSearchQuery(query);
   }
 
