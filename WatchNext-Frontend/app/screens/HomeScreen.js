@@ -91,6 +91,11 @@ export default class HomeScreen extends Component {
     }
 
     function validateExistingUsername(testString, testArray) {
+      console.log(testString);
+      console.log(testString.length);
+      if (testString.length === 0) {
+        return true;
+      }
       return testArray
         .map((name) => name.toLowerCase())
         .includes(testString.toLowerCase());
@@ -254,19 +259,19 @@ export default class HomeScreen extends Component {
 
   setDefaultName(users) {
     let defaultName = "";
-    if (users.length == 1) {
-      defaultName = users[0];
-    } else if (users.length <= 3) {
-      for (var i = 0; i < users.length; i++) {
-        defaultName += users[i] + ", ";
-      }
-      defaultName = defaultName.substring(0, defaultName.length - 2);
-    } else {
-      for (var i = 0; i < 3; i++) {
-        defaultName += users[i] + ", ";
-      }
-      defaultName += "+" + (users.length - 3);
-    }
+    // if (users.length == 1) {
+    defaultName = users[0] + "'s room";
+    // } else if (users.length <= 3) {
+    //   for (var i = 0; i < users.length; i++) {
+    //     defaultName += users[i] + ", ";
+    //   }
+    //   defaultName = defaultName.substring(0, defaultName.length - 2);
+    // } else {
+    //   for (var i = 0; i < 3; i++) {
+    //     defaultName += users[i] + ", ";
+    //   }
+    //   defaultName += "+" + (users.length - 3);
+    // }
     this.setState({ roomName: defaultName });
   }
 
@@ -291,6 +296,7 @@ export default class HomeScreen extends Component {
       addedUserNames: newUserNames,
       emailsToAdd: newEmailsToAdd,
       searchQuery: "",
+      initialFlag: true,
     });
   }
 
@@ -303,7 +309,7 @@ export default class HomeScreen extends Component {
     newNames.push("User Slot Available");
     newEmailsToAdd.splice(newEmailsToAdd.indexOf(name.toLowerCase()), 1);
     newUserNames.splice(newUserNames.indexOf(name.split("@")[0]), 1);
-    
+
     this.setState({
       addedUsers: newNames,
       emailsToAdd: newEmailsToAdd,
@@ -374,7 +380,11 @@ export default class HomeScreen extends Component {
                   color="#6200ee"
                   size={35}
                   onPress={() => this.addUser(this.state.searchQuery)}
-                  disabled={this.state.errorMessagesUser.length > 0 || this.state.initialFlag}
+                  disabled={
+                    this.state.errorMessagesUser.length > 0 ||
+                    this.state.searchQuery.length === 0 ||
+                    this.state.initialFlag
+                  }
                 />
               </View>
               {this.state.errorMessagesUser.map((errorMessage) => (
@@ -450,6 +460,7 @@ export default class HomeScreen extends Component {
                     </Chip>
                   )}
                 </View>
+              ))}
               <Button mode="contained" onPress={() => this.nextModal()}>
                 Next Step
               </Button>
@@ -501,7 +512,6 @@ export default class HomeScreen extends Component {
               <Divider />
               <Button
                 mode="contained"
-
                 onPress={() => {
                   this.props.requestRoom(
                     this.state.roomName,
