@@ -443,6 +443,50 @@ io.on("connection", function (socket) {
       });
   });
 
+  socket.on("getAllUsernames", function () {
+    axios
+      .get(`https://xwatchnextx.herokuapp.com/api/users`, {
+        headers: {
+          authorization: `Bearer ${DBTOKEN}`,
+        },
+      })
+      .then((response) => {
+        usernames = response.data.data.map((user) => {
+          return user.username;
+        });
+        console.log("get all usernames request");
+        console.log(usernames);
+        // socket.emit("recvUser", response.data);
+        // console.log(response.data.data[0]);
+        socket.emit("recvAllUsernames", { usernames: usernames });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
+  socket.on("getAllEmails", function () {
+    axios
+      .get(`https://xwatchnextx.herokuapp.com/api/users`, {
+        headers: {
+          authorization: `Bearer ${DBTOKEN}`,
+        },
+      })
+      .then((response) => {
+        emails = response.data.data.map((user) => {
+          return user.user_id;
+        });
+        console.log("get all emails request");
+        console.log(emails);
+        // socket.emit("recvUser", response.data);
+        // console.log(response.data.data[0]);
+        socket.emit("recvAllEmails", { emails: emails });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
   // Get multiple users. (used to get users in a matching session) users
   // REQ: {uIDs: [String] }
   socket.on("getSessionMembers", function (data) {
@@ -1587,8 +1631,7 @@ io.on("connection", function (socket) {
   });
 
   // function deletes a user account given the users access token undecoded
-  socket.on("deleteAccount", function(){
-
+  socket.on("deleteAccount", function () {
     //anywhere there is a socket.emit we can do the invite thing sort of to update the other session members screens as well, with the new info
     var conndata = {
       client_id: process.env.CLIENT_ID,
@@ -1596,7 +1639,7 @@ io.on("connection", function (socket) {
       audience: "https://watchnext2020.us.auth0.com/api/v2/",
       grant_type: "client_credentials",
     };
-  
+
     // Get options to start connection
     var options = {
       method: "POST",
@@ -1605,38 +1648,106 @@ io.on("connection", function (socket) {
       data: JSON.stringify(conndata),
     };
 
-    user_id = SOCKET_LIST[socket.id].uID
+    user_id = SOCKET_LIST[socket.id].uID;
     // Fetch token for management api
     axios(options)
       .then(function (response) {
         auth0_token = response.data.access_token;
         auth0_id = sjfieeshlhfes;
-        axios.delete(`https://watchnext2020.us.auth0.com/api/v2/users/${auth0_id}`,
-          {
-            headers: {
-              authorization: `Bearer ${auth0_token}`,
-          },
-        }).then(response=>{
-          //find all sessions user is member of
-          axios.get(`https://xwatchnextx.herokuapp.com/api/matching-sessions/user/${
-              user_id
-            }`,
+        axios
+          .delete(
+            `https://watchnext2020.us.auth0.com/api/v2/users/${auth0_id}`,
             {
               headers: {
-                authorization: `Bearer ${DBTOKEN}`,
+                authorization: `Bearer ${auth0_token}`,
               },
             }
-          ).then((response) => {
-            sessions = response.data.data;
-            //for each session
-            //if user is creator then delete session
-            //if user is member then leave session
-            let requests = sessions.map(session=>{
-              return new Promise((resolve, reject)=>{
-                if (user_id == session.creator_id){
+          )
+          .then((response) => {
+            //find all sessions user is member of
+            axios
+              .get(
+                `https://xwatchnextx.herokuapp.com/api/matching-sessions/user/${user_id}`,
+                {
+                  headers: {
+                    authorization: `Bearer ${DBTOKEN}`,
+                  },
+                }
+              )
+              .then((response) => {
+                sessions = response.data.data;
+                //for each session
+                //if user is creator then delete session
+                //if user is member then leave session
+                let requests = sessions.map((session) => {
+                  return new Promise((resolve, reject) => {
+                    if (user_id == session.creator_id) {
+                      axios
+                        .delete(
+                          `https://xwatchnextx.herokuapp.com/api/matching-session/${session.session_id}`,
+                          {
+                            headers: {
+                              authorization: `Bearer ${DBTOKEN}`,
+                            },
+                          }
+                        )
+                        .then((response) => {
+                          resolve(response.data);
+                          // socket.emit("recvDeleteSession", { success: true });
+                        })
+                        .catch((err) => {
+                          reject(err);
+                          // socket.emit("recvDeleteSession", { success: false });
+                          // console.log(err);
+                        });
+                    } else {
+                      data = {
+                        member: user_id,
+                        session_id: sessions.session_id,
+                      };
+                      var config = {
+                        method: "delete",
+                        url:
+                          "https://xwatchnextx.herokuapp.com/api/matching-session/members",
+                        headers: {
+                          authorization: `Bearer ${DBTOKEN}`,
+                        },
+                        data: data,
+                      };
+                      axios(config)
+                        .then((response) => {
+                          var config = {
+                            method: "delete",
+                            url:
+                              "https://xwatchnextx.herokuapp.com/api/user/matching-session",
+                            headers: {
+                              authorization: `Bearer ${DBTOKEN}`,
+                            },
+                            data: data,
+                          };
+                          axios(config)
+                            .then(function (response) {
+                              resolve(response.data);
+                              //socket.emit("recvDeleteSession", { success: true });
+                            })
+                            .catch(function (error) {
+                              //socket.emit("recvDeleteSession", { success: false });
+                              reject(error);
+                            });
+                        })
+                        .catch((err) => {
+                          console.log(err);
+                          reject(error);
+                          // socket.emit("recvDeleteSession", { success: false });
+                        });
+                    }
+                  });
+                });
+                Promise.all(requests).then(() => {
+                  //delete user from database
                   axios
                     .delete(
-                      `https://xwatchnextx.herokuapp.com/api/matching-session/${session.session_id}`,
+                      `https://xwatchnextx.herokuapp.com/api/user/${user_id}`,
                       {
                         headers: {
                           authorization: `Bearer ${DBTOKEN}`,
@@ -1644,73 +1755,20 @@ io.on("connection", function (socket) {
                       }
                     )
                     .then((response) => {
-                      resolve(response.data)
-                      // socket.emit("recvDeleteSession", { success: true });
+                      socket.emit("deleteAccountResp", { success: true });
                     })
-                    .catch((err) => {
-                      reject(err)
-                      // socket.emit("recvDeleteSession", { success: false });
-                      // console.log(err);
+                    .catch((error) => {
+                      console.log(error);
                     });
-                }
-                else{
-                  data = {member: user_id, session_id: sessions.session_id}
-                  var config = {
-                    method: "delete",
-                    url: "https://xwatchnextx.herokuapp.com/api/matching-session/members",
-                    headers: {
-                      authorization: `Bearer ${DBTOKEN}`,
-                    },
-                    data: data,
-                  };
-                  axios(config)
-                    .then((response) => {
-                      var config = {
-                        method: "delete",
-                        url: "https://xwatchnextx.herokuapp.com/api/user/matching-session",
-                        headers: {
-                          authorization: `Bearer ${DBTOKEN}`,
-                        },
-                        data: data,
-                      };
-                      axios(config)
-                        .then(function (response) {
-                          resolve(response.data)
-                          //socket.emit("recvDeleteSession", { success: true });
-                        })
-                        .catch(function (error) {
-                          //socket.emit("recvDeleteSession", { success: false });
-                          reject(error)
-                        });
-                    })
-                    .catch((err) => {
-                      console.log(err);
-                      reject(error)
-                      // socket.emit("recvDeleteSession", { success: false });
-                    });
-                } 
-              })
-            })
-            Promise.all(requests).then(()=>{
-              //delete user from database
-              axios.delete(`https://xwatchnextx.herokuapp.com/api/user/${user_id}`, 
-                {
-                  headers: {
-                    authorization: `Bearer ${DBTOKEN}`,
-                  }
-                }
-                ).then(response=>{
-                  socket.emit('deleteAccountResp', {success: true})
-                }).catch(error=>{
-                  console.log(error)
                 });
-            });
-          }).catch(error=>{
-            console.log('error finding session that user belongs to');
+              })
+              .catch((error) => {
+                console.log("error finding session that user belongs to");
+              });
           })
-        }).catch(error=>{
-          console.log('error deleteing user from auth0')
-        })
+          .catch((error) => {
+            console.log("error deleteing user from auth0");
+          });
       })
       .catch((error) => {
         console.log("Management API token creation error:\n", error);
