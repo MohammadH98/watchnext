@@ -77,7 +77,7 @@ export default function LogoutButton(props) {
               {
                 text: "Logout",
                 onPress: () => {
-                  this.props.logout();
+                  props.logout();
                   promptAsync({ useProxy });
                 },
               },

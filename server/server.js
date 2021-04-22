@@ -7,6 +7,7 @@ const cron = require("node-cron");
 const { v4: uuidv4 } = require("uuid");
 const { json } = require("express");
 const express = require("express");
+const jwtDecode = require("jwt-decode");
 const app = express();
 const server = require("http").createServer(app);
 // TODO: Change cors to specify address, to avoid security issues. Any address can load this currently
@@ -1631,7 +1632,7 @@ io.on("connection", function (socket) {
   });
 
   // function deletes a user account given the users access token undecoded
-  socket.on("deleteAccount", function () {
+  socket.on("deleteAccount", function (data) {
     //anywhere there is a socket.emit we can do the invite thing sort of to update the other session members screens as well, with the new info
     var conndata = {
       client_id: process.env.CLIENT_ID,
@@ -1647,13 +1648,17 @@ io.on("connection", function (socket) {
       headers: { "content-type": "application/json" },
       data: JSON.stringify(conndata),
     };
+    console.log("attempting to delete account.... \n\n\n");
+    decoded_token = jwtDecode(data.token);
+    user_id = decoded_token.email;
+    auth0_id = decoded_token["https://watchnext.com/user_id"];
 
-    user_id = SOCKET_LIST[socket.id].uID;
+    // socket.emit("deleteAccountResp", { success: true });
+
     // Fetch token for management api
     axios(options)
       .then(function (response) {
         auth0_token = response.data.access_token;
-        auth0_id = sjfieeshlhfes;
         axios
           .delete(
             `https://watchnext2020.us.auth0.com/api/v2/users/${auth0_id}`,
@@ -1696,14 +1701,15 @@ io.on("connection", function (socket) {
                           // socket.emit("recvDeleteSession", { success: true });
                         })
                         .catch((err) => {
+                          console.log(err);
                           reject(err);
                           // socket.emit("recvDeleteSession", { success: false });
                           // console.log(err);
                         });
                     } else {
                       data = {
-                        member: user_id,
-                        session_id: sessions.session_id,
+                        user_id: user_id,
+                        session_id: session.session_id,
                       };
                       var config = {
                         method: "delete",
@@ -1731,6 +1737,7 @@ io.on("connection", function (socket) {
                               //socket.emit("recvDeleteSession", { success: true });
                             })
                             .catch(function (error) {
+                              console.log(error);
                               //socket.emit("recvDeleteSession", { success: false });
                               reject(error);
                             });
@@ -1743,7 +1750,9 @@ io.on("connection", function (socket) {
                     }
                   });
                 });
+
                 Promise.all(requests).then(() => {
+                  console.log("all promises have been returned");
                   //delete user from database
                   axios
                     .delete(
@@ -1764,6 +1773,7 @@ io.on("connection", function (socket) {
               })
               .catch((error) => {
                 console.log("error finding session that user belongs to");
+                console.log(error);
               });
           })
           .catch((error) => {
@@ -1775,7 +1785,6 @@ io.on("connection", function (socket) {
       });
 
     //decode token
-    auth_id = slihjfoeshl;
     //call auth0 api delete with user_id from token
     //call leave all current sessions where user is member
     //call delete all sessions where user is creator

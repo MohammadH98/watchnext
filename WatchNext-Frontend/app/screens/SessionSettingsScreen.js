@@ -438,9 +438,9 @@ export default class SessionSettingsScreen extends Component {
                     {this.state.members.map((member) => (
                       <View
                         key={
-                          member.firstname != undefined
-                            ? member.firstname
-                            : member.username
+                          member.username != undefined
+                            ? member.username
+                            : member.firstname
                         }
                         style={{
                           alignItems: "center",

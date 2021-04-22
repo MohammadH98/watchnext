@@ -90,7 +90,7 @@ export default class HomeScreen extends Component {
     }
 
     function validateLengthShort(testString) {
-      return testString.length > 3;
+      return testString.length > 2;
     }
 
     function validateSpecial(testString) {
@@ -517,7 +517,24 @@ export default class HomeScreen extends Component {
                   mode="contained"
                   icon="delete"
                   style={styles.deleteAccount}
-                  onPress={() => console.log("Delete Account Pressed")}
+                  onPress={() => {
+                    Alert.alert(
+                      "Are You Sure",
+                      "Are you sure you want to delete your account? It is not possible to reverse this!",
+                      [
+                        {
+                          text: "Cancel",
+                        },
+                        {
+                          text: "DELETE ACCOUNT PERMANENTLY",
+                          onPress: () => {
+                            this.props.deleteAccount();
+                            this.props.logout();
+                          },
+                        },
+                      ]
+                    );
+                  }}
                 >
                   Delete Account
                 </Button>

@@ -186,7 +186,11 @@ export default class HomeScreen extends Component {
   }
 
   hideModal() {
-    this.setState({ firstModalVisible: false, secondModalVisible: false });
+    this.setState({
+      firstModalVisible: false,
+      secondModalVisible: false,
+      formError: false,
+    });
   }
 
   resetModal() {
@@ -244,7 +248,6 @@ export default class HomeScreen extends Component {
   }
 
   render() {
-    console.log(this.props.allEmails);
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
