@@ -100,16 +100,30 @@ export default class MatchesScreen extends Component {
             <Title style={{ textAlign: "center" }}>{media.title}</Title>
             <Subheading>{media.year}</Subheading>
             <Subheading>Duration: {media.duration}</Subheading>
-            <Text style={{marginTop: 10, textAlign: "center"}}>{media.description}</Text>
-            {media.meta.director != "" && <Text style={{marginTop: 10}}>Director: {media.meta.director}</Text>}
-            <Text style={{textDecorationLine: "underline", fontWeight: "bold", marginTop: 10}}>Genres</Text>
-            {media.genre.slice(0,4).map((item) => (
+            <Text style={{ marginTop: 10, textAlign: "center" }}>
+              {media.description}
+            </Text>
+            {media.meta.director != "" && (
+              <Text style={{ marginTop: 10 }}>
+                Director: {media.meta.director}
+              </Text>
+            )}
+            <Text
+              style={{
+                textDecorationLine: "underline",
+                fontWeight: "bold",
+                marginTop: 10,
+              }}
+            >
+              Genres
+            </Text>
+            {media.genre.slice(0, 4).map((item) => (
               <Text key={item}>{item}</Text>
             ))}
             <Button
               icon="youtube"
               mode="contained"
-              style={{ width: wp("55%"), marginTop: 20}}
+              style={{ width: wp("55%"), marginTop: 20 }}
               onPress={() =>
                 Linking.openURL(TrailerURL + media.title + "+trailer")
               }
@@ -128,7 +142,10 @@ export default class MatchesScreen extends Component {
         </Portal>
         <Appbar.Header>
           <Appbar.BackAction onPress={() => this.props.goBack()} />
-          <Appbar.Content title="The Capstone Boys" subtitle="Matches List" />
+          <Appbar.Content
+            title={this.props.currentMS.name}
+            subtitle="Matches List"
+          />
           <Avatar.Image
             size={40}
             style={{ paddingRight: 50 }}

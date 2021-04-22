@@ -38,7 +38,7 @@ import LoadingScreen from "./app/screens/LoadingScreen";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
 // https://api.cloudinary.com/v1_1/hgxqzjwvu
 
-const socket = io("https://2d674906c536.ngrok.io", {
+const socket = io("https://5bc72091e324.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -797,13 +797,20 @@ class App extends React.Component {
         );
 
       case "SwipeScreen":
+        var sID = this.state.currentMatchingSessionID;
+        var currentSession = { name: "Matching Session" };
+        this.state.sessions.forEach(function (session) {
+          if (session.session_id === sID) {
+            currentSession = session;
+          }
+        });
         return (
           <PaperProvider theme={DefaultTheme}>
             <SwipeScreen
               data={this.state.movies}
               requestMovies={this.requestMovies}
               saveRatings={this.saveRatings}
-              currentMS={this.state.currentMatchingSessionID}
+              currentMS={currentSession}
               goBack={this.goBack}
               updateScreen={this.updateScreen}
             />
@@ -826,11 +833,19 @@ class App extends React.Component {
         );
 
       case "MatchesScreen":
+        var sID = this.state.currentMatchingSessionID;
+        var currentSession = { name: "Matching Session" };
+        this.state.sessions.forEach(function (session) {
+          if (session.session_id === sID) {
+            currentSession = session;
+          }
+        });
         return (
           <PaperProvider theme={DefaultTheme}>
             <MatchesScreen
               goBack={this.goBack}
               matches={this.state.currentMatchesList}
+              currentMS={currentSession}
             />
           </PaperProvider>
         );
