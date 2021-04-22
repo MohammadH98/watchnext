@@ -79,7 +79,7 @@ export default class SetupScreen extends Component {
     }
 
     function validateLengthShort(testString) {
-      return testString.length > 2;
+      return testString.length > 1;
     }
 
     function validateSpecial(testString) {
