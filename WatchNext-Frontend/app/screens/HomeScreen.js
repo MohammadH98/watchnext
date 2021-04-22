@@ -342,6 +342,20 @@ export default class HomeScreen extends Component {
     this.setState({ qrVisible: false, qrCodeText: "" });
   }
 
+  getNewSessionAvatarUrl() {
+    if (
+      !(this.props.localAvatar != undefined && this.props.localAvatar != "") &&
+      !(this.props.cloudAvatar != undefined && this.props.cloudAvatar != "")
+    ) {
+      return "https://p.kindpng.com/picc/s/22-223910_circle-user-png-icon-transparent-png.png";
+    }
+    if (this.props.cloudAvatar != undefined && this.props.cloudAvatar != "") {
+      return this.props.cloudAvatar;
+    } else {
+      return this.props.localAvatar;
+    }
+  }
+
   getAvatarUrl() {
     if (
       this.props.avatarLocation === undefined ||
@@ -482,15 +496,14 @@ export default class HomeScreen extends Component {
               <Avatar.Image
                 size={150}
                 source={{
-                  uri:
-                    "https://p.kindpng.com/picc/s/22-223910_circle-user-png-icon-transparent-png.png",
+                  uri: this.getNewSessionAvatarUrl(),
                 }}
               />
               <FAB
                 icon="camera"
                 style={styles.avatarButton}
                 color="white"
-                onPress={() => console.log("Avatar Change")}
+                onPress={() => this.props.updateAvatar()}
               />
               <TextInput
                 label="Session Name"

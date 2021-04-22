@@ -95,6 +95,8 @@ class App extends React.Component {
       localImgUrl: "",
       cloudImgUrl: "",
       currentMatchingSessionImage: "",
+      newMatchingSessionImageLocalURL: "",
+      newMatchingSessionImageCloudURL: "",
     };
 
     this.requestMovies = this.requestMovies.bind(this);
@@ -109,6 +111,9 @@ class App extends React.Component {
     this.updateScreen = this.updateScreen.bind(this);
     this.goBack = this.goBack.bind(this);
     this.openImagePickerAsync = this.openImagePickerAsync.bind(this);
+    this.openCreateSessionImagePickerAsync = this.openCreateSessionImagePickerAsync.bind(
+      this
+    );
     this.handleBackButtonClick = this.handleBackButtonClick.bind(this);
     this.getUser = this.getUser.bind(this);
     this.updateSession = this.updateSession.bind(this);
@@ -181,6 +186,10 @@ class App extends React.Component {
           function (data) {
             this.setState({
               currentMatchingSessionID: data.info.session_id,
+            });
+            socket.emit("editSessionImage", {
+              image: this.state.newMatchingSessionImageCloudURL,
+              session_id: data.info.session_id,
             });
             socket.emit("getSessions", "");
           }.bind(this)
@@ -575,6 +584,74 @@ class App extends React.Component {
       .catch((err) => console.log(err));
   };
 
+  openCreateSessionImagePickerAsync = async () => {
+    let permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    //this tells the application to give an alert if someone doesn't allow //permission.  It will return to the previous screen.
+
+    if (permissionResult.granted === false) {
+      alert("Permission to access camera roll is required!");
+      return;
+    }
+
+    //This gets image from phone
+
+    let pickerResult = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [4, 4],
+
+      //We need the image to be base64 in order to be formatted for Cloudinary
+
+      base64: true,
+    });
+
+    //this just returns the user to the previous page if they click "cancel"
+
+    if (pickerResult.cancelled === true) {
+      return;
+    }
+
+    //sets image from imagePicker to SelectedImage.
+    //This is if you are using hooks. The hook for this I have set up as:
+    //[selectedImage, setSelectedImage] = useState("").  If you're using //anclass component you can use setState here.  This file format will be
+    //a file path to where the image is saved.
+
+    // setSelectedImage({ localUri: pickerResult.uri });
+    this.setState({ newMatchingSessionImageLocalURL: pickerResult.uri });
+
+    //***IMPORTANT*** This step is necessary.  It converts image from //file path format that imagePicker creates, into a form that cloudinary //requires.
+
+    let base64Img = `data:image/jpg;base64,${pickerResult.base64}`;
+
+    // Here we need to include your Cloudinary upload preset with can be //found in your Cloudinary dashboard.
+
+    let data = {
+      file: base64Img,
+      upload_preset: "cro6hffr",
+    };
+
+    //sends photo to cloudinary
+    //**I initially tried using an axios request but it did NOT work** I was
+    //not able to get this to work until I changed it to a fetch request.
+
+    fetch(CLOUDINARY_URL, {
+      body: JSON.stringify(data),
+      headers: {
+        "content-type": "application/json",
+      },
+      method: "POST",
+    })
+      .then(async (r) => {
+        let data = await r.json();
+        //Here I'm using another hook to set State for the photo that we get back //from Cloudinary
+        // setPhoto(data.url);
+        //now send it in with the socket
+        this.setState({ newMatchingSessionImageCloudURL: data.url });
+        return data.uri;
+      })
+      .catch((err) => console.log(err));
+  };
+
   openSessionImagePickerAsync = async () => {
     let permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -694,6 +771,9 @@ class App extends React.Component {
               setSessionID={this.setSessionID}
               getAllEmails={this.getAllEmails}
               allEmails={this.state.allEmails}
+              updateAvatar={this.openCreateSessionImagePickerAsync}
+              localAvatar={this.state.newMatchingSessionImageLocalURL}
+              cloudAvatar={this.state.newMatchingSessionImageCloudURL}
             />
           </PaperProvider>
         );
