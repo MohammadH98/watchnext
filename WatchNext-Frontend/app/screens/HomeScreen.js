@@ -37,16 +37,21 @@ export default class HomeScreen extends Component {
       roomName: "New Matching Session",
       addedUsers: [], //add yourself to rooms by default
       formError: false,
+      initialFlag: true,
       errorMessagesRoom: [],
+      errorMessagesUser: [],
     };
     this.hideModal = this.hideModal.bind(this);
     this.hideQR = this.hideQR.bind(this);
-    this.props.getAllEmails();
   }
 
-  validateFormEntry(formEntry) {
+  validateFormEntry(formEntry, formEntryName) {
     var valid = true;
-    var errorMessages = this.state.errorMessagesRoom;
+    if (formEntryName == "Room") {
+      var errorMessages = this.state.errorMessagesRoom;
+    } else if (formEntryName == "Username") {
+      var errorMessages = this.state.errorMessagesUser;
+    }
 
     function validateLengthLong(testString) {
       return testString.length <= 32;
@@ -56,28 +61,74 @@ export default class HomeScreen extends Component {
       return testString.length > 0;
     }
 
-    [valid, errorMessages] = this.validator(
-      validateLengthLong,
-      formEntry,
-      "Room name is too long, the maximum is 32 characters",
-      errorMessages
-    );
+    function validateSpecial(testString) {
+      if (testString.length === 0) {
+        //don't want 2 error messages if it is an empty string
+        return true;
+      }
+      var rg = /^[a-zA-Z]+$/;
+      return testString.match(rg);
+    }
 
-    [valid, errorMessages] = this.validator(
-      validateLengthShort,
-      formEntry,
-      "Room name must be completed",
-      errorMessages
-    );
+    function validateExistingUsername(testString, testArray) {
+      return testArray
+        .map((name) => name.toLowerCase())
+        .includes(testString.toLowerCase());
+    }
+
+    if (formEntryName === "Room") {
+      [valid, errorMessages] = this.validator(
+        validateLengthLong,
+        formEntry,
+        "Room name is too long, the maximum is 32 characters",
+        errorMessages
+      );
+
+      [valid, errorMessages] = this.validator(
+        validateLengthShort,
+        formEntry,
+        "Room name must be completed",
+        errorMessages
+      );
+    }
+
+    if (formEntryName === "Username") {
+      if (this.state.initialFlag) {
+        this.setState({ initialFlag: false });
+      }
+      this.props.getAllEmails();
+      [valid, errorMessages] = this.validatorArray(
+        validateExistingUsername,
+        formEntry,
+        formEntryName + " does not exist, please try another",
+        errorMessages,
+        this.props.allEmails
+      );
+    }
 
     if (!valid) {
-      this.setState({ formError: true, errorMessagesRoom: errorMessages });
+      if (formEntryName == "Room") {
+        this.setState({ formError: true, errorMessagesRoom: errorMessages });
+      } else if (formEntryName == "Username") {
+        this.setState({ formError: true, errorMessagesUser: errorMessages });
+      }
     } else {
-      var formHasError = errorMessages.length != 0;
-      this.setState({
-        formError: formHasError,
-        errorMessagesRoom: errorMessages,
-      });
+      var formHasError =
+        errorMessages.length != 0 ||
+        this.state.errorMessagesRoom.length != 0 ||
+        this.state.errorMessagesUser.length != 0;
+
+      if (formEntryName == "Room") {
+        this.setState({
+          formError: formHasError,
+          errorMessagesRoom: errorMessages,
+        });
+      } else if (formEntryName == "Username") {
+        this.setState({
+          formError: formHasError,
+          errorMessagesUser: errorMessages,
+        });
+      }
     }
   }
 
@@ -98,12 +149,35 @@ export default class HomeScreen extends Component {
     return [valid, errorMessages];
   }
 
+  validatorArray(
+    validationFunction,
+    formEntry,
+    errorMessage,
+    errorMessages,
+    arrayToCompare
+  ) {
+    var valid = true;
+    if (!validationFunction(formEntry, arrayToCompare)) {
+      valid = false;
+      if (errorMessages.indexOf(errorMessage) === -1) {
+        errorMessages.push(errorMessage);
+      }
+    } else {
+      errorMessages.forEach(function (error, index) {
+        if (error === errorMessage) {
+          errorMessages.splice(index, 1);
+        }
+      });
+    }
+    return [valid, errorMessages];
+  }
+
   setSearchQuery(searchQuery) {
+    this.validateFormEntry(searchQuery, "Username");
     this.setState({ searchQuery: searchQuery });
   }
 
   onChangeSearch(query) {
-    this.validateFormEntry(query, "Username");
     this.setSearchQuery(query);
   }
 
@@ -132,12 +206,12 @@ export default class HomeScreen extends Component {
   }
 
   setRoomName(roomName) {
-    this.validateFormEntry(roomName);
+    this.validateFormEntry(roomName, "Room");
     this.setState({ roomName: roomName });
   }
 
   addUser(name) {
-    newNames = this.state.addedUsers;
+    var newNames = this.state.addedUsers;
     newNames.push(name.toLowerCase());
     this.setState({
       addedUsers: newNames,
@@ -170,6 +244,7 @@ export default class HomeScreen extends Component {
   }
 
   render() {
+    console.log(this.props.allEmails);
     return (
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -219,9 +294,22 @@ export default class HomeScreen extends Component {
                 onChangeText={(text) => this.onChangeSearch(text)}
                 value={this.state.searchQuery}
               />
+              {this.state.errorMessagesUser.map((errorMessage) => (
+                <HelperText
+                  key={errorMessage}
+                  type="error"
+                  visible={this.state.errorMessagesUser.length > 0}
+                >
+                  {errorMessage}
+                </HelperText>
+              ))}
               <Button
                 mode="contained"
                 onPress={() => this.addUser(this.state.searchQuery)}
+                disabled={
+                  this.state.errorMessagesUser.length > 0 ||
+                  this.state.initialFlag
+                }
               >
                 Add User
               </Button>
