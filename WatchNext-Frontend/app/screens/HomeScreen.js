@@ -7,6 +7,7 @@ import {
   Platform,
   TouchableOpacity,
   Image,
+  Alert,
 } from "react-native";
 import {
   widthPercentageToDP as wp,
@@ -30,6 +31,7 @@ import {
   Subheading,
   FAB,
   Snackbar,
+  HelperText,
 } from "react-native-paper";
 
 export default class HomeScreen extends Component {
@@ -54,12 +56,144 @@ export default class HomeScreen extends Component {
       ], //add yourself to rooms by default
       addedUserNames: [],
       emailsToAdd: [],
+      formError: false,
+      initialFlag: true,
+      errorMessagesRoom: [],
+      errorMessagesUser: [],
     };
     this.hideModal = this.hideModal.bind(this);
     this.hideQR = this.hideQR.bind(this);
   }
 
+  validateFormEntry(formEntry, formEntryName) {
+    var valid = true;
+    if (formEntryName == "Room") {
+      var errorMessages = this.state.errorMessagesRoom;
+    } else if (formEntryName == "Username") {
+      var errorMessages = this.state.errorMessagesUser;
+    }
+
+    function validateLengthLong(testString) {
+      return testString.length <= 32;
+    }
+
+    function validateLengthShort(testString) {
+      return testString.length > 0;
+    }
+
+    function validateSpecial(testString) {
+      if (testString.length === 0) {
+        //don't want 2 error messages if it is an empty string
+        return true;
+      }
+      var rg = /^[a-zA-Z]+$/;
+      return testString.match(rg);
+    }
+
+    function validateExistingUsername(testString, testArray) {
+      return testArray
+        .map((name) => name.toLowerCase())
+        .includes(testString.toLowerCase());
+    }
+
+    if (formEntryName === "Room") {
+      [valid, errorMessages] = this.validator(
+        validateLengthLong,
+        formEntry,
+        "Room name is too long, the maximum is 32 characters",
+        errorMessages
+      );
+
+      [valid, errorMessages] = this.validator(
+        validateLengthShort,
+        formEntry,
+        "Room name must be completed",
+        errorMessages
+      );
+    }
+
+    if (formEntryName === "Username") {
+      if (this.state.initialFlag) {
+        this.setState({ initialFlag: false });
+      }
+      this.props.getAllEmails();
+      [valid, errorMessages] = this.validatorArray(
+        validateExistingUsername,
+        formEntry,
+        formEntryName + " does not exist, please try another",
+        errorMessages,
+        this.props.allEmails
+      );
+    }
+
+    if (!valid) {
+      if (formEntryName == "Room") {
+        this.setState({ formError: true, errorMessagesRoom: errorMessages });
+      } else if (formEntryName == "Username") {
+        this.setState({ formError: true, errorMessagesUser: errorMessages });
+      }
+    } else {
+      var formHasError =
+        errorMessages.length != 0 ||
+        this.state.errorMessagesRoom.length != 0 ||
+        this.state.errorMessagesUser.length != 0;
+
+      if (formEntryName == "Room") {
+        this.setState({
+          formError: formHasError,
+          errorMessagesRoom: errorMessages,
+        });
+      } else if (formEntryName == "Username") {
+        this.setState({
+          formError: formHasError,
+          errorMessagesUser: errorMessages,
+        });
+      }
+    }
+  }
+
+  validator(validationFunction, formEntry, errorMessage, errorMessages) {
+    var valid = true;
+    if (!validationFunction(formEntry)) {
+      valid = false;
+      if (errorMessages.indexOf(errorMessage) === -1) {
+        errorMessages.push(errorMessage);
+      }
+    } else {
+      errorMessages.forEach(function (error, index) {
+        if (error === errorMessage) {
+          errorMessages.splice(index, 1);
+        }
+      });
+    }
+    return [valid, errorMessages];
+  }
+
+  validatorArray(
+    validationFunction,
+    formEntry,
+    errorMessage,
+    errorMessages,
+    arrayToCompare
+  ) {
+    var valid = true;
+    if (!validationFunction(formEntry, arrayToCompare)) {
+      valid = false;
+      if (errorMessages.indexOf(errorMessage) === -1) {
+        errorMessages.push(errorMessage);
+      }
+    } else {
+      errorMessages.forEach(function (error, index) {
+        if (error === errorMessage) {
+          errorMessages.splice(index, 1);
+        }
+      });
+    }
+    return [valid, errorMessages];
+  }
+
   setSearchQuery(searchQuery) {
+    this.validateFormEntry(searchQuery, "Username");
     this.setState({ searchQuery: searchQuery });
   }
 
@@ -88,6 +222,7 @@ export default class HomeScreen extends Component {
     this.setState({
       firstModalVisible: false,
       secondModalVisible: false,
+      formError: false,
     });
   }
 
@@ -98,7 +233,14 @@ export default class HomeScreen extends Component {
 
   nextModal() {
     this.setDefaultName(this.state.addedUserNames);
-    this.setState({ firstModalVisible: false, secondModalVisible: true });
+    if (this.state.formError) {
+      Alert.alert(
+        "",
+        "You must fix the errors before you can finish creating your room"
+      );
+    } else {
+      this.setState({ firstModalVisible: false, secondModalVisible: true });
+    }
   }
 
   goBack() {
@@ -106,6 +248,7 @@ export default class HomeScreen extends Component {
   }
 
   setRoomName(roomName) {
+    this.validateFormEntry(roomName, "Room");
     this.setState({ roomName: roomName });
   }
 
@@ -160,7 +303,7 @@ export default class HomeScreen extends Component {
     newNames.push("User Slot Available");
     newEmailsToAdd.splice(newEmailsToAdd.indexOf(name.toLowerCase()), 1);
     newUserNames.splice(newUserNames.indexOf(name.split("@")[0]), 1);
-
+    
     this.setState({
       addedUsers: newNames,
       emailsToAdd: newEmailsToAdd,
@@ -231,8 +374,18 @@ export default class HomeScreen extends Component {
                   color="#6200ee"
                   size={35}
                   onPress={() => this.addUser(this.state.searchQuery)}
+                  disabled={this.state.errorMessagesUser.length > 0 || this.state.initialFlag}
                 />
               </View>
+              {this.state.errorMessagesUser.map((errorMessage) => (
+                <HelperText
+                  key={errorMessage}
+                  type="error"
+                  visible={this.state.errorMessagesUser.length > 0}
+                >
+                  {errorMessage}
+                </HelperText>
+              ))}
               <View
                 style={{
                   width: wp("80%"),
@@ -297,7 +450,6 @@ export default class HomeScreen extends Component {
                     </Chip>
                   )}
                 </View>
-              ))}
               <Button mode="contained" onPress={() => this.nextModal()}>
                 Next Step
               </Button>
@@ -337,8 +489,19 @@ export default class HomeScreen extends Component {
                 value={this.state.roomName}
                 onChangeText={(text) => this.setRoomName(text)}
               />
+              {this.state.errorMessagesRoom.map((errorMessage) => (
+                <HelperText
+                  key={errorMessage}
+                  type="error"
+                  visible={this.state.errorMessagesRoom.length > 0}
+                >
+                  {errorMessage}
+                </HelperText>
+              ))}
+              <Divider />
               <Button
                 mode="contained"
+
                 onPress={() => {
                   this.props.requestRoom(
                     this.state.roomName,

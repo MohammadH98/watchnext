@@ -34,10 +34,11 @@ import QRScannerScreen from "./app/screens/QRScannerScreen";
 
 //For image uploading
 import * as ImagePicker from "expo-image-picker";
+import LoadingScreen from "./app/screens/LoadingScreen";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/hgxqzjwvu/upload";
 // https://api.cloudinary.com/v1_1/hgxqzjwvu
 
-const socket = io("https://37b2d07595c8.ngrok.io", {
+const socket = io("https://2d674906c536.ngrok.io", {
   transports: ["websocket"],
 });
 
@@ -79,6 +80,7 @@ class App extends React.Component {
     this.state = {
       currentScreen: "LoginScreen",
       previousScreen: "",
+      token: "",
       user: {},
       uID: "",
       isInvite: false,
@@ -88,6 +90,8 @@ class App extends React.Component {
       currentMatchingSession: {},
       currentMatchesList: [],
       addedUsers: [],
+      allUsernames: [],
+      allEmails: [],
       localImgUrl: "",
       cloudImgUrl: "",
       currentMatchingSessionImage: "",
@@ -108,6 +112,9 @@ class App extends React.Component {
     this.handleBackButtonClick = this.handleBackButtonClick.bind(this);
     this.getUser = this.getUser.bind(this);
     this.updateSession = this.updateSession.bind(this);
+    this.getAllUsernames = this.getAllUsernames.bind(this);
+    this.getAllEmails = this.getAllEmails.bind(this);
+    this.deleteAccount = this.deleteAccount.bind(this);
 
     socket.on(
       "connect",
@@ -254,6 +261,20 @@ class App extends React.Component {
             }
           }.bind(this)
         );
+
+        socket.on(
+          "recvAllUsernames",
+          function (data) {
+            this.setState({ allUsernames: data.usernames });
+          }.bind(this)
+        );
+
+        socket.on(
+          "recvAllEmails",
+          function (data) {
+            this.setState({ allEmails: data.emails });
+          }.bind(this)
+        );
       }.bind(this)
     );
   }
@@ -299,6 +320,7 @@ class App extends React.Component {
     this.setState({
       currentMatchingSessionID: sessionID,
     });
+    this.updateScreen("Loading");
     socket.emit("getRandomMovies", "");
     if (liked.length > 0 || disliked.length > 0) {
       socket.emit("sendRatings", {
@@ -361,6 +383,14 @@ class App extends React.Component {
     socket.emit("getCurrentUser", "");
   }
 
+  getAllUsernames() {
+    socket.emit("getAllUsernames", "");
+  }
+
+  getAllEmails() {
+    socket.emit("getAllEmails", "");
+  }
+
   updateUser(firstname, lastname, username, selectedGenres) {
     var avatar = this.state.cloudImgUrl;
     socket.emit("editUser", {
@@ -407,6 +437,9 @@ class App extends React.Component {
   loginToApp(token) {
     var tokenDecoded = jwtDecode(token);
     socket.emit("loginUser", { token: token, tokenDecoded: tokenDecoded });
+    this.updateScreen("Loading");
+    //this throws: 'Warning: Cannot update during an existing state transition (such as within `render`). Render methods should be a pure function of props and state.' On the initial login only
+    this.setState({ token: token });
   }
 
   logoutOfApp() {
@@ -418,6 +451,10 @@ class App extends React.Component {
     this.setState({
       currentMatchingSessionID: ID,
     });
+  }
+
+  deleteAccount() {
+    socket.emit("deleteAccount", { token: this.state.token });
   }
 
   createInviteAlert() {
@@ -459,7 +496,11 @@ class App extends React.Component {
   }
 
   updateScreen(newScreen) {
-    var oldScreen = this.state.currentScreen;
+    if (this.state.currentScreen != "Loading") {
+      var oldScreen = this.state.currentScreen;
+    } else {
+      var oldScreen = this.state.previousScreen;
+    }
     this.setState({
       currentScreen: newScreen,
       previousScreen: oldScreen,
@@ -630,6 +671,8 @@ class App extends React.Component {
             <SetupScreen
               updateAvatar={this.openImagePickerAsync}
               avatarLocation={this.state.cloudImgUrl}
+              getAllUsernames={this.getAllUsernames}
+              allUsernames={this.state.allUsernames}
               onCompletion={this.updateUser}
             />
           </PaperProvider>
@@ -649,6 +692,8 @@ class App extends React.Component {
               updateScreen={this.updateScreen}
               avatarLocation={this.state.cloudImgUrl}
               setSessionID={this.setSessionID}
+              getAllEmails={this.getAllEmails}
+              allEmails={this.state.allEmails}
             />
           </PaperProvider>
         );
@@ -664,6 +709,9 @@ class App extends React.Component {
               logout={this.logoutOfApp}
               user={this.state.user}
               getUser={this.getUser}
+              getAllUsernames={this.getAllUsernames}
+              allUsernames={this.state.allUsernames}
+              deleteAccount={this.deleteAccount}
             />
           </PaperProvider>
         );
@@ -714,6 +762,13 @@ class App extends React.Component {
               addUsersToRoom={this.addUsersToRoom}
               currentSID={this.state.currentMatchingSession.session_id}
             />
+          </PaperProvider>
+        );
+
+      case "Loading":
+        return (
+          <PaperProvider theme={DefaultTheme}>
+            <LoadingScreen />
           </PaperProvider>
         );
 
