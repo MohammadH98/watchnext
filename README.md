@@ -15,6 +15,6 @@ To start the server, in another terminal window, navigate to the `server` folder
 
 ## Client Startup
 
-To start the client, in another terminal window, navigate to the `WatchNext-Frontend` folder of this repo and run `npm install` on the first installation only, then run `updateNodeModules.sh` to update the `node_modules` folder. Lastly, run `npm run web` to begin.
+To start the client, in another terminal window, navigate to the `WatchNext-Frontend` folder of this repo and run `npm install`. Lastly, run `npm run web` to begin.
 ## Done!
 You should now be presented with a page with an expo page, complete with a QR code and task report page. You can scan the QR code to run the app on your phone, or select the `Run in web browser` option to look at the application on your browser
